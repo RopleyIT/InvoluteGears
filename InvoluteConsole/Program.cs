@@ -31,13 +31,14 @@ namespace InvoluteConsole
             IEnumerable<PointF> leftInvolute = Involutes.InvolutePlusOffsetPoints(-Math.PI / gear.ToothCount - 1.5*gear.PressureAngle, Math.PI / gear.ToothCount + 1.5*gear.PressureAngle, Math.PI / 2880, gear.BaseCircleDiameter / 2, 0, 0, Math.PI / gear.ToothCount - gear.ToothBaseOffset);
             IEnumerable<PointF> rightInvolute = Involutes.InvolutePlusOffsetPoints(-Math.PI / gear.ToothCount - 1.5*gear.PressureAngle, Math.PI / gear.ToothCount + 1.5*gear.PressureAngle, Math.PI / 2880, gear.BaseCircleDiameter / 2, 0, 0, -Math.PI / gear.ToothCount + gear.ToothBaseOffset);
             IEnumerable<PointF> leftUndercut = Involutes.InvolutePlusOffsetPoints
-                (-Math.PI / gear.ToothCount - 2*gear.PressureAngle, Math.PI / gear.ToothCount + 2*gear.PressureAngle, Math.PI / 2880, gear.PitchCircleDiameter / 2,
-                -gear.Module * Math.PI / 4 + gear.Module * Math.Sin(gear.PressureAngle),
-                -gear.Module, 0);
+                (-Math.PI / gear.ToothCount - 2*gear.PressureAngle, Math.PI / gear.ToothCount + 2*gear.PressureAngle, 
+                Math.PI / 2880, gear.PitchCircleDiameter / 2,
+                -gear.Module,
+                gear.Module * Math.PI / 4 - gear.Module * Math.Sin(gear.PressureAngle), 0);
             IEnumerable<PointF> rightUndercut = Involutes.InvolutePlusOffsetPoints
                 (-Math.PI / gear.ToothCount - 2*gear.PressureAngle, Math.PI / gear.ToothCount + 2*gear.PressureAngle, Math.PI / 2880, gear.PitchCircleDiameter / 2,
-                gear.Module * Math.PI / 4 - gear.Module * Math.Sin(gear.PressureAngle),
-                -gear.Module, 0);
+                -gear.Module,
+                -gear.Module * Math.PI / 4 + gear.Module * Math.Sin(gear.PressureAngle), 0);
             Image img = p.PlotGraphs(new List<IEnumerable<PointF>> 
             { dedendCircle, baseCircle, pitchCircle, addendCircle, leftInvolute, rightInvolute, 
                 leftUndercut, rightUndercut }, 2048, 2048);

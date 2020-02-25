@@ -16,7 +16,7 @@ namespace Plotter
 
         public Image PlotGraphs(IEnumerable<IEnumerable<PointF>> points, int width, int height)
         {
-            Color[] colours = { Color.Black, Color.Brown, Color.Red, Color.Orange,
+            Color[] colours = { Color.Black, Color.Brown, Color.Red, Color.DarkBlue,
                 Color.Green, Color.Blue, Color.Purple, Color.Gray};
 
             Bitmap bmp = new Bitmap(width, height);

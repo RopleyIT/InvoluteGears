@@ -17,17 +17,17 @@ namespace InvoluteGears
         /// Obtain a point on an involute or a trochoidal curve
         /// </summary>
         /// <param name="radius">The radius of the base circle on which the involute is formed</param>
-        /// <param name="offX">Assuming the involute touches the base circle at the top of the
-        /// circle, where the circle is centred on the origin, offX is the X component of the
+        /// <param name="offX">Assuming the involute touches the base circle along the +ve
+        /// X axis, with the circle centred on the origin, offX is the X component of the
         /// offset to the point being traced as a locus relative to the involute. This value and
         /// the offY value must both be zero to draw the involute itself. Non-zero values
         /// trace out the trochoid path, as offX and offY also rotate about the point on the involute
         /// at the same angular rate as the involute tangential point rotates.</param>
         /// <param name="offY">The Y component of the offset from the point on the involute</param>
-        /// <param name="phi">The angle away from the involute contact point at the top of the circle.
+        /// <param name="phi">The angle away from the involute contact point at the right of the circle.
         /// Note that anticlockwise angles are positive.</param>
         /// <param name="phiOffset">The angle by which the involute's touch point differs from the
-        /// top of the circle. The whole involute is rotated around the outside of the circle
+        /// right of the circle. The whole involute is rotated around the outside of the circle
         /// by this amount. Note that the trochoid is rotated by the same amount.</param>
         /// <returns>The computed X, Y coordinate for the parameters supplied.</returns>
         
@@ -35,11 +35,13 @@ namespace InvoluteGears
         {
             double cosPhi = Math.Cos(phi);
             double sinPhi = Math.Sin(phi);
+            double cosOff = Math.Cos(phiOffset);
+            double sinOff = Math.Sin(phiOffset);
 
             // Basic involute
 
-            double x = radius * (phi * cosPhi - sinPhi); // The -sin is because we have chosen top of circle
-            double y = radius * (phi * sinPhi + cosPhi);
+            double x = radius * (cosPhi + phi * sinPhi);
+            double y = radius * (sinPhi - phi * cosPhi); 
 
             // Transform the offset to produce the trochoidal curve
 
@@ -48,8 +50,6 @@ namespace InvoluteGears
 
             // Rotate the whole involute or trochoid around the larger circle - anticlockwise positive
 
-            double cosOff = Math.Cos(phiOffset);
-            double sinOff = Math.Sin(phiOffset);
             return new PointF((float)(x * cosOff - y * sinOff), (float)(x * sinOff + y * cosOff));
         }
 
@@ -58,20 +58,20 @@ namespace InvoluteGears
         /// </summary>
         /// <param name="radius">The radius of the circle, centred on the origin</param>
         /// <param name="phi">The angle around the circle for which we want a point. Note
-        /// that the zero angle is aligned vertically along the positive Y axis.</param>
+        /// that the zero angle is aligned horizontally along the positive X axis.</param>
         /// <returns>The point on the circle.</returns>
 
         public static PointF Circle(double radius, double phi) 
-            => new PointF((float)(-radius * Math.Sin(phi)), (float)(radius * Math.Cos(phi)));
+            => new PointF((float)(radius * Math.Cos(phi)), (float)(radius * Math.Sin(phi)));
 
         /// <summary>
         /// Generate a sequence of points on a circle, centred on the origin
         /// </summary>
         /// <param name="startAngle">The starting angle on the curve. 0 represents the
-        /// point on the circle where it crosses the positive Y axis, with anticlockwise
+        /// point on the circle where it crosses the positive X axis, with anticlockwise
         /// angle values being positive. Given the centre of the circle is set at the
-        /// origin, the touch point is set to the top of the circle (X = 0
-        /// and Y positive)</param>
+        /// origin, the touch point is set to the right of the circle (Y = 0
+        /// and X positive)</param>
         /// <param name="endAngle">The angle beyond which no points are added to
         /// the list of output points</param>
         /// <param name="dAngle">The delta value for the angle between each point</param>
@@ -93,23 +93,23 @@ namespace InvoluteGears
         /// <param name="startAngle">The starting angle on the curve. 0 represents the
         /// point at which the involute touches the base circle, with anticlockwise
         /// angle values being positive. Given the centre of the base circle is set
-        /// at the origin, the touch point is set to the top of the circle (X = 0
-        /// and Y positive)</param>
+        /// at the origin, the touch point is set to the right of the circle (Y = 0
+        /// and X positive)</param>
         /// <param name="endAngle">The angle beyond which no points are added to
         /// the list of output points</param>
         /// <param name="dAngle">The delta value for the angle between each point</param>
         /// <param name="radius">The radius of the base circle on which the involute is formed</param>
-        /// <param name="offX">Assuming the involute touches the base circle at the top of the
+        /// <param name="offX">Assuming the involute touches the base circle at the right of the
         /// circle, where the circle is centred on the origin, offX is the X component of the
         /// offset to the point being traced as a locus relative to the involute. This value and
         /// the offY value must both be zero to draw the involute itself. Non-zero values
         /// trace out the trochoid path, as offX and offY also rotate about the point on the involute
         /// at the same angular rate as the involute tangential point rotates.</param>
         /// <param name="offY">The Y component of the offset from the point on the involute</param>
-        /// <param name="phi">The angle away from the involute contact point at the top of the circle.
+        /// <param name="phi">The angle away from the involute contact point at the right of the circle.
         /// Note that anticlockwise angles are positive.</param>
         /// <param name="phiOffset">The angle by which the involute's touch point differs from the
-        /// top of the circle. The whole involute is rotated around the outside of the circle
+        /// right of the circle. The whole involute is rotated around the outside of the circle
         /// by this amount. Note that the trochoid is rotated by the same amount.</param>
         /// <returns>The list of points on the involute or trochoid between the starting
         /// and the ending angle</returns>
