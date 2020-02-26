@@ -26,11 +26,85 @@ namespace Plotter
                 plots.Add(bounds.Track(pl).ToList());
             double scale = ScaleFactor(bounds.Bounds, width, height);
             using Graphics g = Graphics.FromImage(bmp);
-                g.FillRectangle(Brushes.LightGray, 0, 0, width, height);
+                g.FillRectangle(Brushes.White, 0, 0, width, height);
+            PlotAxes(bounds, scale, bmp);
             int index = 0;
             foreach (List<PointF> pl in plots)
                 PlotGraph(pl, g, bounds.Bounds, scale, colours[index++%7]);
             return bmp;
+        }
+
+        private void PlotAxes(BoundsF bounds, double scale, Bitmap bmp)
+        {
+            double unitsX = UnitSize(bounds.Bounds.Width);
+            double unitsY = UnitSize(bounds.Bounds.Height);
+
+            using Graphics g = Graphics.FromImage(bmp);
+            for (double v = RoundUp(bounds.Bounds.X, unitsX); v < bounds.Bounds.Right; v += unitsX)
+            {
+                List<PointF> rule = new List<PointF>();
+                rule.Add(new PointF { X = (float)v, Y = bounds.Bounds.Y });
+                rule.Add(new PointF { X = (float)v, Y = bounds.Bounds.Bottom });
+                PlotGraph(rule, g, bounds.Bounds, scale, Color.Gray);
+                LabelXRule(v, g, bounds, scale);
+            }
+            for (double v = RoundUp(bounds.Bounds.Y, unitsY); v < bounds.Bounds.Bottom; v += unitsY)
+            {
+                List<PointF> rule = new List<PointF>();
+                rule.Add(new PointF { Y = (float)v, X = bounds.Bounds.X });
+                rule.Add(new PointF { Y = (float)v, X = bounds.Bounds.Right });
+                PlotGraph(rule, g, bounds.Bounds, scale, Color.Gray);
+                LabelYRule(v, g, bounds, scale);
+            }
+        }
+
+        private void LabelXRule(double v, Graphics g, BoundsF bounds, double scale)
+        {
+            // First generate label string
+
+            string label = v.ToString("G2");
+            Font font = new Font("Consolas", 30F);
+            var txtSize = g.MeasureString(label, font);
+
+            // Find the line position
+
+            float x = (float)(0.5 + scale * (v - bounds.Bounds.X));
+            x -= txtSize.Width / 2;
+            g.FillRectangle(Brushes.White, x, 0, txtSize.Width, txtSize.Height);
+            g.DrawString(label, font, Brushes.Gray, x, 0);
+        }
+
+        private void LabelYRule(double v, Graphics g, BoundsF bounds, double scale)
+        {
+            // First generate label string
+
+            string label = v.ToString("G3");
+            Font font = new Font("Consolas", 30F);
+            var txtSize = g.MeasureString(label, font);
+
+            // Find the line position
+
+            float y = (float)(0.5 + scale * (v - bounds.Bounds.Y));
+            y -= txtSize.Height / 2;
+            if (y > txtSize.Height * 1.5)
+            {
+                g.FillRectangle(Brushes.White, 0, y, txtSize.Width, txtSize.Height);
+                g.DrawString(label, font, Brushes.Gray, 0, y);
+            }
+        }
+
+        private double RoundUp(double x, double unitsX) => Math.Ceiling(x / unitsX) * unitsX;
+        private double UnitSize(double range)
+        {
+            double log = Math.Log10(range);
+            double exponent = Math.Floor(log);
+            double baseUnit = Math.Pow(10.0, exponent - 1);
+            double mantissa = log - exponent;
+            if (mantissa <= Math.Log10(2))
+                return 2 * baseUnit;
+            if (mantissa <= Math.Log10(5))
+                return 5 * baseUnit;
+            return 10 * baseUnit;
         }
 
         public Image PlotGraph(List<PointF> points, int width, int height)

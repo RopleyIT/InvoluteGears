@@ -28,8 +28,14 @@ namespace InvoluteConsole
             IEnumerable<PointF> baseCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.BaseCircleDiameter / 2);
             IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.PitchCircleDiameter / 2 + gear.Module);
             IEnumerable<PointF> dedendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.PitchCircleDiameter / 2 - gear.Module);
-            IEnumerable<PointF> leftInvolute = Involutes.InvolutePlusOffsetPoints(-Math.PI / gear.ToothCount - 1.5*gear.PressureAngle, Math.PI / gear.ToothCount + 1.5*gear.PressureAngle, Math.PI / 2880, gear.BaseCircleDiameter / 2, 0, 0, Math.PI / gear.ToothCount - gear.ToothBaseOffset);
-            IEnumerable<PointF> rightInvolute = Involutes.InvolutePlusOffsetPoints(-Math.PI / gear.ToothCount - 1.5*gear.PressureAngle, Math.PI / gear.ToothCount + 1.5*gear.PressureAngle, Math.PI / 2880, gear.BaseCircleDiameter / 2, 0, 0, -Math.PI / gear.ToothCount + gear.ToothBaseOffset);
+            //IEnumerable<PointF> leftInvolute = Involutes.InvolutePlusOffsetPoints
+            //  (-Math.PI / gear.ToothCount - 1.5*gear.PressureAngle, 
+            //    Math.PI / gear.ToothCount + 1.5*gear.PressureAngle, 
+            //    Math.PI / 2880, gear.BaseCircleDiameter / 2, 0, 0, 
+            //    Math.PI / gear.ToothCount - gear.ToothBaseOffset);
+            //IEnumerable<PointF> rightInvolute = Involutes.InvolutePlusOffsetPoints(-Math.PI / gear.ToothCount - 1.5*gear.PressureAngle, Math.PI / gear.ToothCount + 1.5*gear.PressureAngle, Math.PI / 2880, gear.BaseCircleDiameter / 2, 0, 0, -Math.PI / gear.ToothCount + gear.ToothBaseOffset);
+            var leftInvolute = gear.AntiClockwiseInvolute(0);
+            var rightInvolute = gear.ClockwiseInvolute(0);
             IEnumerable<PointF> leftUndercut = Involutes.InvolutePlusOffsetPoints
                 (-Math.PI / gear.ToothCount - 2*gear.PressureAngle, Math.PI / gear.ToothCount + 2*gear.PressureAngle, 
                 Math.PI / 2880, gear.PitchCircleDiameter / 2,
@@ -40,7 +46,8 @@ namespace InvoluteConsole
                 -gear.Module,
                 -gear.Module * Math.PI / 4 + gear.Module * Math.Sin(gear.PressureAngle), 0);
             Image img = p.PlotGraphs(new List<IEnumerable<PointF>> 
-            { dedendCircle, baseCircle, pitchCircle, addendCircle, leftInvolute, rightInvolute, 
+            {   dedendCircle, baseCircle, pitchCircle, addendCircle, 
+                leftInvolute, rightInvolute, 
                 leftUndercut, rightUndercut }, 2048, 2048);
             img.Save("C:\\Course\\involute.bmp", ImageFormat.Bmp);
 
