@@ -36,7 +36,7 @@ namespace InvoluteConsole
             {   dedendCircle, baseCircle, pitchCircle, addendCircle, 
                 leftInvolute, rightInvolute, 
                 clockwiseUndercut, anticlockwiseUndercut }, 2048, 2048);
-            img.Save("C:\\Course\\involute.bmp", ImageFormat.Bmp);
+            img.Save($"C:\\Course\\involute{gear.ToothCount}.bmp", ImageFormat.Bmp);
 
             // Contact ratio calculations
 

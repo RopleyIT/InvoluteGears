@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace InvoluteGears
 {
@@ -136,19 +137,56 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> AntiClockwiseInvolute(int gap)
         {
+            if (InvolutePoints == null)
+                InvolutePoints = new List<PointF>(ComputeInvolutePoints());
+
             // The angles between the middles of adjacent
             // teeth in radians is 2*PI / ToothCount
 
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            double involuteBaseAngle = ToothAngle/4 - ToothBaseOffset;
+            return InvolutePoints.Select(p => RotateAboutOrigin(gapCentreAngle, p));
+        }
+
+        private List<PointF> InvolutePoints = null;
+
+        private IEnumerable<PointF> ComputeInvolutePoints()
+        {
+            double involuteBaseAngle = ToothAngle / 4 - ToothBaseOffset;
 
             int limit = AngleIndexFloor(AddendumInvoluteAngle);
             for (int i = limit; i >= 0; i--)
             {
                 double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(BaseCircleDiameter / 2, 0, 0, angle, 
-                    gapCentreAngle + involuteBaseAngle);
+                yield return Involutes.InvolutePlusOffset
+                    (BaseCircleDiameter / 2, 0, 0, angle, involuteBaseAngle);
             }
+        }
+
+        /// <summary>
+        /// Reflect a sequence of points to the opposite side of the X axis
+        /// </summary>
+        /// <param name="points">The points to be reflected</param>
+        /// <returns>The reflected points</returns>
+        
+        private IEnumerable<PointF> ReflectY(IEnumerable<PointF> points)
+            => points.Select(p => new PointF(p.X, -p.Y));
+
+        /// <summary>
+        /// Rotate a point about the origin in the anticlockwise
+        /// direction by the angle phi
+        /// </summary>
+        /// <param name="phi">The angle to rotate by in radians</param>
+        /// <param name="pt">The point from which a rotated
+        /// point will be generated</param>
+        /// <returns>The rotated point</returns>
+        
+        private PointF RotateAboutOrigin(double phi, PointF pt)
+        {
+            double cosPhi = Math.Cos(phi);
+            double sinPhi = Math.Sin(phi);
+
+            return new PointF((float)(pt.X * cosPhi - pt.Y * sinPhi), 
+                (float)(pt.X*sinPhi + pt.Y*cosPhi));
         }
 
         /// <summary>
@@ -165,20 +203,17 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> ClockwiseInvolute(int gap)
         {
+            if (InvolutePoints == null)
+                InvolutePoints = new List<PointF>(ComputeInvolutePoints());
+
             // The angles between the middles of adjacent
             // teeth in radians is 2*PI / ToothCount
 
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            double involuteBaseAngle = ToothAngle/4 - ToothBaseOffset;
-
-            int limit = AngleIndexFloor(-AddendumInvoluteAngle);
-            for (int i = 0; i >= limit; i--)
-            {
-                double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(BaseCircleDiameter / 2, 0, 0, angle,
-                    gapCentreAngle - involuteBaseAngle);
-            }
+            return ReflectY(InvolutePoints).Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
+
+        private List<PointF> UndercutPoints = null;
 
         /// <summary>
         /// Given the gap number around the gear, calculate the points on the
@@ -196,15 +231,22 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> AnticlockwiseUndercut(int gap)
         {
+            if (UndercutPoints == null)
+                UndercutPoints = new List<PointF>(ComputeUndercutPoints());
+
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
+            return UndercutPoints.Select(p => RotateAboutOrigin(gapCentreAngle, p));
+        }
+
+        private IEnumerable<PointF> ComputeUndercutPoints()
+        {
             int upperLimit = AngleIndexFloor(UndercutAngleAtPitchCircle);
             int lowerLimit = AngleIndexFloor(-DedendumArcAngle / 2);
-            for (int i = lowerLimit; i <= upperLimit; i++)
+            for (int i = upperLimit; i >= lowerLimit; i--)
             {
                 double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
                 yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
-                    -Module * Math.PI / 4 + Module * Math.Sin(PressureAngle), angle,
-                    gapCentreAngle);
+                    -Module * Math.PI / 4 + Module * Math.Sin(PressureAngle), angle, 0);
             }
         }
 
@@ -224,16 +266,11 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> ClockwiseUndercut(int gap)
         {
+            if (UndercutPoints == null)
+                UndercutPoints = new List<PointF>(ComputeUndercutPoints());
+
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            int lowerLimit = AngleIndexFloor(-UndercutAngleAtPitchCircle);
-            int upperLimit = AngleIndexFloor(DedendumArcAngle / 2);
-            for (int i = lowerLimit; i <= upperLimit; i++)
-            {
-                double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
-                    Module * Math.PI / 4 - Module * Math.Sin(PressureAngle), angle,
-                    gapCentreAngle);
-            }
+            return ReflectY(UndercutPoints).Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
 
         /// <summary>
@@ -251,7 +288,7 @@ namespace InvoluteGears
         /// circle when undercutting on trailing edge of tooth on rotation
         /// </summary>
         
-        public  double UndercutAngleAtPitchCircle
+        public double UndercutAngleAtPitchCircle
         {
             get
             {
@@ -260,9 +297,15 @@ namespace InvoluteGears
                 return 2 * j / PitchCircleDiameter;
             }
         }
+
         private double Square(double v) => v * v;
 
         private int AngleIndexFloor(double angle) 
             => (int)(angle * PointsPerRotation / (2 * Math.PI));
+
+        private int IndexOfFirstInvolutePoint(IEnumerable<PointF> points) 
+        { 
+            return 0; 
+        }
     }
 }
