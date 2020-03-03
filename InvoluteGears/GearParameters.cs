@@ -181,14 +181,85 @@ namespace InvoluteGears
         }
 
         /// <summary>
-        /// The angle at the dedendum circle that the mating tooth tracks
-        /// the dedendum circle between the corners moving away and
-        /// undercutting the involute tooth sides
+        /// Given the gap number around the gear, calculate the points on the
+        /// curve for the undercut from where it is tangential to the dedendum
+        /// circle round to where it crosses the pitch circle. This is sufficient
+        /// for all gears containing five or more teeth. At four teeth, the
+        /// undercut exceeds the pitch circle.This function calculates
+        /// the under cut anticlockwise from the gap selected.
+        /// </summary>
+        /// <param name="gap">The numbered gap between teeth. Gap zero lies
+        /// along the positive X axis, with gaps numbered anticlockwise
+        /// from there.</param>
+        /// <returns>The list of points making up the trochoid from the
+        /// dedendum circle up to the pitch circle</returns>
+
+        public IEnumerable<PointF> AnticlockwiseUndercut(int gap)
+        {
+            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
+            int upperLimit = AngleIndexFloor(UndercutAngleAtPitchCircle);
+            int lowerLimit = AngleIndexFloor(-DedendumArcAngle / 2);
+            for (int i = lowerLimit; i <= upperLimit; i++)
+            {
+                double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
+                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
+                    -Module * Math.PI / 4 + Module * Math.Sin(PressureAngle), angle,
+                    gapCentreAngle);
+            }
+        }
+
+        /// <summary>
+        /// Given the gap number around the gear, calculate the points on the
+        /// curve for the undercut from where it is tangential to the dedendum
+        /// circle round to where it crosses the pitch circle. This is sufficient
+        /// for all gears containing five or more teeth. At four teeth, the
+        /// undercut exceeds the pitch circle. This function calculates
+        /// the under cut clockwise from the gap selected.
+        /// </summary>
+        /// <param name="gap">The numbered gap between teeth. Gap zero lies
+        /// along the positive X axis, with gaps numbered anticlockwise
+        /// from there.</param>
+        /// <returns>The list of points making up the trochoid from the
+        /// dedendum circle up to the pitch circle</returns>
+
+        public IEnumerable<PointF> ClockwiseUndercut(int gap)
+        {
+            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
+            int lowerLimit = AngleIndexFloor(-UndercutAngleAtPitchCircle);
+            int upperLimit = AngleIndexFloor(DedendumArcAngle / 2);
+            for (int i = lowerLimit; i <= upperLimit; i++)
+            {
+                double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
+                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
+                    Module * Math.PI / 4 - Module * Math.Sin(PressureAngle), angle,
+                    gapCentreAngle);
+            }
+        }
+
+        /// <summary>
+        /// The angle between the two points on the dedendum circle at which
+        /// the two corners of the mating tooth's addendum touch the
+        /// dedendum circle. Used for determining where the undercut curve
+        /// starts on the dedendum circle.
         /// </summary>
 
         public double DedendumArcAngle 
             => (Pitch - 4 * Module * Math.Tan(PressureAngle)) / PitchCircleDiameter;
 
+        /// <summary>
+        /// The angle from tooth dead centre to edge of tooth crossing pitch
+        /// circle when undercutting on trailing edge of tooth on rotation
+        /// </summary>
+        
+        public  double UndercutAngleAtPitchCircle
+        {
+            get
+            {
+                double k = Math.Sqrt(Module * PitchCircleDiameter - Square(Module));
+                double j = k - Module * (Math.PI / 4 - Math.Tan(PressureAngle));
+                return 2 * j / PitchCircleDiameter;
+            }
+        }
         private double Square(double v) => v * v;
 
         private int AngleIndexFloor(double angle) 

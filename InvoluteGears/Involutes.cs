@@ -33,24 +33,13 @@ namespace InvoluteGears
         
         public static PointF InvolutePlusOffset(double radius, double offX, double offY, double phi, double phiOffset)
         {
-            double cosPhi = Math.Cos(phi);
-            double sinPhi = Math.Sin(phi);
-            double cosOff = Math.Cos(phiOffset);
-            double sinOff = Math.Sin(phiOffset);
 
-            // Basic involute
+            double cosPhiTotal = Math.Cos(phi + phiOffset);
+            double sinPhiTotal = Math.Sin(phi + phiOffset);
 
-            double x = radius * (cosPhi + phi * sinPhi);
-            double y = radius * (sinPhi - phi * cosPhi); 
-
-            // Transform the offset to produce the trochoidal curve
-
-            x += offX * cosPhi - offY * sinPhi;
-            y += offX * sinPhi + offY * cosPhi;
-
-            // Rotate the whole involute or trochoid around the larger circle - anticlockwise positive
-
-            return new PointF((float)(x * cosOff - y * sinOff), (float)(x * sinOff + y * cosOff));
+            double x = radius * (cosPhiTotal + phi * sinPhiTotal) + offX * cosPhiTotal - offY * sinPhiTotal;
+            double y = radius * (sinPhiTotal - phi * cosPhiTotal) + offX * sinPhiTotal + offY * cosPhiTotal;
+            return new PointF((float)x, (float)y);
         }
 
         /// <summary>
@@ -88,45 +77,6 @@ namespace InvoluteGears
         }
 
         /// <summary>
-        /// Generate a sequence of points on an involute or trochoidal curve
-        /// </summary>
-        /// <param name="startAngle">The starting angle on the curve. 0 represents the
-        /// point at which the involute touches the base circle, with anticlockwise
-        /// angle values being positive. Given the centre of the base circle is set
-        /// at the origin, the touch point is set to the right of the circle (Y = 0
-        /// and X positive)</param>
-        /// <param name="endAngle">The angle beyond which no points are added to
-        /// the list of output points</param>
-        /// <param name="dAngle">The delta value for the angle between each point</param>
-        /// <param name="radius">The radius of the base circle on which the involute is formed</param>
-        /// <param name="offX">Assuming the involute touches the base circle at the right of the
-        /// circle, where the circle is centred on the origin, offX is the X component of the
-        /// offset to the point being traced as a locus relative to the involute. This value and
-        /// the offY value must both be zero to draw the involute itself. Non-zero values
-        /// trace out the trochoid path, as offX and offY also rotate about the point on the involute
-        /// at the same angular rate as the involute tangential point rotates.</param>
-        /// <param name="offY">The Y component of the offset from the point on the involute</param>
-        /// <param name="phi">The angle away from the involute contact point at the right of the circle.
-        /// Note that anticlockwise angles are positive.</param>
-        /// <param name="phiOffset">The angle by which the involute's touch point differs from the
-        /// right of the circle. The whole involute is rotated around the outside of the circle
-        /// by this amount. Note that the trochoid is rotated by the same amount.</param>
-        /// <returns>The list of points on the involute or trochoid between the starting
-        /// and the ending angle</returns>
-
-        public static IEnumerable<PointF> InvolutePlusOffsetPoints
-        (
-            double startAngle, double endAngle, double dAngle, double radius, 
-            double offX, double offY, double phiOffset
-        )
-        {
-            int pointCount = (int)((endAngle - startAngle) / dAngle);
-            return Enumerable
-                .Range(0, pointCount)
-                .Select(i => InvolutePlusOffset(radius, offX, offY, startAngle + i * dAngle, phiOffset));
-        }
-
-        /// <summary>
         /// Calculate the contact ratio for two gears. The gears must be
         /// compatible from a meshing point of view (same module, same
         /// pressure angle). The contact ratio is the average number of teeth
@@ -145,15 +95,67 @@ namespace InvoluteGears
             if (g1.Module != g2.Module)
                 throw new ArgumentException("Gears have differing teeth separation");
 
-            double gear1 = 0.5 * RootDiffOfSquares(g1.PitchCircleDiameter + 2*g1.Module, g1.BaseCircleDiameter);
-            double gear2 = 0.5 * RootDiffOfSquares(g2.PitchCircleDiameter + 2*g2.Module, g2.BaseCircleDiameter);
-            return (gear1 + gear2 - Math.Sin(g1.PressureAngle) * (g1.PitchCircleDiameter + g2.PitchCircleDiameter) / 2)
+            double gear1 = 0.5 * RootDiffOfSquares
+                (g1.PitchCircleDiameter + 2*g1.Module, g1.BaseCircleDiameter);
+            double gear2 = 0.5 * RootDiffOfSquares
+                (g2.PitchCircleDiameter + 2*g2.Module, g2.BaseCircleDiameter);
+            return (gear1 + gear2 - Math.Sin(g1.PressureAngle) 
+                * (g1.PitchCircleDiameter + g2.PitchCircleDiameter) / 2)
                 / g1.BaseCirclePitch;
         }
 
-        private static double RootDiffOfSquares(double a, double b)
+        private static double RootDiffOfSquares(double a, double b) 
+            => Math.Sqrt((a + b) * (a - b));
+
+        /// <summary>
+        /// Compute the intersection point of a straight line drawn from p11
+        /// to p12 with a line drawn from p21 to p22. If they don't intersect
+        /// return null. If they do, return the intersection point.
+        /// </summary>
+        /// <param name="p11">End of first line</param>
+        /// <param name="p12">Other end of first line</param>
+        /// <param name="p21">End of second line</param>
+        /// <param name="p22">Other end of second line</param>
+        /// <returns>Intersection point or null if lines do not
+        /// intersect between their endpoints</returns>
+
+        public static PointF? CrossAt(PointF p11, PointF p12, PointF p21, PointF p22)
         {
-            return Math.Sqrt(a * a - b * b);
+            // Find gradients of lines
+
+            double m1 = Gradient(p12, p11);
+            double m2 = Gradient(p22, p21);
+
+            // Parallel lines do not intersect
+
+            if (m1 == m2)
+                return null;
+
+            // Calculate the intersection point
+
+            double x = (p22.Y - p12.Y + m1 * p12.X - m2 * p22.X) / (m1 - m2);
+            double y = m1 * (x - p11.X) + p11.Y;
+
+            // Check that lines cross
+
+            if (Between(x, p11.X, p12.X) && Between(y, p11.Y, p12.Y))
+                return new PointF((float)x, (float)y);
+            else
+                return null;
+        }
+
+        private static bool Between(double v, double r1, double r2)
+            => r1 > v && v >= r2 || r2 > v && v >= r1;
+
+        private static double Gradient(PointF p1, PointF p2)
+            =>p2.X == p1.X ? double.MaxValue : (p2.Y - p1.Y) / (p2.X - p1.X);
+
+        public static int LastIndexWhereXSmaller(List<PointF> pointList, double x)
+        {
+            for(int i = 0; i < pointList.Count-1; i++)
+                if (Between(x, pointList[i].X, pointList[i + 1].X))
+                    return i;
+            return -1;
         }
     }
 }
