@@ -107,7 +107,30 @@ namespace InvoluteGears
                 / g1.BaseCirclePitch;
         }
 
-        private static double RootDiffOfSquares(double a, double b) 
+        /// <summary>
+        /// Calculate the contact ratio for two gears. The gears must be
+        /// compatible from a meshing point of view (same module, same
+        /// pressure angle). This function also takes into account the
+        /// undercutting. The contact ratio is the average number of teeth
+        /// in contact with each other on the pressure-bearing faces as
+        /// the gears are rotating. Ideally this should be > 1.1, but the
+        /// absolute minimum is 1 for the gears to not 'click' as they turn.
+        /// Note that this is the ideal figure, valid for no backlash, no
+        /// profile offset, and no undercut. It is the theoretical maximum
+        /// value that is never achieved!
+        /// </summary>
+        /// <param name="g1">The first gear being meshed</param>
+        /// <param name="g2">The second gear being meshed</param>
+        /// <returns>The contact ratio</returns>
+
+        public static double UndercutContactRatio(GearParameters g1, GearParameters g2)
+        {
+            var lineOfContactLength = g1.ContactDistanceFromPitchCircle 
+                + g2.ContactDistanceFromPitchCircle;
+            return lineOfContactLength / g1.BaseCirclePitch;
+        }
+
+        public static double RootDiffOfSquares(double a, double b) 
             => Math.Sqrt((a + b) * (a - b));
 
         /// <summary>

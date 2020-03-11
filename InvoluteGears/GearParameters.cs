@@ -126,11 +126,28 @@ namespace InvoluteGears
         /// <summary>
         /// A measurement of the distance across the tooth gap at its
         /// narrowest point, where the involute tooth edge meets the
-        /// undercut trochoid
+        /// undercut trochoid.
         /// </summary>
         
         public double ToothGapAtUndercut =>
             2 * underCutPoint.Y;
+
+        /// <summary>
+        /// The distance from the touch point at the pitch circle along
+        /// the line of contact to the point at which we reach the
+        /// gear's undercut point. Used to calculate the effective
+        /// contact ratio.
+        /// </summary>
+        
+        public double ContactDistanceFromPitchCircle
+        {
+            get
+            {
+                var sqUndercutRadius = Square(underCutPoint.X) + Square(underCutPoint.Y);
+                return PitchCircleDiameter * Math.Sin(PressureAngle) / 2
+                    - Math.Sqrt(sqUndercutRadius - Square(BaseCircleDiameter / 2));
+            }
+        }
 
         /// <summary>
         /// Given the selected tooth number, compute the list of points that

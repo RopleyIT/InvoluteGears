@@ -45,13 +45,14 @@ namespace InvoluteConsole
 
             GearParameters gear1;
             GearParameters gear2;
-            for (int i = 6; i < 12; i++)
-                for(int j = i; j < 12; j++)
+            for (int i = 12; i < 20; i++)
+                for(int j = i; j < 20; j++)
                 {
                     gear1 = new GearParameters(i, 1.0, Math.PI / 9);
                     gear2 = new GearParameters(j, 1.0, Math.PI / 9);
                     double contactRatio = Involutes.IdealContactRatio(gear1, gear2);
-                    Console.WriteLine($"{i}\t{j}\t{contactRatio}");
+                    double undercutCR = Involutes.UndercutContactRatio(gear1, gear2);
+                    Console.WriteLine($"{i}\t{j}\t{contactRatio}\t{undercutCR}");
                 }
         }
     }
