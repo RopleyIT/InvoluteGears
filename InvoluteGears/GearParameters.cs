@@ -7,6 +7,14 @@ namespace InvoluteGears
 {
     public class GearParameters
     {
+        public GearParameters(int toothCount, double module, double pressureAngle)
+        {
+            ToothCount = toothCount;
+            Module = module;
+            PressureAngle = pressureAngle;
+            InitPointLists();
+        }
+
         /// <summary>
         /// The resolution of points on the various curves
         /// that are plotted as part of the gear profile
@@ -41,11 +49,7 @@ namespace InvoluteGears
         // gear. If zero, it is a rack. If negative, it
         // is an internal gear.
         
-        public int ToothCount
-        {
-            get;
-            set;
-        }
+        public int ToothCount { get; private set; }
 
         // The angle relative to a line between the centres
         // of two gears at which the gears touch each other.
@@ -53,18 +57,14 @@ namespace InvoluteGears
         // degrees, though there are no design reasons why
         // these specific angles have to be used.
         
-        public double PressureAngle
-        {
-            get;
-            set;
-        }
+        public double PressureAngle { get; private set; }
 
         // The extra diameter needed per extra tooth for a
         // given tooth width. In practice this value is often
         // used to determine pitch circle diameter and tooth
         // separation, rather than the other way round.
 
-        public double Module { get; set; }
+        public double Module { get; private set; }
 
         // The base circle diameter for the involute curve
 
@@ -124,6 +124,15 @@ namespace InvoluteGears
         public double ToothAngle => 2 * Math.PI / ToothCount;
 
         /// <summary>
+        /// A measurement of the distance across the tooth gap at its
+        /// narrowest point, where the involute tooth edge meets the
+        /// undercut trochoid
+        /// </summary>
+        
+        public double ToothGapAtUndercut =>
+            2 * underCutPoint.Y;
+
+        /// <summary>
         /// Given the selected tooth number, compute the list of points that
         /// make up the side of the tooth anticlockwise from the gap selected.
         /// On the positive X axis is the centre of gap zero between two teeth.
@@ -137,9 +146,6 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> AntiClockwiseInvolute(int gap)
         {
-            if (InvolutePoints == null)
-                InvolutePoints = new List<PointF>(ComputeInvolutePoints());
-
             // The angles between the middles of adjacent
             // teeth in radians is 2*PI / ToothCount
 
@@ -147,7 +153,8 @@ namespace InvoluteGears
             return InvolutePoints.Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
 
-        private List<PointF> InvolutePoints = null;
+        private List<PointF> UndercutPoints;
+        private List<PointF> InvolutePoints;
 
         private IEnumerable<PointF> ComputeInvolutePoints()
         {
@@ -159,6 +166,35 @@ namespace InvoluteGears
                 double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
                 yield return Involutes.InvolutePlusOffset
                     (BaseCircleDiameter / 2, 0, 0, angle, involuteBaseAngle);
+            }
+        }
+
+        private IEnumerable<PointF> ComputeUndercutPoints()
+        {
+            int lowerLimit = AngleIndexFloor(-UndercutAngleAtPitchCircle);
+            int upperLimit = AngleIndexFloor(DedendumArcAngle / 2);
+            for (int i = lowerLimit; i <= upperLimit; i++)
+            {
+                double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
+                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
+                    Module * Math.PI / 4 - Module * Math.Sin(PressureAngle), angle, 0);
+            }
+        }
+
+        private PointF underCutPoint = new PointF(0, 0);
+        
+        private void InitPointLists()
+        {
+            InvolutePoints = new List<PointF>(ComputeInvolutePoints());
+            UndercutPoints = new List<PointF>(ComputeUndercutPoints());
+            var intersection = Involutes.Intersection(InvolutePoints, UndercutPoints);
+            if(intersection != null && intersection.HasValue)
+            {
+                underCutPoint = intersection.Value;
+                int involuteIdx = Involutes.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
+                int undercutIdx = Involutes.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
+                InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
+                UndercutPoints.RemoveRange(0, undercutIdx + 1);
             }
         }
 
@@ -203,17 +239,12 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> ClockwiseInvolute(int gap)
         {
-            if (InvolutePoints == null)
-                InvolutePoints = new List<PointF>(ComputeInvolutePoints());
-
             // The angles between the middles of adjacent
             // teeth in radians is 2*PI / ToothCount
 
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
             return ReflectY(InvolutePoints).Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
-
-        private List<PointF> UndercutPoints = null;
 
         /// <summary>
         /// Given the gap number around the gear, calculate the points on the
@@ -236,18 +267,6 @@ namespace InvoluteGears
 
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
             return UndercutPoints.Select(p => RotateAboutOrigin(gapCentreAngle, p));
-        }
-
-        private IEnumerable<PointF> ComputeUndercutPoints()
-        {
-            int upperLimit = AngleIndexFloor(UndercutAngleAtPitchCircle);
-            int lowerLimit = AngleIndexFloor(-DedendumArcAngle / 2);
-            for (int i = upperLimit; i >= lowerLimit; i--)
-            {
-                double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
-                    -Module * Math.PI / 4 + Module * Math.Sin(PressureAngle), angle, 0);
-            }
         }
 
         /// <summary>
@@ -302,10 +321,5 @@ namespace InvoluteGears
 
         private int AngleIndexFloor(double angle) 
             => (int)(angle * PointsPerRotation / (2 * Math.PI));
-
-        private int IndexOfFirstInvolutePoint(IEnumerable<PointF> points) 
-        { 
-            return 0; 
-        }
     }
 }

@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoluteGears", ".\InvoluteGears\InvoluteGears.csproj", "{1D1FC045-A2DA-436B-AAC0-B1F59D08CD8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoluteGears", "InvoluteGears\InvoluteGears.csproj", "{1D1FC045-A2DA-436B-AAC0-B1F59D08CD8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plotter", ".\Plotter\Plotter.csproj", "{CCA0060C-1892-4C93-9D63-42CBA684ACF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plotter", "Plotter\Plotter.csproj", "{CCA0060C-1892-4C93-9D63-42CBA684ACF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoluteConsole", ".\InvoluteConsole\InvoluteConsole.csproj", "{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoluteConsole", "InvoluteConsole\InvoluteConsole.csproj", "{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoluteGearTests", "InvoluteGearTests\InvoluteGearTests.csproj", "{0F96B0B1-3DA7-4843-BCDE-B69FCFBEE322}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F96B0B1-3DA7-4843-BCDE-B69FCFBEE322}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F96B0B1-3DA7-4843-BCDE-B69FCFBEE322}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F96B0B1-3DA7-4843-BCDE-B69FCFBEE322}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F96B0B1-3DA7-4843-BCDE-B69FCFBEE322}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,17 +11,16 @@ namespace InvoluteConsole
     {
         static void Main(string[] args)
         {
-            GearParameters gear = new GearParameters
-            {
-                Module = 4, // 4 millimetres
-                PressureAngle = Math.PI / 9, // 20 degrees
-                ToothCount = 12
-            };
 
-            int teeth = 0;
+            int teeth = 12;
             if (args.Length > 0)
-                if(int.TryParse(args[0], out teeth) && teeth >= 4)
-                    gear.ToothCount = teeth;
+                if(!int.TryParse(args[0], out teeth) || teeth < 5)
+                {
+                    Console.WriteLine("Usage: InvoluteConsole [tooth count]\r\n\twhere tooth count is digits");
+                    return;
+                }
+            GearParameters gear = new GearParameters(teeth, 4.0, Math.PI / 9);
+                    
 
             Plot p = new Plot();
             IEnumerable<PointF> pitchCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.PitchCircleDiameter / 2);
@@ -38,28 +37,20 @@ namespace InvoluteConsole
                 clockwiseUndercut, anticlockwiseUndercut }, 2048, 2048);
             img.Save($"C:\\Course\\involute{gear.ToothCount}.bmp", ImageFormat.Bmp);
 
+            // Show the gap between teeth as this determines the cutter cross section
+
+            Console.WriteLine($"Minimum tooth gap {gear.ToothGapAtUndercut}");
+
             // Contact ratio calculations
 
-            GearParameters gear1 = new GearParameters
-            {
-                Module = 1,
-                PressureAngle = Math.PI / 9,
-                ToothCount = 8
-            };
-
-            GearParameters gear2 = new GearParameters
-            {
-                Module = 1,
-                PressureAngle = Math.PI / 9,
-                ToothCount = 8
-            };
-
+            GearParameters gear1;
+            GearParameters gear2;
             for (int i = 6; i < 12; i++)
                 for(int j = i; j < 12; j++)
                 {
-                    gear1.ToothCount = i;
-                    gear2.ToothCount = j;
-                    double contactRatio = Involutes.ContactRatio(gear1, gear2);
+                    gear1 = new GearParameters(i, 1.0, Math.PI / 9);
+                    gear2 = new GearParameters(j, 1.0, Math.PI / 9);
+                    double contactRatio = Involutes.IdealContactRatio(gear1, gear2);
                     Console.WriteLine($"{i}\t{j}\t{contactRatio}");
                 }
         }

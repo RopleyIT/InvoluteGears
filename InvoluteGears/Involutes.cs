@@ -83,12 +83,15 @@ namespace InvoluteGears
         /// in contact with each other on the pressure-bearing faces as
         /// the gears are rotating. Ideally this should be > 1.1, but the
         /// absolute minimum is 1 for the gears to not 'click' as they turn.
+        /// Note that this is the ideal figure, valid for no backlash, no
+        /// profile offset, and no undercut. It is the theoretical maximum
+        /// value that is never achieved!
         /// </summary>
         /// <param name="g1">The first gear being meshed</param>
         /// <param name="g2">The second gear being meshed</param>
         /// <returns>The contact ratio</returns>
         
-        public static double ContactRatio(GearParameters g1, GearParameters g2)
+        public static double IdealContactRatio(GearParameters g1, GearParameters g2)
         {
             if (g1.PressureAngle != g2.PressureAngle)
                 throw new ArgumentException("Gears have differing pressure angles");
@@ -150,12 +153,123 @@ namespace InvoluteGears
         private static double Gradient(PointF p1, PointF p2)
             =>p2.X == p1.X ? double.MaxValue : (p2.Y - p1.Y) / (p2.X - p1.X);
 
-        public static int LastIndexWhereXSmaller(List<PointF> pointList, double x)
+        /// <summary>
+        /// Given a list of PointF structures sorted in decreasing
+        /// value of X property, find the index of the last item
+        /// in the list whose X property is greater than xVal
+        /// </summary>
+        /// <param name="list">The list to search</param>
+        /// <param name="xVal">The value we are comparing
+        /// each element's X value against</param>
+        /// <param name="start">The index into the list
+        /// at which to begin the search. Defaults to
+        /// the start of the list</param>
+        /// <returns>The index of the latest item in the
+        /// list whose X value is greater than the
+        /// specified xVal argument. Returns -1 if none
+        /// of the items in the list is greater than the
+        /// specified value. Returns the index of the
+        /// last item in the list if they all are.</returns>
+        
+        public static int IndexOfLastPointWithGreaterXVal
+            (List<PointF> list, double xVal)
         {
-            for(int i = 0; i < pointList.Count-1; i++)
-                if (Between(x, pointList[i].X, pointList[i + 1].X))
-                    return i;
-            return -1;
+            // Larger X values near beginning of list.
+            // Sorted in decreasing order of X value.
+
+            int i = 0;
+            while (i < list.Count && list[i].X > xVal)
+                i++;
+            return i - 1;
+        }
+
+        /// <summary>
+        /// Given two lists of points, find the point at which lines
+        /// drawn from point to point in each list first intersect.
+        /// </summary>
+        /// <param name="ptList1">The first list of points, sorted in
+        /// order of decreasing X value</param>
+        /// <param name="ptList2">The second list of points, sorted
+        /// in order of decreasing X value</param>
+        /// <returns>The intersection point of lines. Returns null
+        /// if none of the line segments intersects lines in the
+        /// opposite list.</returns>
+        
+        public static PointF? Intersection(List<PointF> ptList1, List<PointF> ptList2)
+        {
+            // First clone each list so that we don't destroy the originals
+
+            var list1 = new List<PointF>(ptList1);
+            var list2 = new List<PointF>(ptList2);
+
+            // Populate list1 with extra points having same X values as list 2,
+            // then list2 with extra points having same X values as list 1
+
+            foreach (PointF p in list2)
+                InjectPointWithSameXVal(list1, p.X);
+            foreach (PointF p in list1)
+                InjectPointWithSameXVal(list2, p.X);
+
+            // Search for a cross over between the lines in the two lists
+
+            for(int i = 0; i < list1.Count-1; i++)
+            {
+                var crossingPoint = CrossAt(list1[i], list1[i + 1], list2[i], list2[i + 1]);
+                if (crossingPoint.HasValue)
+                    return crossingPoint;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Given a list of points, and an X value, insert a point in the list
+        /// that has the specified X value, with a Y value colinear with the
+        /// two points either side of it. If a point with the X value already
+        /// exists, do not insert one. If the X value is off either end of
+        /// the list, a point is inserted at the corresponding end of the list,
+        /// colinear with the first or last pair of points as appropriate.
+        /// </summary>
+        /// <param name="ptList">The list into which we shall insert
+        /// a new point</param>
+        /// <param name="x">The X value for the new point</param>
+        
+        public static void InjectPointWithSameXVal(List<PointF> ptList, double x)
+        {
+            // List is assumed sorted in order of decreasing X value
+
+            if (ptList == null || ptList.Count <= 1)
+                throw new ArgumentException
+                    ("List must have at least two points in it");
+            if (x > ptList.First().X)
+                ptList.Insert(0, FindPoint(x, ptList[1], ptList[0]));
+            else if (x < ptList.Last().X)
+                ptList.Add(FindPoint(x, ptList[ptList.Count - 2], ptList[ptList.Count - 1]));
+            else
+            {
+                int i = 0;
+                while (i < ptList.Count && ptList[i].X > x)
+                    i++;
+                if(ptList[i].X < x)
+                    ptList.Insert(i, FindPoint(x, ptList[i - 1], ptList[i]));
+            }
+        }
+
+        /// <summary>
+        /// Given the X value for a new point, and the two points pt1
+        /// and pt2 on a straight line, find another point on the same
+        /// straight line that has the specified X value.
+        /// </summary>
+        /// <param name="x">The X value for the new point</param>
+        /// <param name="pt1">One of two points on the straight line</param>
+        /// <param name="pt2">The other point on the straight line</param>
+        /// <returns>The new point with the specified X value, and
+        /// colinear with pt1 and pt2</returns>
+        
+        public static PointF FindPoint(double x, PointF pt1, PointF pt2)
+        {
+            double m = (pt2.Y - pt1.Y) / (pt2.X - pt1.X);
+            double y = pt1.Y + (x - pt1.X) * m;
+            return new PointF((float)x, (float)y);
         }
     }
 }
