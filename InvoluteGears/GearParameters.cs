@@ -7,14 +7,26 @@ namespace InvoluteGears
 {
     public class GearParameters
     {
-        public GearParameters(int toothCount, double module, double pressureAngle)
+        public GearParameters(int toothCount, double module = 1.0, 
+            double pressureAngle = Math.PI/9, double profileShift = 0.0)
         {
             ToothCount = toothCount;
             Module = module;
             PressureAngle = pressureAngle;
+            ProfileShift = profileShift;
             InitPointLists();
         }
 
+        /// <summary>
+        /// The profile shift coefficient for corrected gears.
+        /// Used to keep the contact ratio above 1.0 for gears
+        /// with numbers of teeth fewer than 17. This figure
+        /// is multiplied by the Module to find how far the
+        /// dedendum and addendum radii are increased.
+        /// </summary>
+        
+        public double ProfileShift { get; private set; }
+        
         /// <summary>
         /// The resolution of points on the various curves
         /// that are plotted as part of the gear profile
@@ -36,12 +48,12 @@ namespace InvoluteGears
         // of teeth by one module beyond the pitch circle
         
         public double AddendumCircleDiameter 
-            => PitchCircleDiameter + 2 * Module;
+            => PitchCircleDiameter + 2 * Module*(1 + ProfileShift);
 
         // The maximum non-interfering radius of the inner
         // circle at the foot of the gap between teeth.
         public double DedendumCircleDiameter 
-            => PitchCircleDiameter - 2 * Module;
+            => PitchCircleDiameter - 2 * Module * (1 - ProfileShift);
 
         // The number of teeth around the outside of the
         // gear wheel. These are evenly spaced obviously.
@@ -124,6 +136,24 @@ namespace InvoluteGears
         public double ToothAngle => 2 * Math.PI / ToothCount;
 
         /// <summary>
+        /// The thickness of the tooth in radians
+        /// measured at the pitch circle and
+        /// allowing for possible profile shifting
+        /// </summary>
+        
+        public double ToothWidthAngleAtPitchCircle
+            => 2 * (Math.PI / 2 + 2 * ProfileShift * Math.Tan(PressureAngle)) / ToothCount;
+
+        /// <summary>
+        /// The thickness of the tooth gap in radians
+        /// measured at the pitch circle and
+        /// allowing for possible profile shifting
+        /// </summary>
+
+        public double GapWidthAngleAtPitchCircle
+            => ToothAngle - ToothWidthAngleAtPitchCircle;
+
+        /// <summary>
         /// A measurement of the distance across the tooth gap at its
         /// narrowest point, where the involute tooth edge meets the
         /// undercut trochoid.
@@ -133,21 +163,65 @@ namespace InvoluteGears
             2 * underCutPoint.Y;
 
         /// <summary>
-        /// The distance from the touch point at the pitch circle along
-        /// the line of contact to the point at which we reach the
-        /// gear's undercut point. Used to calculate the effective
-        /// contact ratio.
+        /// Calculate the square of the undercut radius
         /// </summary>
+
+        public double SquaredUndercutRadius
+            => Square(underCutPoint.X) + Square(underCutPoint.Y);
+
+        /// <summary>
+        /// Check that the two gears are compatible for meshing
+        /// </summary>
+        /// <param name="meshedGear">The other gear with which
+        /// we are trying to mesh</param>
+        /// <returns>True if the gears are compatible</returns>
+
+        public bool CanMeshWith(GearParameters meshedGear) 
+            => meshedGear != null 
+            && PressureAngle == meshedGear.PressureAngle 
+            && Module == meshedGear.Module;
+
+        /// <summary>
+        /// Given we are meshed with another gear where this and
+        /// the other gear might have a profile shift, calculate
+        /// the contact length for the two gears
+        /// </summary>
+        /// <param name="meshedGear">The gear with which we are
+        /// meshed</param>
+        /// <returns>The length of the path along which the two
+        /// gears are in contact before breaking apart</returns>
         
-        public double ContactDistanceFromPitchCircle
+        public double ContactDistanceWithGear(GearParameters meshedGear)
         {
-            get
-            {
-                var sqUndercutRadius = Square(underCutPoint.X) + Square(underCutPoint.Y);
-                return PitchCircleDiameter * Math.Sin(PressureAngle) / 2
-                    - Math.Sqrt(sqUndercutRadius - Square(BaseCircleDiameter / 2));
-            }
+            if (!CanMeshWith(meshedGear))
+                throw new ArgumentException("Gears have differing modules or pressure angles");
+            double distanceBetweenCentres 
+                = PitchCircleDiameter / 2 
+                + meshedGear.PitchCircleDiameter / 2 
+                + Module * (ProfileShift + meshedGear.ProfileShift);
+            double distToPitchPoint = distanceBetweenCentres 
+                * BaseCircleDiameter / (BaseCircleDiameter + meshedGear.BaseCircleDiameter);
+            double meshedDistToPitchPoint = distanceBetweenCentres - distToPitchPoint;
+            double contactLength 
+                = Math.Sqrt(Square(distToPitchPoint) - Square(BaseCircleDiameter / 2))
+                - Math.Sqrt(SquaredUndercutRadius - Square(BaseCircleDiameter / 2));
+            double meshedContactLength 
+                = Math.Sqrt(Square(meshedDistToPitchPoint) - Square(meshedGear.BaseCircleDiameter / 2))
+                - Math.Sqrt(meshedGear.SquaredUndercutRadius - Square(meshedGear.BaseCircleDiameter / 2));
+            return contactLength + meshedContactLength;
         }
+
+        /// <summary>
+        /// Contact ratio between two gears, allowing
+        /// also for possible profile shift
+        /// </summary>
+        /// <param name="meshedGear">The other gear we
+        /// are meshing with</param>
+        /// <returns>The contact ratio. Must be greater
+        /// than one for gears to mesh correctly.</returns>
+        
+        public double ContactRatioWith(GearParameters meshedGear)
+            => ContactDistanceWithGear(meshedGear) / BaseCirclePitch;
 
         /// <summary>
         /// Given the selected tooth number, compute the list of points that
@@ -155,18 +229,18 @@ namespace InvoluteGears
         /// On the positive X axis is the centre of gap zero between two teeth.
         /// Above it is the anticlockwise involute.
         /// </summary>
-        /// <param name="gap">The numbered gap between teeth. Gap zero lies
+        /// <param name="gapNumber">The numbered gap between teeth. Gap zero lies
         /// along the positive X axis, with gaps numbered anticlockwise
         /// from there.</param>
         /// <returns>The list of points making up the involute from the
         /// base circle up to the edge of the addendum</returns>
 
-        public IEnumerable<PointF> AntiClockwiseInvolute(int gap)
+        public IEnumerable<PointF> AntiClockwiseInvolute(int gapNumber)
         {
             // The angles between the middles of adjacent
             // teeth in radians is 2*PI / ToothCount
 
-            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
+            double gapCentreAngle = (gapNumber % ToothCount) * ToothAngle;
             return InvolutePoints.Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
 
@@ -175,7 +249,7 @@ namespace InvoluteGears
 
         private IEnumerable<PointF> ComputeInvolutePoints()
         {
-            double involuteBaseAngle = ToothAngle / 4 - ToothBaseOffset;
+            double involuteBaseAngle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
 
             int limit = AngleIndexFloor(AddendumInvoluteAngle);
             for (int i = limit; i >= 0; i--)
@@ -193,7 +267,7 @@ namespace InvoluteGears
             for (int i = lowerLimit; i <= upperLimit; i++)
             {
                 double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module,
+                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module * (1 - ProfileShift),
                     Module * Math.PI / 4 - Module * Math.Sin(PressureAngle), angle, 0);
             }
         }
@@ -321,14 +395,16 @@ namespace InvoluteGears
 
         /// <summary>
         /// The angle from tooth dead centre to edge of tooth crossing pitch
-        /// circle when undercutting on trailing edge of tooth on rotation
+        /// circle when undercutting on trailing edge of tooth on rotation.
+        /// Also accommodates profile shifting of the tooth.
         /// </summary>
         
         public double UndercutAngleAtPitchCircle
         {
             get
             {
-                double k = Math.Sqrt(Module * PitchCircleDiameter - Square(Module));
+                double shiftedModule = Module * (1 - ProfileShift);
+                double k = Math.Sqrt(shiftedModule * PitchCircleDiameter - Square(shiftedModule));
                 double j = k - Module * (Math.PI / 4 - Math.Tan(PressureAngle));
                 return 2 * j / PitchCircleDiameter;
             }
