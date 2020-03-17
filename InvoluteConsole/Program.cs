@@ -49,8 +49,8 @@ namespace InvoluteConsole
             GearParameters gear1;
             GearParameters gear2;
             for(int s = 0; s <= 21; s += 3)
-                for (int i = 10; i <= 24; i++)
-                    for(int j = i; j <= 24; j++)
+                for (int i = 10; i <= 18; i++)
+                    for(int j = 36; j <= 50; j++)
                     {
                         gear1 = new GearParameters(i, 1.0, Math.PI / 9, s/100.0);
                         gear2 = new GearParameters(j, 1.0, Math.PI / 9, s/100.0);
