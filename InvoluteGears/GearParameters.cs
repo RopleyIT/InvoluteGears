@@ -414,5 +414,31 @@ namespace InvoluteGears
 
         private int AngleIndexFloor(double angle) 
             => (int)(angle * PointsPerRotation / (2 * Math.PI));
+
+        /// <summary>
+        /// Given an overall gear ratio (numerator/denominator) and the minimum
+        /// and maximum number of teeth on each gear to search between, find two
+        /// gear and pinion pairs that would produce the desired ratio back onto
+        /// the original spindle. Examples of the use would be minute hand to
+        /// hour hand reduction where the minute and hour hand are coaxial.
+        /// </summary>
+        /// <param name="numerator">Numerator part of the desired gear ratio</param>
+        /// <param name="denominator">Denominator part of the desired gear ratio</param>
+        /// <param name="minTeeth">Minimum tooth count tolerated on the pinions</param>
+        /// <param name="maxTeeth">Maximum tooth count tolerated on the gears</param>
+        /// <returns>A string with all workable gear and pinion tooth counts,
+        /// together with the overall separation between spindles measured in
+        /// multiples of the module</returns>
+        
+        public static string MatchedPairs(int numerator, int denominator, int minTeeth, int maxTeeth)
+        {
+            string result = string.Empty;
+            for (int b = minTeeth; b <= maxTeeth; b++)
+                for (int c = minTeeth; c <= maxTeeth; c++)
+                    for (int d = minTeeth; d <= maxTeeth; d++)
+                        if (denominator * ((c + d - b) * c) == numerator * b * d)
+                            result += $"{c + d - b}/{b} * {c}/{d}, {c + d}\r\n";
+            return result;
+        }
     }
 }
