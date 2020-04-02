@@ -19,9 +19,14 @@ namespace InvoluteConsole
                 if(args[0] == "-h")
                 {
                     Console.WriteLine("Compute data or diagrams for involute gears. Options:");
-                    Console.WriteLine("-p numTeeth percentProfileShift -- plot drawing of one tooth");
-                    Console.WriteLine("\twhere numTeeth is the number of teeth on the gear,");
-                    Console.WriteLine("\tand percentProfileShift allows profile shifting to preserve contact ratio");
+                    Console.WriteLine(
+                        "-p [tooth count] [profile shift] [tolerance] [angle] [module] [backlash]\r\n"
+                            + "\twhere tooth count is digits\r\n"
+                            + "\tprofile shift is in thousandths of the module\r\n"
+                            + "\ttolerance is in 1000ths of mm\r\n"
+                            + "\tangle is pressure angle in 10ths of a degree\r\n"
+                            + "\tmodule is in 100ths of a mm\r\n"
+                            + "\tbacklash is in thousandths of the module");
                     Console.WriteLine("-m num denom teethMin, teethMax -- find gear-pinion pairs with same separation");
                     Console.WriteLine("\tnum: numerator of the overall gear ratio");
                     Console.WriteLine("\tdenom: denominator of the overall gear ratio");
@@ -64,13 +69,30 @@ namespace InvoluteConsole
                 }
                 if (args[0] == "-p")
                 {
-                    if (args.Length != 3 || !int.TryParse(args[1], out teeth) || !int.TryParse(args[2], out shiftPercent))
+                    if (args.Length != 7 
+                        || !int.TryParse(args[1], out teeth) 
+                        || !int.TryParse(args[2], out shiftPercent)
+                        || !int.TryParse(args[3], out int maxErr)
+                        || !int.TryParse(args[4], out int pressureAngle)
+                        || !int.TryParse(args[5], out int module)
+                        || !int.TryParse(args[6], out int backlash))
                     {
-                        Console.WriteLine("Usage: InvoluteConsole -p [tooth count] [% of module shift]\r\n"
-                            + "\twhere tooth count is digits\r\n% of module shift is two digits");
+                        Console.WriteLine("Usage: InvoluteConsole -p [tooth count] [profile shift] [tolerance] [angle] [module] [backlash]\r\n"
+                            + "\twhere tooth count is digits\r\n"
+                            + "\tprofile shift is in thousandths of the module\r\n"
+                            + "\ttolerance is in 1000ths of mm\r\n"
+                            + "\tangle is pressure angle in 10ths of a degree\r\n"
+                            + "\tmodule is in 100ths of a mm\r\n"
+                            + "\tbacklash is in thousandths of the module");
                         return;
                     }
-                    GearParameters gear = new GearParameters(teeth, 4.0, Math.PI / 9, shiftPercent / 100.0);
+                    GearParameters gear = new GearParameters(
+                        teeth, 
+                        module/100.0, 
+                        Math.PI * pressureAngle/1800.0, 
+                        shiftPercent / 1000.0, 
+                        maxErr/1000.0, 
+                        backlash/1000.0);
 
                     Plot p = new Plot();
                     IEnumerable<PointF> pitchCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.PitchCircleDiameter / 2);

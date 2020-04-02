@@ -8,21 +8,50 @@ namespace InvoluteGears
     public class GearParameters
     {
         public GearParameters(int toothCount, double module = 1.0, 
-            double pressureAngle = Math.PI/9, double profileShift = 0.0)
+            double pressureAngle = Math.PI/9, double profileShift = 0.0, double maxErr = 0.0, double backlash = 0.0)
         {
             ToothCount = toothCount;
             Module = module;
             PressureAngle = pressureAngle;
             ProfileShift = profileShift;
+            MaxError = maxErr;
+            Backlash = backlash;
             InitPointLists();
         }
 
+        /// <summary>
+        /// The tolerance for the curved faces of the teeth. This is used to set the
+        /// maximum deviation of the points on the curved faces from true value, and
+        /// is used to reduce the number of points we plot on each curve. Default
+        /// of zero does no reduction. Should be set to a value that matches the
+        /// precision of the cutting machine for the gears. Measured in mm.
+        /// </summary>
+        
+        public double MaxError { get; private set; }
+
+        /// <summary>
+        /// The amount of backlash to build into the gear. If left at zero,
+        /// theoretically perfect gear surfaces are created, for which the leading
+        /// and trailing faces rub against each other with zero gap. By setting
+        /// a value for this, we build in a small angular separation between
+        /// the trailing face of one tooth and the leading edge of the tooth
+        /// behind. This is measured in fractions of the Module. Typical values
+        /// for hardwood teeth might be 0.1 to 0.3mm measured along the pitch
+        /// circle, for which a value might be set in this property of
+        /// 0.1/mπ to 0.3/mπ, depending on the quality and finish of the
+        /// wood being machined. For a Module of 5mm, these would
+        /// have values 6.366e-3 and 19.1e-3 respectively.
+        /// </summary>
+
+        public double Backlash { get; private set; }
+        
         /// <summary>
         /// The profile shift coefficient for corrected gears.
         /// Used to keep the contact ratio above 1.0 for gears
         /// with numbers of teeth fewer than 17. This figure
         /// is multiplied by the Module to find how far the
-        /// dedendum and addendum radii are increased.
+        /// dedendum and addendum radii are increased. Hence
+        /// it has units of fractions of the module.
         /// </summary>
         
         public double ProfileShift { get; private set; }
@@ -32,6 +61,9 @@ namespace InvoluteGears
         /// that are plotted as part of the gear profile
         /// generation. This figure is the number of points
         /// in the full rotation of the gear along a rack.
+        /// The default value of 3600 allows for ten
+        /// points per degree or one point for every
+        /// six minutes of arc.
         /// </summary>
 
         public const int PointsPerRotation = 3600;
@@ -67,19 +99,27 @@ namespace InvoluteGears
         // of two gears at which the gears touch each other.
         // By convention this is chosen to be 14.5, 20, or 25
         // degrees, though there are no design reasons why
-        // these specific angles have to be used.
+        // these specific angles have to be used. Units are
+        // in radians, not degrees. 14.5 degrees = 0.25307
+        // radians. 20 degrees = 0.34907, and 25 degrees
+        // = 0.43633 radians.
         
         public double PressureAngle { get; private set; }
 
         // The extra diameter needed per extra tooth for a
         // given tooth width. In practice this value is often
         // used to determine pitch circle diameter and tooth
-        // separation, rather than the other way round.
+        // separation, rather than the other way round. Units
+        // in millimetres (mm).
 
         public double Module { get; private set; }
 
-        // The base circle diameter for the involute curve
+        // -- DERIVED PROPERTIES -- //
 
+        /// <summary>
+        /// The base circle diameter for the involute curve
+        /// </summary>
+        
         public double BaseCircleDiameter
             => PitchCircleDiameter * Math.Cos(PressureAngle);
 
@@ -213,7 +253,13 @@ namespace InvoluteGears
 
         /// <summary>
         /// Contact ratio between two gears, allowing
-        /// also for possible profile shift
+        /// also for possible profile shift. Contact
+        /// ratio is defined as the average number of
+        /// teeth in contact between two gears as they
+        /// rotate. If this is less than 1.0, there are
+        /// times at which no teeth are meshing on the
+        /// involute surfaces and the gears will
+        /// vibrate or lock up.
         /// </summary>
         /// <param name="meshedGear">The other gear we
         /// are meshing with</param>
@@ -287,6 +333,8 @@ namespace InvoluteGears
                 InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
                 UndercutPoints.RemoveRange(0, undercutIdx + 1);
             }
+            InvolutePoints = Involutes.LinearReduction(InvolutePoints, (float)MaxError);
+            UndercutPoints = Involutes.LinearReduction(UndercutPoints, (float)MaxError);
         }
 
         /// <summary>
@@ -317,6 +365,16 @@ namespace InvoluteGears
         }
 
         /// <summary>
+        /// The angle around the gear subtended by the Backlash
+        /// property value. Backlash is measured as a fraction
+        /// of the Module, so in angular terms, this means a fraction
+        /// of the angle occupied by one tooth.
+        /// </summary>
+        
+        private double BacklashAngle
+            => Backlash * ToothAngle;
+
+        /// <summary>
         /// Given the selected tooth number, compute the list of points that
         /// make up the side of the tooth clockwise from the gap selected.
         /// On the positive X axis is the centre of gap zero between two teeth.
@@ -328,13 +386,16 @@ namespace InvoluteGears
         /// <returns>The list of points making up the involute from the
         /// base circle up to the edge of the addendum</returns>
 
-        public IEnumerable<PointF> ClockwiseInvolute(int gap)
+        public IEnumerable<PointF> ClockwiseInvolute(int gap) 
+            => ReflectAndAddBacklash(InvolutePoints, gap);
+
+        private IEnumerable<PointF> ReflectAndAddBacklash(IEnumerable<PointF> points, int gap)
         {
             // The angles between the middles of adjacent
             // teeth in radians is 2*PI / ToothCount
 
-            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            return ReflectY(InvolutePoints).Select(p => RotateAboutOrigin(gapCentreAngle, p));
+            double gapCentreAngle = (gap % ToothCount) * ToothAngle - BacklashAngle;
+            return ReflectY(points).Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
 
         /// <summary>
@@ -353,9 +414,6 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> AnticlockwiseUndercut(int gap)
         {
-            if (UndercutPoints == null)
-                UndercutPoints = new List<PointF>(ComputeUndercutPoints());
-
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
             return UndercutPoints.Select(p => RotateAboutOrigin(gapCentreAngle, p));
         }
@@ -374,14 +432,8 @@ namespace InvoluteGears
         /// <returns>The list of points making up the trochoid from the
         /// dedendum circle up to the pitch circle</returns>
 
-        public IEnumerable<PointF> ClockwiseUndercut(int gap)
-        {
-            if (UndercutPoints == null)
-                UndercutPoints = new List<PointF>(ComputeUndercutPoints());
-
-            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            return ReflectY(UndercutPoints).Select(p => RotateAboutOrigin(gapCentreAngle, p));
-        }
+        public IEnumerable<PointF> ClockwiseUndercut(int gap) 
+            => ReflectAndAddBacklash(UndercutPoints, gap);
 
         /// <summary>
         /// The angle between the two points on the dedendum circle at which

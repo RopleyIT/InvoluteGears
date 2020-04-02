@@ -269,5 +269,84 @@ namespace InvoluteGears
             double y = pt1.Y + (x - pt1.X) * m;
             return new PointF((float)x, (float)y);
         }
+
+        /// <summary>
+        /// Given a sequence of points, create a list of
+        /// points from it that removes any that lie within
+        /// an error margin of the original list.
+        /// </summary>
+        /// <param name="source">The original sequence</param>
+        /// <param name="maxErr">The perpendicular error margin</param>
+        /// <returns>A new reduced list of points</returns>
+        
+        public static List<PointF> LinearReduction(IList<PointF> source, float maxErr)
+        {
+            var result = new List<PointF>();
+            int startIndex = 0;
+            while(startIndex < source.Count - 1)
+            {
+                result.Add(source[startIndex]);
+                startIndex = IndexOfFarthestPointWithinMargin(source, startIndex, maxErr);
+            }
+            result.Add(source.Last());
+            return result;
+        }
+
+        private static int IndexOfFarthestPointWithinMargin(IList<PointF> source, int startIndex, float maxErr)
+        {
+            for(int i = source.Count - 1; i > startIndex; i--)
+            {
+                if(MaxDistance(source.Skip(startIndex).Take(i - 1 - startIndex), source[startIndex], source[i]) < maxErr)
+                    return i;
+            }
+            return startIndex + 1; // Should never reach this
+        }
+
+        /// <summary>
+        /// Given a sequence of points, find the maximum perpendicular distance
+        /// any one of them has from the straight line through p1 and p2
+        /// </summary>
+        /// <param name="innerPoints">The sequence of points</param>
+        /// <param name="p1">One of two points on the line</param>
+        /// <param name="p2">The other of two points on the line</param>
+        /// <returns>The longest distance from any of the points to the line</returns>
+        
+        private static float MaxDistance(IEnumerable<PointF> innerPoints, PointF p1, PointF p2)
+        {
+            var maxDist = 0f;
+            foreach(PointF p in innerPoints)
+            {
+                var dist = PerpendicularDistance(p, p1, p2);
+                if (dist > maxDist)
+                    maxDist = dist;
+            }
+            return maxDist;
+        }
+
+        /// <summary>
+        /// For a point x0,y0 its shortest distance to the straight line
+        /// through points x1,y1 and x2,y2 is given by:
+        /// Math.Abs((y2-y1)*x0 - (x2-x1)*y0 + x2*y1 - y2*x1) divided by:
+        /// Math.Sqrt((y2-y1)**2 + (x2-x1)**2)
+        /// </summary>
+        /// <param name="p0">The point we wish to measure the distance of</param>
+        /// <param name="p1">One of two points on the line</param>
+        /// <param name="p2">The other of two points on the line</param>
+        /// <returns>The shortest distance from the point to the line</returns>
+        
+        public static float PerpendicularDistance(PointF p0, PointF p1, PointF p2)
+        {
+            double numerator = (p2.Y - p1.Y) * p0.X;
+            numerator -= (p2.X - p1.X) * p0.Y;
+            numerator += p2.X * p1.Y - p2.Y * p1.X;
+            numerator = Math.Abs(numerator);
+            double denom = Square(p2.Y - p1.Y);
+            denom += Square(p2.X - p1.X);
+            denom = Math.Sqrt(denom);
+            return (float)(numerator / denom);
+        }
+
+        private static double Square(double v) => v * v;
+
     }
 }
