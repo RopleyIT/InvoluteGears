@@ -8,7 +8,7 @@ namespace InvoluteGears
     public class GearParameters
     {
         public GearParameters(int toothCount, double module = 1.0, 
-            double pressureAngle = Math.PI/9, double profileShift = 0.0, double maxErr = 0.0, double backlash = 0.0)
+            double pressureAngle = Math.PI/9, double profileShift = 0.0, double maxErr = 0.0, double backlash = 0.0, double stubbing = 0.0)
         {
             ToothCount = toothCount;
             Module = module;
@@ -16,6 +16,7 @@ namespace InvoluteGears
             ProfileShift = profileShift;
             MaxError = maxErr;
             Backlash = backlash;
+            Stubbing = stubbing;
             InitPointLists();
         }
 
@@ -57,6 +58,27 @@ namespace InvoluteGears
         public double ProfileShift { get; private set; }
         
         /// <summary>
+        /// The amount by which the addendem and dedendum are
+        /// reduced from their default heights/depths of
+        /// the length of the Module. If set to 0.0, the
+        /// addendum projects above the pitch circle by
+        /// 1 * Module, and the dedendum cuts into the
+        /// tooth by 1 * Module as well. This property
+        /// can range from 0.0 to 1.0, at which point
+        /// the gears become circles at the pitch circle.
+        /// The reason we stub the teeth is because
+        /// for small values of stubbing, the undercut
+        /// is reduced and the contact ratio can even
+        /// rise slightly. The minimum number of teeth
+        /// that can engage properly without undercutting
+        /// goes down from about 17 to 14 without profile
+        /// shifting the teeth. Typical values might be 
+        /// in the range 0.0 to 0.3.
+        /// </summary>
+        
+        public double Stubbing { get; private set; }
+
+        /// <summary>
         /// The resolution of points on the various curves
         /// that are plotted as part of the gear profile
         /// generation. This figure is the number of points
@@ -78,14 +100,16 @@ namespace InvoluteGears
 
         // The radius of the gear including the projection
         // of teeth by one module beyond the pitch circle
-        
-        public double AddendumCircleDiameter 
-            => PitchCircleDiameter + 2 * Module*(1 + ProfileShift);
+
+        public double AddendumCircleDiameter
+            => PitchCircleDiameter + 2 * Module 
+            * (1 - Stubbing) * (1 + ProfileShift);
 
         // The maximum non-interfering radius of the inner
         // circle at the foot of the gap between teeth.
         public double DedendumCircleDiameter 
-            => PitchCircleDiameter - 2 * Module * (1 - ProfileShift);
+            => PitchCircleDiameter - 2 * Module 
+            * (1 - Stubbing) * (1 - ProfileShift);
 
         // The number of teeth around the outside of the
         // gear wheel. These are evenly spaced obviously.
@@ -219,7 +243,8 @@ namespace InvoluteGears
         public bool CanMeshWith(GearParameters meshedGear) 
             => meshedGear != null 
             && PressureAngle == meshedGear.PressureAngle 
-            && Module == meshedGear.Module;
+            && Module == meshedGear.Module
+            && Stubbing == meshedGear.Stubbing;
 
         /// <summary>
         /// Given we are meshed with another gear where this and
@@ -313,8 +338,9 @@ namespace InvoluteGears
             for (int i = lowerLimit; i <= upperLimit; i++)
             {
                 double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, -Module * (1 - ProfileShift),
-                    Module * Math.PI / 4 - Module * Math.Sin(PressureAngle), angle, 0);
+                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, 
+                    -Module * (1 - Stubbing) * (1 - ProfileShift),
+                    Module * (Math.PI / 4 - (1 - Stubbing)*Math.Tan(PressureAngle)), angle, 0);
             }
         }
 
@@ -324,15 +350,14 @@ namespace InvoluteGears
         {
             InvolutePoints = new List<PointF>(ComputeInvolutePoints());
             UndercutPoints = new List<PointF>(ComputeUndercutPoints());
-            var intersection = Involutes.Intersection(InvolutePoints, UndercutPoints);
-            if(intersection != null && intersection.HasValue)
-            {
-                underCutPoint = intersection.Value;
-                int involuteIdx = Involutes.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
-                int undercutIdx = Involutes.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
-                InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
-                UndercutPoints.RemoveRange(0, undercutIdx + 1);
-            }
+            PointF? intersection = null;// Involutes.Intersection(InvolutePoints, UndercutPoints);
+            if(intersection == null || !intersection.HasValue)
+                intersection = Involutes.ClosestPoint(InvolutePoints, UndercutPoints);
+            underCutPoint = intersection.Value;
+            int involuteIdx = Involutes.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
+            int undercutIdx = Involutes.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
+            InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
+            UndercutPoints.RemoveRange(0, undercutIdx + 1);
             InvolutePoints = Involutes.LinearReduction(InvolutePoints, (float)MaxError);
             UndercutPoints = Involutes.LinearReduction(UndercutPoints, (float)MaxError);
         }

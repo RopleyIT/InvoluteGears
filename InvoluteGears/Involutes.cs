@@ -192,7 +192,7 @@ namespace InvoluteGears
         /// <returns>The intersection point of lines. Returns null
         /// if none of the line segments intersects lines in the
         /// opposite list.</returns>
-        
+
         public static PointF? Intersection(List<PointF> ptList1, List<PointF> ptList2)
         {
             // First clone each list so that we don't destroy the originals
@@ -210,13 +210,54 @@ namespace InvoluteGears
 
             // Search for a cross over between the lines in the two lists
 
-            for(int i = 0; i < list1.Count-1; i++)
+            for (int i = 0; i < list1.Count - 1; i++)
             {
                 var crossingPoint = CrossAt(list1[i], list1[i + 1], list2[i], list2[i + 1]);
                 if (crossingPoint.HasValue)
                     return crossingPoint;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Given two lists of points, find the X value that corresponds to
+        /// their closest Y values. Ideally they should be tangential at this
+        /// point.
+        /// </summary>
+        /// <param name="ptList1">One list of points</param>
+        /// <param name="ptList2">The second list of points</param>
+        /// <returns>The X value at which the curves through the points are closest</returns>
+        
+        public static PointF ClosestPoint(List<PointF> ptList1, List<PointF> ptList2)
+        {
+            // First clone each list so that we don't destroy the originals
+
+            var list1 = new List<PointF>(ptList1);
+            var list2 = new List<PointF>(ptList2);
+
+            // Populate list1 with extra points having same X values as list 2,
+            // then list2 with extra points having same X values as list 1
+
+            foreach (PointF p in list2)
+                InjectPointWithSameXVal(list1, p.X);
+            foreach (PointF p in list1)
+                InjectPointWithSameXVal(list2, p.X);
+
+            // Search for the closest points between the lines in the two lists
+
+            float closestYValue = float.MaxValue;
+            int closestIndex = 0;
+            for (int i = 0; i < list1.Count - 1; i++)
+            {
+                float absYDiff = Math.Abs(list1[i].Y - list2[i].Y);
+                if (absYDiff < closestYValue)
+                {
+                    closestIndex = i;
+                    closestYValue = absYDiff;
+                }
+                else break;
+            }
+            return list1[closestIndex];
         }
 
         /// <summary>
@@ -230,7 +271,7 @@ namespace InvoluteGears
         /// <param name="ptList">The list into which we shall insert
         /// a new point</param>
         /// <param name="x">The X value for the new point</param>
-        
+
         public static void InjectPointWithSameXVal(List<PointF> ptList, double x)
         {
             // List is assumed sorted in order of decreasing X value
