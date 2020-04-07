@@ -71,9 +71,9 @@ namespace InvoluteGears
             (double startAngle, double endAngle, double dAngle, double radius)
         {
             int pointCount = (int)((endAngle - startAngle) / dAngle);
-            return Enumerable
-                .Range(0, pointCount)
-                .Select(i => Circle(radius, startAngle + i * dAngle));
+            for( double angle = startAngle; angle < endAngle; angle += dAngle)
+                yield return Circle(radius, angle);
+            yield return Circle(radius, endAngle);
         }
 
         /// <summary>
