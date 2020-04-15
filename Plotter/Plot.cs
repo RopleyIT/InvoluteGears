@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 
 namespace Plotter
@@ -26,7 +27,10 @@ namespace Plotter
                 plots.Add(bounds.Track(pl).ToList());
             double scale = ScaleFactor(bounds.Bounds, width, height);
             using Graphics g = Graphics.FromImage(bmp);
-                g.FillRectangle(Brushes.White, 0, 0, width, height);
+            g.FillRectangle(Brushes.White, 0, 0, width, height);
+            g.CompositingQuality = CompositingQuality.HighQuality;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            g.SmoothingMode = SmoothingMode.HighQuality;
             PlotAxes(bounds, scale, bmp);
             int index = 0;
             foreach (List<PointF> pl in plots)

@@ -54,6 +54,27 @@ namespace InvoluteGears
             => new PointF((float)(radius * Math.Cos(phi)), (float)(radius * Math.Sin(phi)));
 
         /// <summary>
+        /// Generate a sequence of points on a circle, centred on a nominated point
+        /// </summary>
+        /// <param name="startAngle">The starting angle on the curve. 0 represents the
+        /// point on the circle where it crosses the positive X axis, with anticlockwise
+        /// angle values being positive. Given the centre of the circle is set at the
+        /// origin, the touch point is set to the right of the circle (Y = 0
+        /// and X positive)</param>
+        /// <param name="endAngle">The angle beyond which no points are added to
+        /// the list of output points</param>
+        /// <param name="dAngle">The delta value for the angle between each point</param>
+        /// <param name="radius">The radius of the circle</param>
+        /// <param name="centre">The centre for the circle from which the points
+        /// are computed</param>
+        /// <returns>The set of points on the circumference of the circle</returns>
+
+        public static IEnumerable<PointF> CirclePoints
+            (double startAngle, double endAngle, double dAngle, double radius, PointF centre) 
+            => CirclePoints(startAngle, endAngle, dAngle, radius)
+                .Select(p => OffsetPoint(p, centre));
+
+        /// <summary>
         /// Generate a sequence of points on a circle, centred on the origin
         /// </summary>
         /// <param name="startAngle">The starting angle on the curve. 0 represents the
@@ -65,15 +86,23 @@ namespace InvoluteGears
         /// the list of output points</param>
         /// <param name="dAngle">The delta value for the angle between each point</param>
         /// <param name="radius">The radius of the circle</param>
+        /// are computed</param>
         /// <returns>The set of points on the circumference of the circle</returns>
-        
+
         public static IEnumerable<PointF> CirclePoints
             (double startAngle, double endAngle, double dAngle, double radius)
         {
             int pointCount = (int)((endAngle - startAngle) / dAngle);
-            for( double angle = startAngle; angle < endAngle; angle += dAngle)
+            for (double angle = startAngle; angle < endAngle; angle += dAngle)
                 yield return Circle(radius, angle);
             yield return Circle(radius, endAngle);
+        }
+
+        private static PointF OffsetPoint(PointF pt, PointF offset)
+        {
+            pt.X += offset.X;
+            pt.Y += offset.Y;
+            return pt;
         }
 
         /// <summary>
@@ -389,5 +418,71 @@ namespace InvoluteGears
 
         private static double Square(double v) => v * v;
 
+        /// <summary>
+        /// Given two points, find the centres of the two
+        /// circles of radius 'radius' that intersect at
+        /// those two points. Used for working out the
+        /// cutting path for a circular end mill of
+        /// radius 'radius' that will be used to cut the
+        /// gear profile.
+        /// </summary>
+        /// <param name="p1">The first intersecting point</param>
+        /// <param name="p2">The second intersecting point</param>
+        /// <param name="radius">The radius of the circles</param>
+        /// <returns>The two possible centres for the circles</returns>
+        
+        public static PointF[] CircleCentres(PointF p1, PointF p2, double radius)
+        {
+            // Find the centre of the line from p1 to p2
+
+            PointF midPoint = new PointF((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
+
+            // Find the square of the linear distance
+            // from one point to the midpoint
+
+            double sqrDistToMidPoint = 
+                (Square(p2.X - p1.X) + Square(p2.Y - p1.Y))/4;
+
+            // Find the gradient of a line normal to 
+            // the line between the two points
+
+            double m = (p1.X - p2.X) / (p2.Y - p1.Y);
+
+            // The line through the midpoint also runs through the two
+            // circle centres, and has equation y = m*x + c, where
+            // the value of c can be calculated using the midpoint
+            
+            double c = midPoint.Y - m * midPoint.X;
+
+            // Calculate the distance along the line from the midpoint
+            // to the centre of each circle, using Pythagoras on the
+            // intersection - midpoint - circle-centre triangle
+
+            double sqrDistanceToCentre = Square(radius) - sqrDistToMidPoint;
+
+            // Convert this distance to x and y components
+
+            double dx = Math.Sqrt(sqrDistanceToCentre / (1 + Square(m)));
+            double dy = m * dx;
+
+            // Create and return the two circle centres
+
+            return new PointF[]
+            {
+                new PointF((float)(midPoint.X - dx), (float)(midPoint.Y - dy)),
+                new PointF((float)(midPoint.X + dx), (float)(midPoint.Y + dy)),
+            };
+        }
+
+        /// <summary>
+        /// Determine whether a point lies within a circle
+        /// </summary>
+        /// <param name="pt">The point being tested</param>
+        /// <param name="centre">The coordinates of the circle centre</param>
+        /// <param name="radius">The radius of the circl</param>
+        /// <returns>True if the point is within the circle</returns>
+
+        public static bool PointInCircle(PointF pt, PointF centre, double radius) 
+            => Square(pt.X - centre.X) + Square(pt.Y - centre.Y) < Square(radius);
     }
 }

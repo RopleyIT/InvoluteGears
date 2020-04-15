@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "InvoluteGrpcServer";
+
+package gears;
+
+service GearService {
+  rpc GenerateGearOutline (GearRequest) returns (GearResponse);
+}
+
+// The request message containing the gear parameters
+
+message GearRequest {
+  int32 toothCount = 1;     // Number of teeth on gear
+  float profileShift = 2;   // Profile shift of gear in mm
+  float tolerance = 3;      // Eliminate curve points based on resolution - in mm
+  float pressureAngle = 4;  // In degrees, usually 14.5, 20.0 or 25.0 on conventional gears
+  float module = 5;         // The module for the gear in mm
+  float backlash = 6;       // Build in backlash - in mm
+}
+
+// The response message containing the SVG graphics file
+// content for the gear parameters specified. Contains a
+// single SVG path to outline the gear.
+
+message GearResponse {
+  string svgContent = 1;
+}

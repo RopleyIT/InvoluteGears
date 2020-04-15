@@ -20,12 +20,9 @@ namespace Plotter
      */
     public class SVGCreator
     {
-        private string filePath;
+        private SVGPath svgPath;
 
-        public SVGCreator(string path)
-        {
-            filePath = path;
-        }
+        public SVGCreator(SVGPath svgPath) => this.svgPath = svgPath;
 
         public SizeF DocumentDimensions { get; set; }
         
@@ -47,5 +44,13 @@ namespace Plotter
             + $"xmlns=\"http://www.w3.org/2000/svg\">";
         
         string EndSvg => "</svg>";
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder(StartSvg);
+            sb.Append(svgPath.ToString());
+            sb.Append(EndSvg);
+            return sb.ToString();
+        }
     }
 }

@@ -8,7 +8,8 @@ namespace InvoluteGears
     public class GearParameters
     {
         public GearParameters(int toothCount, double module = 1.0, 
-            double pressureAngle = Math.PI/9, double profileShift = 0.0, double maxErr = 0.0, double backlash = 0.0)
+            double pressureAngle = Math.PI/9, double profileShift = 0.0, 
+            double maxErr = 0.0, double backlash = 0.0, double cutterDiam = 0.0)
         {
             ToothCount = toothCount;
             Module = module;
@@ -16,7 +17,18 @@ namespace InvoluteGears
             ProfileShift = profileShift;
             MaxError = maxErr;
             Backlash = backlash;
+            CutterDiameter = cutterDiam;
             InitPointLists();
+        }
+
+        /// <summary>
+        /// The diameter of the bit used to cut out the gear
+        /// </summary>
+        
+        public double CutterDiameter
+        {
+            get;
+            private set;
         }
 
         /// <summary>
@@ -35,7 +47,18 @@ namespace InvoluteGears
         /// and trailing faces rub against each other with zero gap. By setting
         /// a value for this, we build in a small angular separation between
         /// the trailing face of one tooth and the leading edge of the tooth
-        /// behind. This is measured in fractions of the Module. Typical values
+        /// behind. We also shorten the tooth addendum radius slightly, while
+        /// still computing the undercut for the tooth at full addendum
+        /// height. This fractionally reduces the contact ratio, but only
+        /// for the larger tooth counts where the full length of the 
+        /// involute surface of the tooth might be used. In these cases
+        /// the contact ratio is high anyway. In fact, for low tooth
+        /// counts, shortening the addendum height actually reduces
+        /// undercut if it were computed for the shortened tooth. Here
+        /// though we still compute the undercut as if a full length tooth
+        /// then shorten the tooth slightly to remove rubbing at the
+        /// dedendum surface.
+        /// Backlash is measured in fractions of the Module. Typical values
         /// for hardwood teeth might be 0.1 to 0.3mm measured along the pitch
         /// circle, for which a value might be set in this property of
         /// 0.1/mπ to 0.3/mπ, depending on the quality and finish of the
@@ -80,8 +103,8 @@ namespace InvoluteGears
         // of teeth by one module beyond the pitch circle
 
         public double AddendumCircleDiameter
-            => PitchCircleDiameter + 2 * Module 
-            * (1 + ProfileShift);
+            => PitchCircleDiameter 
+            + 2 * Module * (1 + ProfileShift - Backlash);
 
         // The maximum non-interfering radius of the inner
         // circle at the foot of the gap between teeth.
@@ -168,8 +191,9 @@ namespace InvoluteGears
         /// </summary>
         
         public double ToothTipOffset
-            => Math.Sqrt(Square(AddendumCircleDiameter/BaseCircleDiameter) - 1) 
-            - Math.Acos(BaseCircleDiameter/AddendumCircleDiameter) - ToothBaseOffset;
+            => AddendumInvoluteAngle
+            - Math.Acos(BaseCircleDiameter/AddendumCircleDiameter) 
+            - ToothBaseOffset;
         
         /// <summary>
         /// The angle from the point at which a tooth involute touches
@@ -207,7 +231,7 @@ namespace InvoluteGears
         /// <summary>
         /// A measurement of the distance across the tooth gap at its
         /// narrowest point, where the involute tooth edge meets the
-        /// undercut trochoid.
+        /// undercut trochoid. Does not include backlash widening.
         /// </summary>
         
         public double ToothGapAtUndercut =>
@@ -311,16 +335,92 @@ namespace InvoluteGears
             }
         }
 
+        /// <summary>
+        /// Once the undercut points and the dedendum points have been calculated,
+        /// but before the number of points are reduced based on an error tolerance,
+        /// any concave parts of the tooth profile may be too sharp cornered for
+        /// a given cutter radius. This method redraws the undercut and dedendum
+        /// profile so that it can accommodate the diameter of cutter we are
+        /// intending to cut the gear with.
+        /// </summary>
+        /// <param name="cutterRadius">Radius of the end mill bit in mm</param>
+        /// <returns>True if the points had to be adjusted, false if the
+        /// curves were all sufficiently shallow that adjustment did
+        /// not take place</returns>
+
+        private bool AdjustPointsForCircularCutter()
+        {
+            // First find the point at which and end-mill of the specified cutter
+            // radius can no longer cut inside the concave profile of the undercut
+
+            int i = 0;
+            bool cornerFound = false;
+            PointF cutterCentre = PointF.Empty;
+            while (!cornerFound && i < UndercutPoints.Count - 2)
+            {
+                var centres = Involutes.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutterDiameter/2);
+                if (centres[0].Y < centres[1].Y)
+                    cutterCentre = centres[0];
+                else
+                    cutterCentre = centres[1];
+                cornerFound = Involutes.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutterDiameter/2);
+                i++; // i indexes the last point from the undercut point list that we can cut to
+            }
+
+            // If no adjustment took place, quit here
+
+            if (!cornerFound) 
+                return false;
+
+            // Copy across the curve that we are able to follow before
+            // deviating from it according to cutter radius
+
+            UndercutPoints = new List<PointF>(UndercutPoints.Take(i+1));
+
+            // Calculate the angle for the last point in the undercut curve
+
+            double startAngle = Math.Atan2(UndercutPoints.Last().Y - cutterCentre.Y, 
+                UndercutPoints.Last().X - cutterCentre.X);
+
+            // Find the point on the cutter circle that intersects a line from
+            // its centre to the centre of the gear profile (origin 0,0)
+
+            double cutterCentreRadius = Math.Sqrt(Square(cutterCentre.X) + Square(cutterCentre.Y));
+
+            // Find the end angle for the cutter radius curve. This is the same as
+            // the angle at the origin to the cutter centre, reflected by 180 degrees.
+
+            double endAngle = Math.Atan2(cutterCentre.Y, cutterCentre.X) + Math.PI;
+
+            // TODO: Add points around the cutter diameter from the last point
+            // of adjustedUndercut, to the point at which it crosses yDedendum (y value).
+
+            UndercutPoints.AddRange(Involutes.CirclePoints
+                (startAngle, endAngle, Math.PI / 180, CutterDiameter/2, cutterCentre));
+
+            // Then add new dedendum circle points round to the y=0 axis, based on
+            // the tangent to the cutter circle at yDedendum.
+
+            DedendumPoints = new List<PointF>(Involutes.CirclePoints
+                (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI, 
+                Math.PI / 2880, cutterCentreRadius - CutterDiameter / 2));
+
+            // Undercut points and dedendum points were rewritten. Return
+            // true to flag this fact.
+
+            return true;
+        }
+
         private IEnumerable<PointF> ComputeDedendumCirclePoints() 
             => Involutes.CirclePoints
                 (-(BacklashAngle + DedendumArcAngle / 2), DedendumArcAngle / 2,
                 Math.PI / 2880, DedendumCircleDiameter / 2);
 
-        private IEnumerable<PointF> ComputeAddendumCirclePoints()
+        private IEnumerable<PointF> ComputeAddendumCirclePoints() 
             => Involutes.CirclePoints
-                (GapWidthAngleAtPitchCircle/2 + ToothTipOffset, 
-                ToothAngle - GapWidthAngleAtPitchCircle/2 - ToothTipOffset - BacklashAngle,
-                Math.PI / 2880, AddendumCircleDiameter / 2);
+                    (GapWidthAngleAtPitchCircle / 2 + ToothTipOffset,
+                    ToothAngle - GapWidthAngleAtPitchCircle / 2 - ToothTipOffset - BacklashAngle,
+                    Math.PI / 2880, AddendumCircleDiameter / 2);
 
         private PointF underCutPoint = new PointF(0, 0);
         
@@ -329,8 +429,7 @@ namespace InvoluteGears
             InvolutePoints = new List<PointF>(ComputeInvolutePoints());
             UndercutPoints = new List<PointF>(ComputeUndercutPoints());
             DedendumPoints = new List<PointF>(ComputeDedendumCirclePoints());
-            AddendumPoints = new List<PointF>(ComputeAddendumCirclePoints());
-            PointF? intersection = null;// Involutes.Intersection(InvolutePoints, UndercutPoints);
+            PointF? intersection = null;
             if(intersection == null || !intersection.HasValue)
                 intersection = Involutes.ClosestPoint(InvolutePoints, UndercutPoints);
             underCutPoint = intersection.Value;
@@ -338,6 +437,19 @@ namespace InvoluteGears
             int undercutIdx = Involutes.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
             InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
             UndercutPoints.RemoveRange(0, undercutIdx + 1);
+            if (CutterDiameter > 0 && AdjustPointsForCircularCutter())
+                Console.WriteLine("Undercut and dedendum adjusted for cutter diameter");
+            if (ToothGapAtUndercut < CutterDiameter)
+                Console.WriteLine($"Cutter dia. {CutterDiameter} too wide for tooth gap of {ToothGapAtUndercut}");
+
+            // TODO: Ideally should use AdjustPointsForCircularCutter return
+            // value to prevent reduction in tooth addendum height used for
+            // backlash management. At present this is not done. The tooth
+            // height is still reduced by the backlash amount, even though
+            // the undercut has increased the dedendum depth to accommodate
+            // the diameter of cutter.
+            
+            AddendumPoints = new List<PointF>(ComputeAddendumCirclePoints());
             InvolutePoints = Involutes.LinearReduction(InvolutePoints, (float)MaxError);
             UndercutPoints = Involutes.LinearReduction(UndercutPoints, (float)MaxError);
             DedendumPoints = Involutes.LinearReduction(DedendumPoints, (float)MaxError);
@@ -345,11 +457,34 @@ namespace InvoluteGears
         }
 
         /// <summary>
+        /// Generate the complete outline of the
+        /// whole gear in a single list of points.
+        /// </summary>
+        /// <returns>The points that make up the outline of
+        /// the gear. The last point should be joined back
+        /// onto the first point to close the outline.</returns>
+        
+        public IEnumerable<PointF> GenerateCompleteGearPath()
+        {
+            var gearPoints = new List<PointF>();
+            for (int i = 0; i < ToothCount; i++)
+            {
+                gearPoints.AddRange(ClockwiseInvolute(i));
+                gearPoints.AddRange(ClockwiseUndercut(i));
+                gearPoints.AddRange(Dedendum(i));
+                gearPoints.AddRange(AnticlockwiseUndercut(i).Reverse());
+                gearPoints.AddRange(AntiClockwiseInvolute(i).Reverse());
+                gearPoints.AddRange(Addendum(i));
+            }
+            return gearPoints;
+        }
+
+        /// <summary>
         /// Reflect a sequence of points to the opposite side of the X axis
         /// </summary>
         /// <param name="points">The points to be reflected</param>
         /// <returns>The reflected points</returns>
-        
+
         private IEnumerable<PointF> ReflectY(IEnumerable<PointF> points)
             => points.Select(p => new PointF(p.X, -p.Y));
 

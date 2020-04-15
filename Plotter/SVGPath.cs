@@ -21,12 +21,24 @@ namespace Plotter
         public IList<SVGPathElement> Elements { get; private set; } 
             = new List<SVGPathElement>();
 
+        public SVGPath(IEnumerable<PointF> points, bool closed)
+        {
+            if (points == null || !points.Any())
+                throw new ArgumentException("No points for SVG path");
+
+            Elements.Add(SVGPathElement.MoveTo(points.First()));
+            foreach (PointF p in points.Skip(1))
+                Elements.Add(SVGPathElement.LineTo(p));
+            if (closed)
+                Elements.Add(SVGPathElement.Close());
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
             foreach (var pe in Elements)
                 sb.Append(pe.ToString());
-            return $"<path d=\"{sb.ToString()}\"/>";
+            return $"<path d=\"{sb}\"/>";
         }
     }
 
@@ -61,6 +73,9 @@ namespace Plotter
                 points = new PointF[1];
         }
 
+        public static SVGPathElement MoveTo(PointF p)
+            => MoveTo(p.X, p.Y);
+
         public static SVGPathElement MoveTo(float x, float y)
         {
             var element = new SVGPathElement(StrokeType.Move, false);
@@ -74,6 +89,9 @@ namespace Plotter
             element.points[0] = new PointF(dx, dy);
             return element;
         }
+
+        public static SVGPathElement LineTo(PointF p)
+            => LineTo(p.X, p.Y);
 
         public static SVGPathElement LineTo(float x, float y)
         {
