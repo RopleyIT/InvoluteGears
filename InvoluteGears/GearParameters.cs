@@ -245,6 +245,15 @@ namespace InvoluteGears
             => Square(underCutPoint.X) + Square(underCutPoint.Y);
 
         /// <summary>
+        /// Obtain the radius of the point at which the gear's
+        /// involute working surface changes to the undercut
+        /// trochoid. This is the point at which the gear teeth
+        /// interaction no longer follows the involute curve.
+        /// </summary>
+        
+        public double UndercutRadius => Math.Sqrt(SquaredUndercutRadius);
+
+        /// <summary>
         /// Check that the two gears are compatible for meshing
         /// </summary>
         /// <param name="meshedGear">The other gear with which
@@ -309,7 +318,7 @@ namespace InvoluteGears
         private List<PointF> DedendumPoints;
         private List<PointF> AddendumPoints;
 
-        private IEnumerable<PointF> ComputeInvolutePoints()
+        public IEnumerable<PointF> ComputeInvolutePoints()
         {
             double involuteBaseAngle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
 
@@ -322,7 +331,7 @@ namespace InvoluteGears
             }
         }
 
-        private IEnumerable<PointF> ComputeUndercutPoints()
+        public IEnumerable<PointF> ComputeUndercutPoints()
         {
             int lowerLimit = AngleIndexFloor(-UndercutAngleAtPitchCircle);
             int upperLimit = AngleIndexFloor(DedendumArcAngle / 2);

@@ -18,7 +18,8 @@ namespace InvoluteConsole
                 {
                     Console.WriteLine("Compute data or diagrams for involute gears. Options:");
                     Console.WriteLine(
-                        "-p [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
+                        "-p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
+                            + "\twhere -p generates whole gear image, -P one tooth image\r\n"
                             + "\twhere tooth count is digits\r\n"
                             + "\tprofile shift is in thousandths of the module\r\n"
                             + "\ttolerance is in 100ths of mm\r\n"
@@ -84,35 +85,67 @@ namespace InvoluteConsole
                     List<GearParameters> gears;
                     using(StreamWriter sw = new StreamWriter(args[1]))
                     {
-                        for (double s = 0; s <= 0.211; s += 0.03)
+                        foreach (int pa in new int[] { 145, 200, 250 })
                         {
-                            var teeth = new int[] { 10, 12, 14, 16, 18, 24, 30, 36, 48, 72 };
-                            sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFT {s * 200}%");
-                            sw.WriteLine("TEETH  10      12      14      16      18      24      30      36      48      72");
-                            
-                            sw.Write("GAP ");
-                            gears = new List<GearParameters>();
-                            foreach (int i in teeth)
+                            sw.WriteLine($"PRESSURE ANGLE {pa / 10.0:F1} DEGREES");
+                            for (double s = 0; s <= 0.211; s += 0.03)
                             {
-                                var gear = new GearParameters(i, 1.0, Math.PI * 200 / 1800.0, s);
-                                sw.Write($"{gear.ToothGapAtUndercut:F3}\t");
-                                gears.Add(gear);
-                            }
-                            sw.WriteLine();
+                                var teeth = new int[] { 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 };
+                                sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFT {s * 200}%");
+                                sw.WriteLine("TEETH  10      12      14      16      18      24      30      36      48      72     144");
 
-                            for(int i = 0; i < teeth.Length; i++)
-                            {
-                                sw.Write($"{teeth[i]}  ");
-                                for(int j = 0; j < teeth.Length; j++)
-                                    sw.Write($"{gears[i].ContactRatioWith(gears[j]):F3}\t");
+                                sw.Write("GAP ");
+                                gears = new List<GearParameters>();
+                                foreach (int i in teeth)
+                                {
+                                    var gear = new GearParameters(i, 1.0, Math.PI * pa / 1800.0, s);
+                                    sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
+                                    gears.Add(gear);
+                                }
+                                sw.WriteLine();
+
+                                sw.Write("Db  ");
+                                foreach (var gear in gears)
+                                    sw.Write($"{gear.BaseCircleDiameter,7:F3} ");
+                                sw.WriteLine();
+
+                                sw.Write("Dd  ");
+                                foreach (var gear in gears)
+                                    sw.Write($"{gear.DedendumCircleDiameter,7:F3} ");
+                                sw.WriteLine();
+
+                                sw.Write("Du  ");
+                                foreach (var gear in gears)
+                                    sw.Write($"{gear.UndercutRadius * 2,7:F3} ");
+                                sw.WriteLine();
+
+                                sw.Write("Dp  ");
+                                foreach (var gear in gears)
+                                    sw.Write($"{gear.PitchCircleDiameter,7:F3} ");
+                                sw.WriteLine();
+
+                                sw.Write("Da  ");
+                                foreach (var gear in gears)
+                                    sw.Write($"{gear.AddendumCircleDiameter,7:F3} ");
+                                sw.WriteLine();
+
+                                for (int i = 0; i < teeth.Length; i++)
+                                {
+                                    sw.Write($"{teeth[i],3} ");
+                                    for (int j = 0; j < teeth.Length; j++)
+                                        if (j < i)
+                                            sw.Write(".       ");
+                                        else
+                                            sw.Write($"{gears[i].ContactRatioWith(gears[j]),7:F3} ");
+                                    sw.WriteLine();
+                                }
                                 sw.WriteLine();
                             }
-                            sw.WriteLine();
                         }
                     }
                     return;
                 }
-                if (args[0] == "-p")
+                if (args[0].ToLower() == "-p")
                 {
                     if (args.Length != 8
                         || !int.TryParse(args[1], out int teeth)
@@ -123,7 +156,8 @@ namespace InvoluteConsole
                         || !int.TryParse(args[6], out int backlash)
                         || !int.TryParse(args[7], out int cutterDiameter))
                     {
-                        Console.WriteLine("Usage: InvoluteConsole -p [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
+                        Console.WriteLine("Usage: InvoluteConsole -p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
+                            + "\twhere -p generates whole gear image, -P one tooth image\r\n"
                             + "\twhere tooth count is digits\r\n"
                             + "\tprofile shift is in thousandths of the module\r\n"
                             + "\ttolerance is in 100ths of mm\r\n"
@@ -163,14 +197,22 @@ namespace InvoluteConsole
                     sw.Close();
 
                     // Create the output plot file of the gear
+                    
+                    int limit = gear.ToothCount;
+                    double angle = Math.PI;
+                    if (args[0] == "-P")
+                    {
+                        limit = 1;
+                        angle = gear.ToothAngle / 2;
+                    }
 
                     Plot p = new Plot();
                     var gearPoints = new List<IEnumerable<PointF>>();
-                    gearPoints.Add(Involutes.CirclePoints(-Math.PI, Math.PI, Math.PI / 2880, gear.PitchCircleDiameter / 2));
-                    gearPoints.Add(Involutes.CirclePoints(-Math.PI, Math.PI, Math.PI / 2880, gear.BaseCircleDiameter / 2));
+                    gearPoints.Add(Involutes.CirclePoints(-angle, angle, Math.PI / 2880, gear.PitchCircleDiameter / 2));
+                    gearPoints.Add(Involutes.CirclePoints(-angle, angle, Math.PI / 2880, gear.BaseCircleDiameter / 2));
                     //IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.AddendumCircleDiameter / 2);
                     //IEnumerable<PointF> dedendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.DedendumCircleDiameter / 2);
-                    for (int i = 0; i < gear.ToothCount; i++)
+                    for (int i = 0; i < limit; i++)
                     {
                         gearPoints.Add(gear.AntiClockwiseInvolute(i));
                         gearPoints.Add(gear.ClockwiseInvolute(i));
@@ -178,6 +220,9 @@ namespace InvoluteConsole
                         gearPoints.Add(gear.ClockwiseUndercut(i));
                         gearPoints.Add(gear.Dedendum(i));
                         gearPoints.Add(gear.Addendum(i));
+                        // Remove next two lines for normal use. Used to test whether crossover detection working.
+                        //gearPoints.Add(gear.ComputeInvolutePoints());
+                        //gearPoints.Add(gear.ComputeUndercutPoints());
                     }
                     using Image img = p.PlotGraphs(gearPoints, 2048, 2048);
                     img.Save($"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}.png", ImageFormat.Png);
