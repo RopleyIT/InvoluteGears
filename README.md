@@ -42,8 +42,7 @@ this happens in a clock movement where the hour hand must rotate at one twelfth
 the rate of the minute hand, but is coaxial with it. Two gears are used to achieve 
 the 1/12th reduction, using the two gear ratios 1/4 and 1/3 for example. This option
 allows you to find the number of teeth on both the gear and the pinion for the two gears
-so that they have the same axle separations, as required by the example of the
-minute to hour hand conversion.
+so that they have the same axle separations, for any overall gear ratio of numerator/denominator.
 
 | Argument | Description |
 | -------- | ----------- |
@@ -66,11 +65,11 @@ and profile shifts. The results are written to the file given in the output file
 | Item | Description |
 | ---- | ----------- |
 | GAP | The linear distance between the two undercut points on adjacent teeth of the gear. Used to tell you the maximum diameter of the end-mill cutter to use. |
-| Db | The base circle diameter from which the involute tooth service starts. |
-| Da | The addendum diameter of the gear. THis is the outermost diameter and includes any extra diameter intriduced by profile shifting. |
+| Db | The base circle diameter from which the involute tooth curve starts. |
 | Dd | The dedendum circle diameter. This is the innermost depth the tooth is cut to, if we were able to use a small end-mill. |
-| Dp | The pitch circle diameter for the tooth. This is usually `module * tooth-count`. |
 | Du | The radius at which the undercut begins to eat into the involute curve. |
+| Dp | The pitch circle diameter for the tooth. This is usually `module * tooth-count`. |
+| Da | The addendum diameter of the gear. This is the outermost diameter and includes any extra diameter introduced by profile shifting. |
 
 Following this list, a table appears that shows for each pair of gears cut to this profile-shift and pressure angle,
 what the contact ratio is between two gears with their respective numbers of teeth. All combinations
