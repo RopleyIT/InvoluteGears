@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoluteGears", "InvoluteGe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plotter", "Plotter\Plotter.csproj", "{CCA0060C-1892-4C93-9D63-42CBA684ACF1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoluteConsole", "InvoluteConsole\InvoluteConsole.csproj", "{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gears", "Gears\Gears.csproj", "{C4FECCA1-3AC2-4799-9F25-43FBB4DD7653}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoluteGrpcServer", "InvoluteGrpcServer\InvoluteGrpcServer.csproj", "{6B4C11F3-55DF-4291-BD5E-1E437C0B106E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoluteGrpcServer", "InvoluteGrpcServer\InvoluteGrpcServer.csproj", "{6B4C11F3-55DF-4291-BD5E-1E437C0B106E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
