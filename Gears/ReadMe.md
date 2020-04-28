@@ -5,7 +5,7 @@ It can be used to prepare SVG files for export to CAD tools or CNC machines.
 
 ### Command line and parameters
 
-`gears -[option] [argumetns]`
+`gears -[option] [arguments]`
 
 Every command has a single option flag as a single, case sensitive letter.
 The arguments that follow the option depend in type and number on which option
