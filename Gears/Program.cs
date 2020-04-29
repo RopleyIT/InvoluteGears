@@ -55,67 +55,49 @@ namespace InvoluteConsole
                         Console.WriteLine("\toutput-file-path: Where to store the results");
                         return;
                     }
-                    List<GearParameters> gears;
-                    using(StreamWriter sw = new StreamWriter(args[1]))
+                    var pressureAngles = new int[] { 145, 200, 250 };
+                    var teeth = new int[] { 8, 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 };
+                    using (StreamWriter sw = new StreamWriter(args[1]))
                     {
-                        foreach (int pa in new int[] { 145, 200, 250 })
-                        {
-                            sw.WriteLine($"PRESSURE ANGLE {pa / 10.0:F1} DEGREES");
-                            for (double s = 0; s <= 0.211; s += 0.03)
-                            {
-                                var teeth = new int[] { 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 };
-                                sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFT {s * 200}%");
-                                sw.WriteLine("TEETH  10      12      14      16      18      24      30      36      48      72     144");
-
-                                sw.Write("GAP ");
-                                gears = new List<GearParameters>();
-                                foreach (int i in teeth)
-                                {
-                                    var gear = new GearParameters(i, 1.0, Math.PI * pa / 1800.0, s);
-                                    sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
-                                    gears.Add(gear);
-                                }
-                                sw.WriteLine();
-
-                                sw.Write("Db  ");
-                                foreach (var gear in gears)
-                                    sw.Write($"{gear.BaseCircleDiameter,7:F3} ");
-                                sw.WriteLine();
-
-                                sw.Write("Dd  ");
-                                foreach (var gear in gears)
-                                    sw.Write($"{gear.DedendumCircleDiameter,7:F3} ");
-                                sw.WriteLine();
-
-                                sw.Write("Du  ");
-                                foreach (var gear in gears)
-                                    sw.Write($"{gear.UndercutRadius * 2,7:F3} ");
-                                sw.WriteLine();
-
-                                sw.Write("Dp  ");
-                                foreach (var gear in gears)
-                                    sw.Write($"{gear.PitchCircleDiameter,7:F3} ");
-                                sw.WriteLine();
-
-                                sw.Write("Da  ");
-                                foreach (var gear in gears)
-                                    sw.Write($"{gear.AddendumCircleDiameter,7:F3} ");
-                                sw.WriteLine();
-
-                                for (int i = 0; i < teeth.Length; i++)
-                                {
-                                    sw.Write($"{teeth[i],3} ");
-                                    for (int j = 0; j < teeth.Length; j++)
-                                        if (j < i)
-                                            sw.Write(".       ");
-                                        else
-                                            sw.Write($"{gears[i].ContactRatioWith(gears[j]),7:F3} ");
-                                    sw.WriteLine();
-                                }
-                                sw.WriteLine();
-                            }
-                        }
+                        sw.Write(GenerateGearTables(pressureAngles, teeth));
                     }
+                    return;
+                }
+                if (args[0] == "-c")
+                {
+                    if (args.Length != 4)
+                    {
+                        Console.WriteLine("Usage: gears -c output-file-path comma-sep-angles comma-sep-teeth");
+                        Console.WriteLine("\toutput-file-path: Where to store the results");
+                        Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
+                        Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
+                        return;
+                    }
+                    string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                    var angles = new List<int>();
+                    foreach (string s in values)
+                        if (int.TryParse(s, out int result))
+                            angles.Add(result);
+                        else
+                        {
+                            Console.WriteLine("Angles should be a comma-separated list of integers, measured in tenths of a degree");
+                            return;
+                        }
+
+                    values = args[3].Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    var toothList = new List<int>();
+                    foreach (string s in values)
+                        if (int.TryParse(s, out int result))
+                            toothList.Add(result);
+                        else
+                        {
+                            Console.WriteLine("Tooth counts should be a comma-separated list of integers");
+                            return;
+                        }
+
+                    using (StreamWriter sw = new StreamWriter(args[1]))
+                        sw.Write(GenerateGearTables(angles, toothList));
                     return;
                 }
                 if (args[0].ToLower() == "-p")
@@ -200,6 +182,73 @@ namespace InvoluteConsole
                     using Image img = p.PlotGraphs(gearPoints, 2048, 2048);
                     img.Save($"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}.png", ImageFormat.Png);
                 }
+            }
+        }
+
+        public static string GenerateGearTables(IList<int> angles, IList<int> teeth)
+        {
+            using (StringWriter sw = new StringWriter())
+            {
+                foreach (int pa in angles)
+                {
+                    sw.WriteLine($"PRESSURE ANGLE {pa / 10.0:F1} DEGREES");
+                    for (double s = 0; s <= 0.211; s += 0.03)
+                    {
+                        sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFT {s * 200}%");
+                        sw.Write("TEETH");
+                        foreach (int t in teeth)
+                            sw.Write($"{t,3}     ");
+                        sw.WriteLine();
+
+                        sw.Write("GAP ");
+                        var gears = new List<GearParameters>();
+                        foreach (int i in teeth)
+                        {
+                            var gear = new GearParameters(i, 1.0, Math.PI * pa / 1800.0, s);
+                            sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
+                            gears.Add(gear);
+                        }
+                        sw.WriteLine();
+
+                        sw.Write("Db  ");
+                        foreach (var gear in gears)
+                            sw.Write($"{gear.BaseCircleDiameter,7:F3} ");
+                        sw.WriteLine();
+
+                        sw.Write("Dd  ");
+                        foreach (var gear in gears)
+                            sw.Write($"{gear.DedendumCircleDiameter,7:F3} ");
+                        sw.WriteLine();
+
+                        sw.Write("Du  ");
+                        foreach (var gear in gears)
+                            sw.Write($"{gear.UndercutRadius * 2,7:F3} ");
+                        sw.WriteLine();
+
+                        sw.Write("Dp  ");
+                        foreach (var gear in gears)
+                            sw.Write($"{gear.PitchCircleDiameter,7:F3} ");
+                        sw.WriteLine();
+
+                        sw.Write("Da  ");
+                        foreach (var gear in gears)
+                            sw.Write($"{gear.AddendumCircleDiameter,7:F3} ");
+                        sw.WriteLine();
+
+                        for (int i = 0; i < teeth.Count; i++)
+                        {
+                            sw.Write($"{teeth[i],3} ");
+                            for (int j = 0; j < teeth.Count; j++)
+                                if (j < i)
+                                    sw.Write(".       ");
+                                else
+                                    sw.Write($"{gears[i].ContactRatioWith(gears[j]),7:F3} ");
+                            sw.WriteLine();
+                        }
+                        sw.WriteLine();
+                    }
+                }
+                return sw.ToString();
             }
         }
     }

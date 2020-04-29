@@ -80,3 +80,16 @@ involute part of their gear surfaces at any one time. If less than 1, the gear t
 on the undercut parts for some of their rotation, and will run unevenly and noisily.
 Ideally this ratio should be above about 1.1 for smooth handover between teeth.
 
+`gears -c [output-file-path] [angle1,angle2 ... angleN] [teeth1,teeth2 ... teethM]`
+
+Creates a table of data for the gears whose pressure angles and tooth counts have been specified
+in the comma-separated arguments after the output filename. Table data is as for the `-C` option
+described above, but with selected pressure angles and tooth counts. Note that the pressure
+angles are specified in tenths of a degree.
+
+Example: `gears -c geardata.txt 145,200 10,12,15,45,48,50`
+
+Computes the tables for the 14.5 and 20 degree pressure angles, for all gear tooth counts in the
+list of values supplied as the second parameter. Contact ratios are between the gears specified in 
+the list of tooth counts.
+

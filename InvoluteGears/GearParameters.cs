@@ -277,6 +277,8 @@ namespace InvoluteGears
         
         public double ContactDistanceWithGear(GearParameters meshedGear)
         {
+            
+            
             if (!CanMeshWith(meshedGear))
                 throw new ArgumentException("Gears have differing modules or pressure angles");
             double distanceBetweenCentres 
