@@ -33,6 +33,12 @@ namespace InvoluteConsole
                     Console.WriteLine("\tteethMin, teethMax: ranges of tooth counts for search");
                     Console.WriteLine("-C output-file-path -- contact ratios for various profile shifts and angles");
                     Console.WriteLine("\toutput-file-path: Where to store the results");
+                    Console.WriteLine("-c output-file-path comma-sep-angles comma-sep-teeth module cutter-diameter");
+                    Console.WriteLine("\toutput-file-path: Where to store the results");
+                    Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
+                    Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
+                    Console.WriteLine("\tmodule: gear module in 100ths of a mm");
+                    Console.WriteLine("\tcutter-diameter: diameter of end mill in 100ths of a mm");
                     return;
                 }
                 if (args[0] == "-m")
@@ -59,18 +65,20 @@ namespace InvoluteConsole
                     var teeth = new int[] { 8, 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 };
                     using (StreamWriter sw = new StreamWriter(args[1]))
                     {
-                        sw.Write(GenerateGearTables(pressureAngles, teeth));
+                        sw.Write(GenerateGearTables(pressureAngles, teeth, 100, 0));
                     }
                     return;
                 }
                 if (args[0] == "-c")
                 {
-                    if (args.Length != 4)
+                    if (args.Length != 6)
                     {
-                        Console.WriteLine("Usage: gears -c output-file-path comma-sep-angles comma-sep-teeth");
+                        Console.WriteLine("Usage: gears -c output-file-path comma-sep-angles comma-sep-teeth module cutter-diameter");
                         Console.WriteLine("\toutput-file-path: Where to store the results");
                         Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
                         Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
+                        Console.WriteLine("\tmodule: Gear module in 100ths of a mm");
+                        Console.WriteLine("\tcutter-diameter: Diameter of end mill in 100ths of a mm");
                         return;
                     }
                     string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -96,8 +104,20 @@ namespace InvoluteConsole
                             return;
                         }
 
+                    if (!int.TryParse(args[4], out int module))
+                    {
+                        Console.WriteLine("Module should be an integer measured in 100ths of a mm");
+                        return;
+                    }
+
+                    if (!int.TryParse(args[5], out int cutterDiameter))
+                    {
+                        Console.WriteLine("Cutter diameter should be an integer measured in 100ths of a mm");
+                        return;
+                    }
+
                     using (StreamWriter sw = new StreamWriter(args[1]))
-                        sw.Write(GenerateGearTables(angles, toothList));
+                        sw.Write(GenerateGearTables(angles, toothList, module, cutterDiameter));
                     return;
                 }
                 if (args[0].ToLower() == "-p")
@@ -185,13 +205,14 @@ namespace InvoluteConsole
             }
         }
 
-        public static string GenerateGearTables(IList<int> angles, IList<int> teeth)
+        public static string GenerateGearTables(IList<int> angles, IList<int> teeth, int module, int cutterDiameter)
         {
             using (StringWriter sw = new StringWriter())
             {
                 foreach (int pa in angles)
                 {
                     sw.WriteLine($"PRESSURE ANGLE {pa / 10.0:F1} DEGREES");
+                    sw.WriteLine($"MODULE {module / 100.0:F2}mm, CUTTER DIAMETER {cutterDiameter / 100.0:F2}mm");
                     for (double s = 0; s <= 0.211; s += 0.03)
                     {
                         sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFT {s * 200}%");
@@ -204,7 +225,7 @@ namespace InvoluteConsole
                         var gears = new List<GearParameters>();
                         foreach (int i in teeth)
                         {
-                            var gear = new GearParameters(i, 1.0, Math.PI * pa / 1800.0, s);
+                            var gear = new GearParameters(i, module/100.0, Math.PI * pa / 1800.0, s, 0, 0, cutterDiameter/100.0);
                             sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
                             gears.Add(gear);
                         }
@@ -218,6 +239,11 @@ namespace InvoluteConsole
                         sw.Write("Dd  ");
                         foreach (var gear in gears)
                             sw.Write($"{gear.DedendumCircleDiameter,7:F3} ");
+                        sw.WriteLine();
+
+                        sw.Write("Dc  ");
+                        foreach (var gear in gears)
+                            sw.Write($"{gear.CutterAdjustedDedendumCircleDiameter,7:F3} ");
                         sw.WriteLine();
 
                         sw.Write("Du  ");

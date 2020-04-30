@@ -59,37 +59,59 @@ that together have the same axle separation, but that also give an overall ratio
 
 `gears -C [output-file-path]`
 
-Creates a table of data for a range of gears with various pressure angles, tooth counts,
-and profile shifts. The results are written to the file given in the output file path. For each tooth it tabulates the following data:
+Creates a table of data for a range of gears 
+with various pressure angles, tooth counts,
+and profile shifts. The results are written to the file given 
+in the output file path. For each tooth it tabulates the following data:
 
 | Item | Description |
 | ---- | ----------- |
 | GAP | The linear distance between the two undercut points on adjacent teeth of the gear. Used to tell you the maximum diameter of the end-mill cutter to use. |
 | Db | The base circle diameter from which the involute tooth curve starts. |
 | Dd | The dedendum circle diameter. This is the innermost depth the tooth is cut to, if we were able to use a small end-mill. |
-| Du | The radius at which the undercut begins to eat into the involute curve. |
+| Dc | The reduced dedendum diameter caused by using a cutter of diameter too great to follow the ideal undercut curve. |
+| Du | The diameter at which the undercut begins to eat into the involute curve. |
 | Dp | The pitch circle diameter for the tooth. This is usually `module * tooth-count`. |
 | Da | The addendum diameter of the gear. This is the outermost diameter and includes any extra diameter introduced by profile shifting. |
 
-Following this list, a table appears that shows for each pair of gears cut to this profile-shift and pressure angle,
-what the contact ratio is between two gears with their respective numbers of teeth. All combinations
+Following this list, a table appears that shows 
+for each pair of gears cut to this profile-shift and pressure angle,
+what the contact ratio is between two gears with 
+their respective numbers of teeth. All combinations
 of tooth pairs from the range 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 are plotted.
 
-The contact ratio is defined as the average number of teeth that are in contact on the
-involute part of their gear surfaces at any one time. If less than 1, the gear tips will be grinding
-on the undercut parts for some of their rotation, and will run unevenly and noisily.
-Ideally this ratio should be above about 1.1 for smooth handover between teeth.
+The contact ratio is defined as the 
+average number of teeth that are in contact on the
+involute part of their gear surfaces at 
+any one time. If less than 1, the gear tips will be grinding
+on the undercut parts for some of their 
+rotation, and will run unevenly and noisily.
+Ideally this ratio should be above about 1.1 
+for smooth handover between teeth.
 
-`gears -c [output-file-path] [angle1,angle2 ... angleN] [teeth1,teeth2 ... teethM]`
+`gears -c [output-file-path] [angle1,angle2 ... angleN] [teeth1,teeth2 ... teethM] [module] [cutter-diameter]`
 
-Creates a table of data for the gears whose pressure angles and tooth counts have been specified
-in the comma-separated arguments after the output filename. Table data is as for the `-C` option
-described above, but with selected pressure angles and tooth counts. Note that the pressure
-angles are specified in tenths of a degree.
+Creates a table of data for the gears whose 
+pressure angles and tooth counts have been specified
+in the comma-separated arguments after the output 
+filename. The comma-separated arguments must not 
+have any embedded spaces.
 
-Example: `gears -c geardata.txt 145,200 10,12,15,45,48,50`
+Table data is as for the `-C` option
+described above, but with selected pressure 
+angles, tooth counts, module, and cutter diameter. The pressure
+angles are specified in tenths of a degree, 
+and the module and cutter diameter in 100ths of a mm.
+
+For the `-C` option, we assume a sufficiently small
+diameter cutter so that the undercut and dedendum do not need 
+to be adjusted from the ideal curve. Also for the
+`-C` option, we assume the module is 1.0mm as a working default.
+
+Example: `gears -c geardata.txt 145,200 10,12,15,45,48,50 500 635`
 
 Computes the tables for the 14.5 and 20 degree pressure angles, for all gear tooth counts in the
-list of values supplied as the second parameter. Contact ratios are between the gears specified in 
+list of values supplied as the second parameter. The gears have a module of 5mm, and
+are cut using an end mill of diameter 1/4 inch (6.35mm). Contact ratios are between the gears specified in 
 the list of tooth counts.
 

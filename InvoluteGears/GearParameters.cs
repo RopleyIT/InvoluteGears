@@ -112,6 +112,19 @@ namespace InvoluteGears
             => PitchCircleDiameter - 2 * Module 
             * (1 - ProfileShift);
 
+        private double? cutterAdjustedDedendumDircleDiameter;
+
+        public double CutterAdjustedDedendumCircleDiameter
+        {
+            get
+            {
+                if (cutterAdjustedDedendumDircleDiameter.HasValue)
+                    return cutterAdjustedDedendumDircleDiameter.Value;
+                else
+                    return DedendumCircleDiameter;
+            }
+        }
+
         // The number of teeth around the outside of the
         // gear wheel. These are evenly spaced obviously.
         // Note that if this is positive, it is a normal
@@ -415,6 +428,10 @@ namespace InvoluteGears
             DedendumPoints = new List<PointF>(Involutes.CirclePoints
                 (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI, 
                 Math.PI / 2880, cutterCentreRadius - CutterDiameter / 2));
+
+            // Record the new dedendum diameter since the cutter has reduced it
+
+            cutterAdjustedDedendumDircleDiameter = 2 * cutterCentreRadius - CutterDiameter;
 
             // Undercut points and dedendum points were rewritten. Return
             // true to flag this fact.
