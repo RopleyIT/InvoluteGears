@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
-using System.Xml;
+using System.IO;
 
 namespace Plotter
 {
+    // TODO: Modify to take multiple paths in format that can be fed to Cut2D
+
     /*
      <?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <svg width="391" height="391" viewBox="-70.5 -70.5 391 391" xmlns="http://www.w3.org/2000/svg">
@@ -20,21 +20,23 @@ namespace Plotter
      */
     public class SVGCreator
     {
-        private SVGPath svgPath;
+        private readonly List<SVGPath> svgPaths;
 
-        public SVGCreator(SVGPath svgPath) => this.svgPath = svgPath;
+        public SVGCreator() => svgPaths = new List<SVGPath>();
+
+        public void AddPath(SVGPath path) => svgPaths.Add(path);
 
         public SizeF DocumentDimensions { get; set; }
-        
+
         public string DocumentDimensionUnits { get; set; }
 
         public RectangleF ViewBoxDimensions { get; set; }
 
         public string ViewBoxDimensionUnits { get; set; }
 
-        string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
-        
-        string StartSvg =>
+        private static string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
+
+        private string StartSvg =>
             $"<svg width=\"{DocumentDimensions.Width}{DocumentDimensionUnits}\" "
             + $"height=\"{DocumentDimensions.Height}{DocumentDimensionUnits}\" "
             + $"viewBox=\"{ViewBoxDimensions.X}{ViewBoxDimensionUnits} "
@@ -42,15 +44,18 @@ namespace Plotter
             + $"{ViewBoxDimensions.Width}{ViewBoxDimensionUnits} "
             + $"{ViewBoxDimensions.Height}{ViewBoxDimensionUnits}\" "
             + $"xmlns=\"http://www.w3.org/2000/svg\">";
-        
-        string EndSvg => "</svg>";
+
+        private static string EndSvg => "</svg>";
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder(StartSvg);
-            sb.Append(svgPath.ToString());
-            sb.Append(EndSvg);
-            return sb.ToString();
+            StringWriter sw = new StringWriter();
+            sw.WriteLine(XmlHeader);
+            sw.WriteLine(StartSvg);
+            foreach (SVGPath path in svgPaths)
+                sw.WriteLine(path.ToString());
+            sw.WriteLine(EndSvg);
+            return sw.ToString();
         }
     }
 }

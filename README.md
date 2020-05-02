@@ -26,7 +26,7 @@ so that it can be zoomed closely to inspect the tooth profile.
 | `tolerance` | 100ths of a mm | The tolerated deviation from exact measures of points on the gear curve. |
 | `angle` | 10ths of a degree | The pressure angle for the gear. Usually 145, 200, or 250. |
 | `module` | 100ths of a mm | The gear module. Gear diameter = `tooth-count * module` at the pitch circle. |
-| `backlash` | 1000ths of the module | Adjustment made to allow backlash in the gear. |
+| `backlash` | 10ths of a percent of the module | Adjustment made to allow backlash in the gear. |
 | `cutter-diameter` | 100ths of a mm | Diameter of end-mill used to cut gear teeth. |
 
 Example: `gears -P 12 0 10 200 500 20 500`
@@ -34,6 +34,13 @@ Example: `gears -P 12 0 10 200 500 20 500`
 This will design a 12 tooth gear with no profile shift, curves accurate to 1/10th mm,
 with the standard 20 degree pressure angle, a module of 5mm, backlash of 1/10th mm,
 using a cutter of diameter 5mm to cut out the gear.
+
+Note that the current version of this program will generate spokes 
+for the gears in order to reduce their 
+weight and moment of inertia. For teeth up to around 17 teeth no spokes are generated. For
+gears above that, the number of spokes is chosen so that no more that
+eight teeth would be on the perimeter between consecutive spokes. The
+minimum number of spokes is three.
 
 `gears -m [numerator] [denominator] [min-teeth] [max-teeth]`
 

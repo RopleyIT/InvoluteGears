@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Plotter
 {
     public enum StrokeType
     {
         Move,
-        Line, 
+        Line,
         Cubic,
-        Quadratic, 
+        Quadratic,
         Arc,
         Z
     };
 
     public class SVGPath
     {
-        public IList<SVGPathElement> Elements { get; private set; } 
+        public IList<SVGPathElement> Elements { get; private set; }
             = new List<SVGPathElement>();
 
         public SVGPath(IEnumerable<PointF> points, bool closed)
@@ -35,10 +35,17 @@ namespace Plotter
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (var pe in Elements)
-                sb.Append(pe.ToString());
-            return $"<path d=\"{sb}\"/>";
+            StringWriter sw = new StringWriter();
+            sw.Write("<path d=\"");
+            int i = 0;
+            foreach (SVGPathElement pe in Elements)
+            {
+                sw.Write(pe.ToString());
+                if (++i % 10 == 0)
+                    sw.WriteLine();
+            }
+            sw.WriteLine("\"/>");
+            return sw.ToString();
         }
     }
 
@@ -47,15 +54,9 @@ namespace Plotter
         public StrokeType StrokeType { get; private set; }
         public bool Relative { get; private set; }
 
-        private PointF[] points;
+        private readonly PointF[] points;
 
-        public IList<PointF> Points 
-        { 
-            get
-            {
-                return points;
-            }
-        }
+        public IList<PointF> Points => points;
 
         private SVGPathElement(StrokeType type, bool rel)
         {
@@ -68,7 +69,7 @@ namespace Plotter
             else if (type == StrokeType.Arc)
                 points = new PointF[3];
             else if (type == StrokeType.Z)
-                points = new PointF[0];
+                points = Array.Empty<PointF>();
             else
                 points = new PointF[1];
         }
@@ -78,14 +79,14 @@ namespace Plotter
 
         public static SVGPathElement MoveTo(float x, float y)
         {
-            var element = new SVGPathElement(StrokeType.Move, false);
+            SVGPathElement element = new SVGPathElement(StrokeType.Move, false);
             element.points[0] = new PointF(x, y);
             return element;
         }
 
         public static SVGPathElement MoveRel(float dx, float dy)
         {
-            var element = new SVGPathElement(StrokeType.Move, true);
+            SVGPathElement element = new SVGPathElement(StrokeType.Move, true);
             element.points[0] = new PointF(dx, dy);
             return element;
         }
@@ -95,26 +96,23 @@ namespace Plotter
 
         public static SVGPathElement LineTo(float x, float y)
         {
-            var element = new SVGPathElement(StrokeType.Line, false);
+            SVGPathElement element = new SVGPathElement(StrokeType.Line, false);
             element.points[0] = new PointF(x, y);
             return element;
         }
 
         public static SVGPathElement LineRel(float dx, float dy)
         {
-            var element = new SVGPathElement(StrokeType.Line, true);
+            SVGPathElement element = new SVGPathElement(StrokeType.Line, true);
             element.points[0] = new PointF(dx, dy);
             return element;
         }
 
-        public static SVGPathElement Close()
-        {
-            return new SVGPathElement(StrokeType.Z, false);
-        }
+        public static SVGPathElement Close() => new SVGPathElement(StrokeType.Z, false);
 
         public static SVGPathElement Cubic(float cx1, float cy1, float cx2, float cy2, float x, float y)
         {
-            var element = new SVGPathElement(StrokeType.Cubic, false);
+            SVGPathElement element = new SVGPathElement(StrokeType.Cubic, false);
             element.points[0] = new PointF(cx1, cy1);
             element.points[1] = new PointF(cx2, cy2);
             element.points[2] = new PointF(x, y);
@@ -123,7 +121,7 @@ namespace Plotter
 
         public static SVGPathElement CubicRel(float dx1, float dy1, float dx2, float dy2, float dx, float dy)
         {
-            var element = new SVGPathElement(StrokeType.Cubic, true);
+            SVGPathElement element = new SVGPathElement(StrokeType.Cubic, true);
             element.points[0] = new PointF(dx1, dy1);
             element.points[1] = new PointF(dx2, dy2);
             element.points[2] = new PointF(dx, dy);
@@ -132,7 +130,7 @@ namespace Plotter
 
         public static SVGPathElement Quadratic(float cx1, float cy1, float x, float y)
         {
-            var element = new SVGPathElement(StrokeType.Cubic, false);
+            SVGPathElement element = new SVGPathElement(StrokeType.Cubic, false);
             element.points[0] = new PointF(cx1, cy1);
             element.points[1] = new PointF(x, y);
             return element;
@@ -140,7 +138,7 @@ namespace Plotter
 
         public static SVGPathElement QuadraticRel(float dx1, float dy1, float dx, float dy)
         {
-            var element = new SVGPathElement(StrokeType.Cubic, true);
+            SVGPathElement element = new SVGPathElement(StrokeType.Cubic, true);
             element.points[0] = new PointF(dx1, dy1);
             element.points[1] = new PointF(dx, dy);
             return element;
@@ -148,7 +146,7 @@ namespace Plotter
 
         public static SVGPathElement Arc(float rx, float ry, float angle, bool largeArc, bool sweep, float x, float y)
         {
-            var element = new SVGPathElement(StrokeType.Arc, false);
+            SVGPathElement element = new SVGPathElement(StrokeType.Arc, false);
             element.points[0] = new PointF(rx, ry);
             element.points[1] = new PointF(angle, (largeArc ? 1.0f : 0.0f) + (sweep ? 2.0f : 0.0f)); // UGH!
             element.points[2] = new PointF(x, y);
@@ -157,22 +155,22 @@ namespace Plotter
 
         public static SVGPathElement ArcRel(float rx, float ry, float angle, bool largeArc, bool sweep, float dx, float dy)
         {
-            var element = new SVGPathElement(StrokeType.Arc, true);
+            SVGPathElement element = new SVGPathElement(StrokeType.Arc, true);
             element.points[0] = new PointF(rx, ry);
             element.points[1] = new PointF(angle, (largeArc ? 1.0f : 0.0f) + (sweep ? 2.0f : 0.0f)); // UGH!
             element.points[2] = new PointF(dx, dy);
             return element;
         }
 
-        const string TypeStrings = "MLCQAZ";
-        const string RelTypeStrings = "mlcqaz";
-        static string[] ArcStrings = { "0,0", "1,0", "0,1", "1,1" };
+        private const string TypeStrings = "MLCQAZ";
+        private const string RelTypeStrings = "mlcqaz";
+        private static readonly string[] ArcStrings = { "0,0", "1,0", "0,1", "1,1" };
 
         public override string ToString()
         {
-            var typeString = Relative ? RelTypeStrings : TypeStrings;
+            string typeString = Relative ? RelTypeStrings : TypeStrings;
             string result = typeString[(int)StrokeType].ToString();
-            switch(StrokeType)
+            switch (StrokeType)
             {
                 case StrokeType.Move:
                 case StrokeType.Line:
@@ -193,9 +191,9 @@ namespace Plotter
             return result;
         }
 
-        private string RenderPoint(PointF p) => $"{p.X:F2},{p.Y:F2}";
+        private static string RenderPoint(PointF p) => $"{p.X:F2},{p.Y:F2}";
 
-        private string RenderPoints(IEnumerable<PointF> pe, int count) 
+        private static string RenderPoints(IEnumerable<PointF> pe, int count)
             => string.Join(",", pe.Take(count).Select(p => RenderPoint(p)));
     }
 }

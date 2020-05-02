@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
 using System.Linq;
 
@@ -10,7 +9,7 @@ namespace InvoluteGears
     /// Algorithms and calculators used for
     /// computing points on an involute curve
     /// </summary>
-    
+
     public static class Involutes
     {
         /// <summary>
@@ -30,7 +29,7 @@ namespace InvoluteGears
         /// right of the circle. The whole involute is rotated around the outside of the circle
         /// by this amount. Note that the trochoid is rotated by the same amount.</param>
         /// <returns>The computed X, Y coordinate for the parameters supplied.</returns>
-        
+
         public static PointF InvolutePlusOffset(double radius, double offX, double offY, double phi, double phiOffset)
         {
 
@@ -50,7 +49,7 @@ namespace InvoluteGears
         /// that the zero angle is aligned horizontally along the positive X axis.</param>
         /// <returns>The point on the circle.</returns>
 
-        public static PointF Circle(double radius, double phi) 
+        public static PointF Circle(double radius, double phi)
             => new PointF((float)(radius * Math.Cos(phi)), (float)(radius * Math.Sin(phi)));
 
         /// <summary>
@@ -70,7 +69,7 @@ namespace InvoluteGears
         /// <returns>The set of points on the circumference of the circle</returns>
 
         public static IEnumerable<PointF> CirclePoints
-            (double startAngle, double endAngle, double dAngle, double radius, PointF centre) 
+            (double startAngle, double endAngle, double dAngle, double radius, PointF centre)
             => CirclePoints(startAngle, endAngle, dAngle, radius)
                 .Select(p => OffsetPoint(p, centre));
 
@@ -92,7 +91,6 @@ namespace InvoluteGears
         public static IEnumerable<PointF> CirclePoints
             (double startAngle, double endAngle, double dAngle, double radius)
         {
-            int pointCount = (int)((endAngle - startAngle) / dAngle);
             for (double angle = startAngle; angle < endAngle; angle += dAngle)
                 yield return Circle(radius, angle);
             yield return Circle(radius, endAngle);
@@ -119,22 +117,22 @@ namespace InvoluteGears
         /// <param name="g1">The first gear being meshed</param>
         /// <param name="g2">The second gear being meshed</param>
         /// <returns>The contact ratio</returns>
-        
+
         public static double IdealContactRatio(GearParameters g1, GearParameters g2)
         {
-            if(g1 == null || !g1.CanMeshWith(g2))
+            if (g1 == null || !g1.CanMeshWith(g2))
                 throw new ArgumentException("Gears have differing modules or pressure angles");
 
             double gear1 = 0.5 * RootDiffOfSquares
-                (g1.PitchCircleDiameter + 2*g1.Module, g1.BaseCircleDiameter);
+                (g1.PitchCircleDiameter + 2 * g1.Module, g1.BaseCircleDiameter);
             double gear2 = 0.5 * RootDiffOfSquares
-                (g2.PitchCircleDiameter + 2*g2.Module, g2.BaseCircleDiameter);
-            return (gear1 + gear2 - Math.Sin(g1.PressureAngle) 
+                (g2.PitchCircleDiameter + 2 * g2.Module, g2.BaseCircleDiameter);
+            return (gear1 + gear2 - Math.Sin(g1.PressureAngle)
                 * (g1.PitchCircleDiameter + g2.PitchCircleDiameter) / 2)
                 / g1.BaseCirclePitch;
         }
 
-        public static double RootDiffOfSquares(double a, double b) 
+        public static double RootDiffOfSquares(double a, double b)
             => Math.Sqrt((a + b) * (a - b));
 
         /// <summary>
@@ -178,7 +176,7 @@ namespace InvoluteGears
             => r1 > v && v >= r2 || r2 > v && v >= r1;
 
         private static double Gradient(PointF p1, PointF p2)
-            =>p2.X == p1.X ? double.MaxValue : (p2.Y - p1.Y) / (p2.X - p1.X);
+            => p2.X == p1.X ? double.MaxValue : (p2.Y - p1.Y) / (p2.X - p1.X);
 
         /// <summary>
         /// Given a list of PointF structures sorted in decreasing
@@ -197,7 +195,7 @@ namespace InvoluteGears
         /// of the items in the list is greater than the
         /// specified value. Returns the index of the
         /// last item in the list if they all are.</returns>
-        
+
         public static int IndexOfLastPointWithGreaterXVal
             (List<PointF> list, double xVal)
         {
@@ -226,8 +224,8 @@ namespace InvoluteGears
         {
             // First clone each list so that we don't destroy the originals
 
-            var list1 = new List<PointF>(ptList1);
-            var list2 = new List<PointF>(ptList2);
+            List<PointF> list1 = new List<PointF>(ptList1);
+            List<PointF> list2 = new List<PointF>(ptList2);
 
             // Populate list1 with extra points having same X values as list 2,
             // then list2 with extra points having same X values as list 1
@@ -241,7 +239,7 @@ namespace InvoluteGears
 
             for (int i = 0; i < list1.Count - 1; i++)
             {
-                var crossingPoint = CrossAt(list1[i], list1[i + 1], list2[i], list2[i + 1]);
+                PointF? crossingPoint = CrossAt(list1[i], list1[i + 1], list2[i], list2[i + 1]);
                 if (crossingPoint.HasValue)
                     return crossingPoint;
             }
@@ -256,13 +254,13 @@ namespace InvoluteGears
         /// <param name="ptList1">One list of points</param>
         /// <param name="ptList2">The second list of points</param>
         /// <returns>The X value at which the curves through the points are closest</returns>
-        
+
         public static PointF ClosestPoint(List<PointF> ptList1, List<PointF> ptList2)
         {
             // First clone each list so that we don't destroy the originals
 
-            var list1 = new List<PointF>(ptList1);
-            var list2 = new List<PointF>(ptList2);
+            List<PointF> list1 = new List<PointF>(ptList1);
+            List<PointF> list2 = new List<PointF>(ptList2);
 
             // Populate list1 with extra points having same X values as list 2,
             // then list2 with extra points having same X values as list 1
@@ -311,13 +309,13 @@ namespace InvoluteGears
             if (x > ptList.First().X)
                 ptList.Insert(0, FindPoint(x, ptList[1], ptList[0]));
             else if (x < ptList.Last().X)
-                ptList.Add(FindPoint(x, ptList[ptList.Count - 2], ptList[ptList.Count - 1]));
+                ptList.Add(FindPoint(x, ptList[^2], ptList[^1]));
             else
             {
                 int i = 0;
                 while (i < ptList.Count && ptList[i].X > x)
                     i++;
-                if(ptList[i].X < x)
+                if (ptList[i].X < x)
                     ptList.Insert(i, FindPoint(x, ptList[i - 1], ptList[i]));
             }
         }
@@ -332,7 +330,7 @@ namespace InvoluteGears
         /// <param name="pt2">The other point on the straight line</param>
         /// <returns>The new point with the specified X value, and
         /// colinear with pt1 and pt2</returns>
-        
+
         public static PointF FindPoint(double x, PointF pt1, PointF pt2)
         {
             double m = (pt2.Y - pt1.Y) / (pt2.X - pt1.X);
@@ -348,12 +346,12 @@ namespace InvoluteGears
         /// <param name="source">The original sequence</param>
         /// <param name="maxErr">The perpendicular error margin</param>
         /// <returns>A new reduced list of points</returns>
-        
+
         public static List<PointF> LinearReduction(IList<PointF> source, float maxErr)
         {
-            var result = new List<PointF>();
+            List<PointF> result = new List<PointF>();
             int startIndex = 0;
-            while(startIndex < source.Count - 1)
+            while (startIndex < source.Count - 1)
             {
                 result.Add(source[startIndex]);
                 startIndex = IndexOfFarthestPointWithinMargin(source, startIndex, maxErr);
@@ -362,35 +360,30 @@ namespace InvoluteGears
             return result;
         }
 
-        private static int IndexOfFarthestPointWithinMargin(IList<PointF> source, int startIndex, float maxErr)
-        {
-            for(int i = source.Count - 1; i > startIndex; i--)
-            {
-                if(MaxDistance(source.Skip(startIndex).Take(i - 1 - startIndex), source[startIndex], source[i]) < maxErr)
-                    return i;
-            }
-            return startIndex + 1; // Should never reach this
-        }
-
         /// <summary>
-        /// Given a sequence of points, find the maximum perpendicular distance
-        /// any one of them has from the straight line through p1 and p2
+        /// Walk along a list of points, and find the index of the farthest point from
+        /// the starting point for which all points between lie within maxErr
+        /// perpendicular distance from a straight line from the starting point to
+        /// the farthest point.
         /// </summary>
-        /// <param name="innerPoints">The sequence of points</param>
-        /// <param name="p1">One of two points on the line</param>
-        /// <param name="p2">The other of two points on the line</param>
-        /// <returns>The longest distance from any of the points to the line</returns>
-        
-        private static float MaxDistance(IEnumerable<PointF> innerPoints, PointF p1, PointF p2)
+        /// <param name="source">The list of points to be searched</param>
+        /// <param name="startIndex">Where in the list to start the search</param>
+        /// <param name="maxErr">The tolerance to fit to</param>
+        /// <returns>The index of the farthest point that meets the
+        /// tolerance criteria for points in between</returns>
+
+        private static int IndexOfFarthestPointWithinMargin
+            (IList<PointF> source, int startIndex, float maxErr)
         {
-            var maxDist = 0f;
-            foreach(PointF p in innerPoints)
+            PointF earlier = source[startIndex];
+            for (int i = startIndex + 2; i < source.Count; i++)
             {
-                var dist = PerpendicularDistance(p, p1, p2);
-                if (dist > maxDist)
-                    maxDist = dist;
+                PointF later = source[i];
+                for (int j = startIndex + 1; j < i; j++)
+                    if (PerpendicularDistance(source[j], earlier, later) > maxErr)
+                        return i - 1;
             }
-            return maxDist;
+            return source.Count - 1;
         }
 
         /// <summary>
@@ -403,7 +396,7 @@ namespace InvoluteGears
         /// <param name="p1">One of two points on the line</param>
         /// <param name="p2">The other of two points on the line</param>
         /// <returns>The shortest distance from the point to the line</returns>
-        
+
         public static float PerpendicularDistance(PointF p0, PointF p1, PointF p2)
         {
             double numerator = (p2.Y - p1.Y) * p0.X;
@@ -430,7 +423,7 @@ namespace InvoluteGears
         /// <param name="p2">The second intersecting point</param>
         /// <param name="radius">The radius of the circles</param>
         /// <returns>The two possible centres for the circles</returns>
-        
+
         public static PointF[] CircleCentres(PointF p1, PointF p2, double radius)
         {
             // Find the centre of the line from p1 to p2
@@ -440,19 +433,13 @@ namespace InvoluteGears
             // Find the square of the linear distance
             // from one point to the midpoint
 
-            double sqrDistToMidPoint = 
-                (Square(p2.X - p1.X) + Square(p2.Y - p1.Y))/4;
+            double sqrDistToMidPoint =
+                (Square(p2.X - p1.X) + Square(p2.Y - p1.Y)) / 4;
 
             // Find the gradient of a line normal to 
             // the line between the two points
 
             double m = (p1.X - p2.X) / (p2.Y - p1.Y);
-
-            // The line through the midpoint also runs through the two
-            // circle centres, and has equation y = m*x + c, where
-            // the value of c can be calculated using the midpoint
-            
-            double c = midPoint.Y - m * midPoint.X;
 
             // Calculate the distance along the line from the midpoint
             // to the centre of each circle, using Pythagoras on the
@@ -482,7 +469,7 @@ namespace InvoluteGears
         /// <param name="radius">The radius of the circl</param>
         /// <returns>True if the point is within the circle</returns>
 
-        public static bool PointInCircle(PointF pt, PointF centre, double radius) 
+        public static bool PointInCircle(PointF pt, PointF centre, double radius)
             => Square(pt.X - centre.X) + Square(pt.Y - centre.Y) < Square(radius);
     }
 }

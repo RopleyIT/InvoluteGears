@@ -2,7 +2,7 @@
   "profiles": {
     "InvoluteConsole": {
       "commandName": "Project",
-      "commandLineArgs": "-c geardata.txt 145,200 10,12,15,45,48,50"
+      "commandLineArgs": "-p 10 0 5 145 500 10 635"
     }
   }
 }

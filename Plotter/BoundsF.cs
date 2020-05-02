@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace Plotter
 {
@@ -9,11 +8,11 @@ namespace Plotter
     /// A filter class that spies on a sequence of PointF points,
     /// and computes the bounding rectangle around them.
     /// </summary>
-    
+
     public class BoundsF
     {
-        PointF topLeft = new PointF(float.MaxValue, float.MaxValue);
-        PointF bottomRight = new PointF(float.MinValue, float.MinValue);
+        private PointF topLeft = new PointF(float.MaxValue, float.MaxValue);
+        private PointF bottomRight = new PointF(float.MinValue, float.MinValue);
 
         /// <summary>
         /// As points pass through this IEnumerable filter, keep track
@@ -27,7 +26,7 @@ namespace Plotter
         /// we want to find the bounding box</param>
         /// <returns>The same enumerable of points as was passed
         /// in as an argument</returns>
-        
+
         public IEnumerable<PointF> Track(IEnumerable<PointF> points)
         {
             foreach (PointF p in points)
@@ -43,7 +42,7 @@ namespace Plotter
         /// <summary>
         /// Generate the calculated bounding box around the points
         /// </summary>
-        
+
         public RectangleF Bounds => new RectangleF
             (topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
     }

@@ -7,8 +7,8 @@ namespace InvoluteGears
 {
     public class GearParameters
     {
-        public GearParameters(int toothCount, double module = 1.0, 
-            double pressureAngle = Math.PI/9, double profileShift = 0.0, 
+        public GearParameters(int toothCount, double module = 1.0,
+            double pressureAngle = Math.PI / 9, double profileShift = 0.0,
             double maxErr = 0.0, double backlash = 0.0, double cutterDiam = 0.0)
         {
             ToothCount = toothCount;
@@ -24,7 +24,7 @@ namespace InvoluteGears
         /// <summary>
         /// The diameter of the bit used to cut out the gear
         /// </summary>
-        
+
         public double CutterDiameter
         {
             get;
@@ -38,7 +38,7 @@ namespace InvoluteGears
         /// of zero does no reduction. Should be set to a value that matches the
         /// precision of the cutting machine for the gears. Measured in mm.
         /// </summary>
-        
+
         public double MaxError { get; private set; }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace InvoluteGears
         /// </summary>
 
         public double Backlash { get; private set; }
-        
+
         /// <summary>
         /// The profile shift coefficient for corrected gears.
         /// Used to keep the contact ratio above 1.0 for gears
@@ -76,7 +76,7 @@ namespace InvoluteGears
         /// dedendum and addendum radii are increased. Hence
         /// it has units of fractions of the module.
         /// </summary>
-        
+
         public double ProfileShift { get; private set; }
 
         /// <summary>
@@ -103,13 +103,13 @@ namespace InvoluteGears
         // of teeth by one module beyond the pitch circle
 
         public double AddendumCircleDiameter
-            => PitchCircleDiameter 
+            => PitchCircleDiameter
             + 2 * Module * (1 + ProfileShift - Backlash);
 
         // The maximum non-interfering radius of the inner
         // circle at the foot of the gap between teeth.
-        public double DedendumCircleDiameter 
-            => PitchCircleDiameter - 2 * Module 
+        public double DedendumCircleDiameter
+            => PitchCircleDiameter - 2 * Module
             * (1 - ProfileShift);
 
         private double? cutterAdjustedDedendumDircleDiameter;
@@ -130,7 +130,7 @@ namespace InvoluteGears
         // Note that if this is positive, it is a normal
         // gear. If zero, it is a rack. If negative, it
         // is an internal gear.
-        
+
         public int ToothCount { get; private set; }
 
         // The angle relative to a line between the centres
@@ -141,7 +141,7 @@ namespace InvoluteGears
         // in radians, not degrees. 14.5 degrees = 0.25307
         // radians. 20 degrees = 0.34907, and 25 degrees
         // = 0.43633 radians.
-        
+
         public double PressureAngle { get; private set; }
 
         // The extra diameter needed per extra tooth for a
@@ -157,7 +157,7 @@ namespace InvoluteGears
         /// <summary>
         /// The base circle diameter for the involute curve
         /// </summary>
-        
+
         public double BaseCircleDiameter
             => PitchCircleDiameter * Math.Cos(PressureAngle);
 
@@ -167,7 +167,7 @@ namespace InvoluteGears
         /// the base circle between the start of the involutes
         /// for two adjacent teeth.
         /// </summary>
-        
+
         public double BaseCirclePitch
             => Pitch * Math.Cos(PressureAngle);
 
@@ -202,12 +202,12 @@ namespace InvoluteGears
         /// The angle from the pitch point to the point on the
         /// addendum circle at which the involute touches.
         /// </summary>
-        
+
         public double ToothTipOffset
             => AddendumInvoluteAngle
-            - Math.Acos(BaseCircleDiameter/AddendumCircleDiameter) 
+            - Math.Acos(BaseCircleDiameter / AddendumCircleDiameter)
             - ToothBaseOffset;
-        
+
         /// <summary>
         /// The angle from the point at which a tooth involute touches
         /// the base circle to the point where the involute
@@ -220,7 +220,7 @@ namespace InvoluteGears
         /// <summary>
         /// The angle occupied by one tooth and one gap
         /// </summary>
-        
+
         public double ToothAngle => 2 * Math.PI / ToothCount;
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace InvoluteGears
         /// measured at the pitch circle and
         /// allowing for possible profile shifting
         /// </summary>
-        
+
         public double ToothWidthAngleAtPitchCircle
             => 2 * (Math.PI / 2 + 2 * ProfileShift * Math.Tan(PressureAngle)) / ToothCount;
 
@@ -246,7 +246,7 @@ namespace InvoluteGears
         /// narrowest point, where the involute tooth edge meets the
         /// undercut trochoid. Does not include backlash widening.
         /// </summary>
-        
+
         public double ToothGapAtUndercut =>
             2 * underCutPoint.Y;
 
@@ -263,7 +263,7 @@ namespace InvoluteGears
         /// trochoid. This is the point at which the gear teeth
         /// interaction no longer follows the involute curve.
         /// </summary>
-        
+
         public double UndercutRadius => Math.Sqrt(SquaredUndercutRadius);
 
         /// <summary>
@@ -287,24 +287,24 @@ namespace InvoluteGears
         /// meshed</param>
         /// <returns>The length of the path along which the two
         /// gears are in contact before breaking apart</returns>
-        
+
         public double ContactDistanceWithGear(GearParameters meshedGear)
         {
-            
-            
+
+
             if (!CanMeshWith(meshedGear))
                 throw new ArgumentException("Gears have differing modules or pressure angles");
-            double distanceBetweenCentres 
-                = PitchCircleDiameter / 2 
-                + meshedGear.PitchCircleDiameter / 2 
+            double distanceBetweenCentres
+                = PitchCircleDiameter / 2
+                + meshedGear.PitchCircleDiameter / 2
                 + Module * (ProfileShift + meshedGear.ProfileShift);
-            double distToPitchPoint = distanceBetweenCentres 
+            double distToPitchPoint = distanceBetweenCentres
                 * BaseCircleDiameter / (BaseCircleDiameter + meshedGear.BaseCircleDiameter);
             double meshedDistToPitchPoint = distanceBetweenCentres - distToPitchPoint;
-            double contactLength 
+            double contactLength
                 = Math.Sqrt(Square(distToPitchPoint) - Square(BaseCircleDiameter / 2))
                 - Math.Sqrt(SquaredUndercutRadius - Square(BaseCircleDiameter / 2));
-            double meshedContactLength 
+            double meshedContactLength
                 = Math.Sqrt(Square(meshedDistToPitchPoint) - Square(meshedGear.BaseCircleDiameter / 2))
                 - Math.Sqrt(meshedGear.SquaredUndercutRadius - Square(meshedGear.BaseCircleDiameter / 2));
             return contactLength + meshedContactLength;
@@ -324,7 +324,7 @@ namespace InvoluteGears
         /// are meshing with</param>
         /// <returns>The contact ratio. Must be greater
         /// than one for gears to mesh correctly.</returns>
-        
+
         public double ContactRatioWith(GearParameters meshedGear)
             => ContactDistanceWithGear(meshedGear) / BaseCirclePitch;
 
@@ -353,7 +353,7 @@ namespace InvoluteGears
             for (int i = lowerLimit; i <= upperLimit; i++)
             {
                 double angle = (i % PointsPerRotation) * 2 * Math.PI / PointsPerRotation;
-                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2, 
+                yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2,
                     -Module * (1 - ProfileShift),
                     Module * (Math.PI / 4 - Math.Tan(PressureAngle)), angle, 0);
             }
@@ -382,28 +382,28 @@ namespace InvoluteGears
             PointF cutterCentre = PointF.Empty;
             while (!cornerFound && i < UndercutPoints.Count - 2)
             {
-                var centres = Involutes.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutterDiameter/2);
+                PointF[] centres = Involutes.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutterDiameter / 2);
                 if (centres[0].Y < centres[1].Y)
                     cutterCentre = centres[0];
                 else
                     cutterCentre = centres[1];
-                cornerFound = Involutes.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutterDiameter/2);
+                cornerFound = Involutes.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutterDiameter / 2);
                 i++; // i indexes the last point from the undercut point list that we can cut to
             }
 
             // If no adjustment took place, quit here
 
-            if (!cornerFound) 
+            if (!cornerFound)
                 return false;
 
             // Copy across the curve that we are able to follow before
             // deviating from it according to cutter radius
 
-            UndercutPoints = new List<PointF>(UndercutPoints.Take(i+1));
+            UndercutPoints = new List<PointF>(UndercutPoints.Take(i + 1));
 
             // Calculate the angle for the last point in the undercut curve
 
-            double startAngle = Math.Atan2(UndercutPoints.Last().Y - cutterCentre.Y, 
+            double startAngle = Math.Atan2(UndercutPoints.Last().Y - cutterCentre.Y,
                 UndercutPoints.Last().X - cutterCentre.X);
 
             // Find the point on the cutter circle that intersects a line from
@@ -416,17 +416,17 @@ namespace InvoluteGears
 
             double endAngle = Math.Atan2(cutterCentre.Y, cutterCentre.X) + Math.PI;
 
-            // TODO: Add points around the cutter diameter from the last point
+            // Add points around the cutter diameter from the last point
             // of adjustedUndercut, to the point at which it crosses yDedendum (y value).
 
             UndercutPoints.AddRange(Involutes.CirclePoints
-                (startAngle, endAngle, Math.PI / 180, CutterDiameter/2, cutterCentre));
+                (startAngle, endAngle, Math.PI / 180, CutterDiameter / 2, cutterCentre));
 
             // Then add new dedendum circle points round to the y=0 axis, based on
             // the tangent to the cutter circle at yDedendum.
 
             DedendumPoints = new List<PointF>(Involutes.CirclePoints
-                (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI, 
+                (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI,
                 Math.PI / 2880, cutterCentreRadius - CutterDiameter / 2));
 
             // Record the new dedendum diameter since the cutter has reduced it
@@ -439,26 +439,26 @@ namespace InvoluteGears
             return true;
         }
 
-        private IEnumerable<PointF> ComputeDedendumCirclePoints() 
+        private IEnumerable<PointF> ComputeDedendumCirclePoints()
             => Involutes.CirclePoints
                 (-(BacklashAngle + DedendumArcAngle / 2), DedendumArcAngle / 2,
                 Math.PI / 2880, DedendumCircleDiameter / 2);
 
-        private IEnumerable<PointF> ComputeAddendumCirclePoints() 
+        private IEnumerable<PointF> ComputeAddendumCirclePoints()
             => Involutes.CirclePoints
                     (GapWidthAngleAtPitchCircle / 2 + ToothTipOffset,
                     ToothAngle - GapWidthAngleAtPitchCircle / 2 - ToothTipOffset - BacklashAngle,
                     Math.PI / 2880, AddendumCircleDiameter / 2);
 
         private PointF underCutPoint = new PointF(0, 0);
-        
+
         private void InitPointLists()
         {
             InvolutePoints = new List<PointF>(ComputeInvolutePoints());
             UndercutPoints = new List<PointF>(ComputeUndercutPoints());
             DedendumPoints = new List<PointF>(ComputeDedendumCirclePoints());
             PointF? intersection = null;
-            if(intersection == null || !intersection.HasValue)
+            if (intersection == null || !intersection.HasValue)
                 intersection = Involutes.ClosestPoint(InvolutePoints, UndercutPoints);
             underCutPoint = intersection.Value;
             int involuteIdx = Involutes.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
@@ -476,7 +476,7 @@ namespace InvoluteGears
             // height is still reduced by the backlash amount, even though
             // the undercut has increased the dedendum depth to accommodate
             // the diameter of cutter.
-            
+
             AddendumPoints = new List<PointF>(ComputeAddendumCirclePoints());
             InvolutePoints = Involutes.LinearReduction(InvolutePoints, (float)MaxError);
             UndercutPoints = Involutes.LinearReduction(UndercutPoints, (float)MaxError);
@@ -491,10 +491,10 @@ namespace InvoluteGears
         /// <returns>The points that make up the outline of
         /// the gear. The last point should be joined back
         /// onto the first point to close the outline.</returns>
-        
+
         public IEnumerable<PointF> GenerateCompleteGearPath()
         {
-            var gearPoints = new List<PointF>();
+            List<PointF> gearPoints = new List<PointF>();
             for (int i = 0; i < ToothCount; i++)
             {
                 gearPoints.AddRange(ClockwiseInvolute(i));
@@ -513,7 +513,7 @@ namespace InvoluteGears
         /// <param name="points">The points to be reflected</param>
         /// <returns>The reflected points</returns>
 
-        private IEnumerable<PointF> ReflectY(IEnumerable<PointF> points)
+        public static IEnumerable<PointF> ReflectY(IEnumerable<PointF> points)
             => points.Select(p => new PointF(p.X, -p.Y));
 
         /// <summary>
@@ -524,14 +524,14 @@ namespace InvoluteGears
         /// <param name="pt">The point from which a rotated
         /// point will be generated</param>
         /// <returns>The rotated point</returns>
-        
-        private PointF RotateAboutOrigin(double phi, PointF pt)
+
+        public static PointF RotateAboutOrigin(double phi, PointF pt)
         {
             double cosPhi = Math.Cos(phi);
             double sinPhi = Math.Sin(phi);
 
-            return new PointF((float)(pt.X * cosPhi - pt.Y * sinPhi), 
-                (float)(pt.X*sinPhi + pt.Y*cosPhi));
+            return new PointF((float)(pt.X * cosPhi - pt.Y * sinPhi),
+                (float)(pt.X * sinPhi + pt.Y * cosPhi));
         }
 
         /// <summary>
@@ -540,7 +540,7 @@ namespace InvoluteGears
         /// of the Module, so in angular terms, this means a fraction
         /// of the angle occupied by one tooth.
         /// </summary>
-        
+
         private double BacklashAngle
             => Backlash * ToothAngle;
 
@@ -552,7 +552,7 @@ namespace InvoluteGears
         /// <param name="gap">The gap number for the tooth, in the
         /// range 0 to ToothCount - 1</param>
         /// <returns>The rotated set of points</returns>
-        
+
         private IEnumerable<PointF> RotateByTeeth(IEnumerable<PointF> points, int gap)
         {
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
@@ -571,7 +571,7 @@ namespace InvoluteGears
         /// <returns>The list of points making up the involute from the
         /// base circle up to the edge of the addendum</returns>
 
-        public IEnumerable<PointF> AntiClockwiseInvolute(int gap) 
+        public IEnumerable<PointF> AntiClockwiseInvolute(int gap)
             => RotateByTeeth(InvolutePoints, gap);
 
         /// <summary>
@@ -586,10 +586,10 @@ namespace InvoluteGears
         /// <returns>The list of points making up the involute from the
         /// base circle up to the edge of the addendum</returns>
 
-        public IEnumerable<PointF> ClockwiseInvolute(int gap) 
+        public IEnumerable<PointF> ClockwiseInvolute(int gap)
             => ReflectAndAddBacklash(InvolutePoints, gap);
 
-        public IEnumerable<PointF> Dedendum(int gap) 
+        public IEnumerable<PointF> Dedendum(int gap)
             => RotateByTeeth(DedendumPoints, gap);
 
         public IEnumerable<PointF> Addendum(int gap)
@@ -638,7 +638,7 @@ namespace InvoluteGears
         /// <returns>The list of points making up the trochoid from the
         /// dedendum circle up to the pitch circle</returns>
 
-        public IEnumerable<PointF> ClockwiseUndercut(int gap) 
+        public IEnumerable<PointF> ClockwiseUndercut(int gap)
             => ReflectAndAddBacklash(UndercutPoints, gap);
 
         /// <summary>
@@ -648,7 +648,7 @@ namespace InvoluteGears
         /// starts on the dedendum circle.
         /// </summary>
 
-        public double DedendumArcAngle 
+        public double DedendumArcAngle
             => (Pitch - 4 * Module * Math.Tan(PressureAngle)) / PitchCircleDiameter;
 
         /// <summary>
@@ -656,7 +656,7 @@ namespace InvoluteGears
         /// circle when undercutting on trailing edge of tooth on rotation.
         /// Also accommodates profile shifting of the tooth.
         /// </summary>
-        
+
         public double UndercutAngleAtPitchCircle
         {
             get
@@ -668,9 +668,9 @@ namespace InvoluteGears
             }
         }
 
-        private double Square(double v) => v * v;
+        private static double Square(double v) => v * v;
 
-        private int AngleIndexFloor(double angle) 
+        private static int AngleIndexFloor(double angle)
             => (int)(angle * PointsPerRotation / (2 * Math.PI));
 
         /// <summary>
@@ -687,7 +687,7 @@ namespace InvoluteGears
         /// <returns>A string with all workable gear and pinion tooth counts,
         /// together with the overall separation between spindles measured in
         /// multiples of the module</returns>
-        
+
         public static string MatchedPairs(int numerator, int denominator, int minTeeth, int maxTeeth)
         {
             string result = string.Empty;
