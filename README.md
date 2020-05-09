@@ -1,15 +1,18 @@
 ﻿## Involute Gear Calculator
 This application is used to calculate parameters for involute spur gears, 
-and to draw their outlines.
-It can be used to prepare SVG files for export to CAD tools or CNC machines.
-
-### Command line and parameters
+and to draw their outlines. It can be used to prepare SVG files for 
+export to CAD tools or CNC machines. The gear calculator is a command line
+or shell script application, that uses the command line for input, and
+either the standard output or a text file for computed results. It is
+invoked as follows:
 
 `gears -[option] [arguments]`
 
-Every command has a single option flag as a single, case sensitive letter.
-The arguments that follow the option depend in type and number on which option
-has been selected.
+Every command has one option flag as a single, case sensitive letter preceded by
+a dash character. The arguments that follow the option depend in type and number 
+on which option has been selected.
+
+#### Options -p and -P
 
 `gears -p|-P [tooth-count] [profile-shift] [tolerance] [angle] [module] [backlash] [cutter-diameter]`
 
@@ -42,6 +45,8 @@ gears above that, the number of spokes is chosen so that no more that
 eight teeth would be on the perimeter between consecutive spokes. The
 minimum number of spokes is three.
 
+#### Option -m
+
 `gears -m [numerator] [denominator] [min-teeth] [max-teeth]`
 
 Sometimes we need to map a gear ratio back onto the same axle using two gears. For example,
@@ -63,6 +68,8 @@ Example: `gears -m 1 60 10 96`
 This would search for all combinations of pinion and gear tooth counts for pairs of gears
 that together have the same axle separation, but that also give an overall ratio of
 1/60th. No tooth or pinion will have fewer than 10 teeth, nor more than 92 teeth.
+
+#### Option -C
 
 `gears -C [output-file-path]`
 
@@ -95,6 +102,8 @@ on the undercut parts for some of their
 rotation, and will run unevenly and noisily.
 Ideally this ratio should be above about 1.1 
 for smooth handover between teeth.
+
+#### Option -c
 
 `gears -c [output-file-path] [angle1,angle2 ... angleN] [teeth1,teeth2 ... teethM] [module] [cutter-diameter]`
 
