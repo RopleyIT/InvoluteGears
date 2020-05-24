@@ -2,7 +2,7 @@
   "profiles": {
     "InvoluteConsole": {
       "commandName": "Project",
-      "commandLineArgs": "-p 10 0 5 145 500 10 635"
+      "commandLineArgs": "-E 30 0 50 600 300 100 500"
     }
   }
 }

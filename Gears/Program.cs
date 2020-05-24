@@ -27,6 +27,15 @@ namespace InvoluteConsole
                             + "\tmodule is in 100ths of a mm\r\n"
                             + "\tbacklash is in thousandths of the module\r\n"
                             + "\tcutter diameter is in 100ths of a mm");
+                    Console.WriteLine("-e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]\r\n"
+                            + "\twhere -e generates whole escape wheel image, -E one tooth image\r\n"
+                            + "\twhere tooth count is digits\r\n"
+                            + "\ttolerance is in 100ths of mm\r\n"
+                            + "\tangle is undercut angle in 10ths of a degree\r\n"
+                            + "\tmodule is in 100ths of a mm\r\n"
+                            + "\ttooth length is in 100ths of a mm\r\n"
+                            + "\ttip pitch is in 100ths of a mm\r\n"
+                            + "\tcut diameter is in 100ths of a mm");
                     Console.WriteLine("-m num denom teethMin teethMax -- find gear-pinion pairs with same separation");
                     Console.WriteLine("\tnum: numerator of the overall gear ratio");
                     Console.WriteLine("\tdenom: denominator of the overall gear ratio");
@@ -191,32 +200,120 @@ namespace InvoluteConsole
 
                     List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>
                     {
-                        Involutes.CirclePoints(-angle, angle, Math.PI / 2880, gear.PitchCircleDiameter / 2),
-                        Involutes.CirclePoints(-angle, angle, Math.PI / 2880, gear.BaseCircleDiameter / 2)
+                        Involutes.CirclePoints(-angle, angle, GearParameters.AngleStep, gear.PitchCircleDiameter / 2),
+                        Involutes.CirclePoints(-angle, angle, GearParameters.AngleStep, gear.BaseCircleDiameter / 2)
                     };
-                    //IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.AddendumCircleDiameter / 2);
-                    //IEnumerable<PointF> dedendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, Math.PI / 2880, gear.DedendumCircleDiameter / 2);
-                    for (int i = 0; i < limit; i++)
-                    {
-                        gearPoints.Add(gear.AntiClockwiseInvolute(i));
-                        gearPoints.Add(gear.ClockwiseInvolute(i));
-                        gearPoints.Add(gear.AnticlockwiseUndercut(i));
-                        gearPoints.Add(gear.ClockwiseUndercut(i));
-                        gearPoints.Add(gear.Dedendum(i));
-                        gearPoints.Add(gear.Addendum(i));
-                        // Remove next two lines for normal use. Used to test whether crossover detection working.
-                        //gearPoints.Add(gear.ComputeInvolutePoints());
-                        //gearPoints.Add(gear.ComputeUndercutPoints());
-                    }
 
-                    if (cutouts != null)
-                        foreach (List<PointF> cutout in cutouts)
-                            gearPoints.Add(cutout);
-                    gearPoints.Add(cutoutCalculator.CalculateInlay());
-                    gearPoints.Add(cutoutCalculator.CalculateSpindle());
+                    //IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.AddendumCircleDiameter / 2);
+                    //IEnumerable<PointF> dedendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.DedendumCircleDiameter / 2);
+
+                    for (int i = 0; i < limit; i++)
+                        gearPoints.AddRange(gear.GeneratePointsForOnePitch(i));
+
+                    if (args[0] == "-p")
+                    {
+                        if (cutouts != null)
+                            foreach (List<PointF> cutout in cutouts)
+                                gearPoints.Add(cutout);
+                        gearPoints.Add(cutoutCalculator.CalculateInlay());
+                        gearPoints.Add(cutoutCalculator.CalculateSpindle());
+                    }
 
                     using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
                     img.Save($"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}.png", ImageFormat.Png);
+                }
+                if (args[0].ToLower() == "-e")
+                {
+                    if (args.Length != 8
+                        || !int.TryParse(args[1], out int teeth)
+                        || !int.TryParse(args[2], out int maxErr)
+                        || !int.TryParse(args[3], out int undercutAngle)
+                        || !int.TryParse(args[4], out int module)
+                        || !int.TryParse(args[5], out int toothFaceLength)
+                        || !int.TryParse(args[6], out int tipPitch)
+                        || !int.TryParse(args[7], out int cutDiameter))
+                    {
+                        Console.WriteLine("Usage: gears -e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]\r\n"
+                            + "\twhere -e generates whole escape wheel image, -E one tooth image\r\n"
+                            + "\twhere tooth count is digits\r\n"
+                            + "\ttolerance is in 100ths of mm\r\n"
+                            + "\tangle is undercut angle in 10ths of a degree\r\n"
+                            + "\tmodule is in 100ths of a mm\r\n"
+                            + "\ttooth length is in 100ths of a mm\r\n"
+                            + "\ttip pitch is in 100ths of a mm\r\n"
+                            + "\tcut diameter is in 100ths of a mm");
+                        return;
+                    }
+                    EscapeGearParameters gear = new EscapeGearParameters(
+                        teeth,
+                        module / 100.0,
+                        Math.PI * undercutAngle / 1800.0,
+                        toothFaceLength / 100.0,
+                        tipPitch / 100.0,
+                        cutDiameter / 100.0,
+                        maxErr / 100.0
+                        );
+
+                    Cutouts cutoutCalculator = new Cutouts(gear, 18.0, 8.0, 22.0, 7.0);
+                    List<List<PointF>> cutouts = cutoutCalculator.CalculateCutouts();
+
+                    // Generate the SVG version of the gear path
+
+                    SVGPath svgPath = new SVGPath(gear.GenerateCompleteGearPath(), true);
+                    SVGCreator svgCreator = new SVGCreator();
+                    svgCreator.AddPath(svgPath);
+                    if (cutouts != null)
+                        foreach (List<PointF> cutout in cutouts)
+                            svgCreator.AddPath(new SVGPath(cutout, true));
+                    svgCreator.AddPath(new SVGPath(cutoutCalculator.CalculateInlay(), true));
+                    svgCreator.AddPath(new SVGPath(cutoutCalculator.CalculateSpindle(), true));
+
+                    svgCreator.DocumentDimensions = new SizeF
+                        ((float)(gear.Module * (gear.ToothCount + 2)), (float)(gear.Module * (gear.ToothCount + 2)));
+                    svgCreator.DocumentDimensionUnits = "mm";
+                    svgCreator.DocumentDimensions = new SizeF
+                        ((float)gear.PitchCircleDiameter, (float)gear.PitchCircleDiameter);
+                    svgCreator.DocumentDimensionUnits = "mm";
+                    svgCreator.ViewBoxDimensions = new RectangleF(
+                        -svgCreator.DocumentDimensions.Width / 2f,
+                        -svgCreator.DocumentDimensions.Width / 2f,
+                        svgCreator.DocumentDimensions.Width, svgCreator.DocumentDimensions.Height);
+                    svgCreator.ViewBoxDimensionUnits = "";
+                    using StreamWriter sw = new StreamWriter
+                        ($"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}.svg");
+                    sw.Write(svgCreator.ToString());
+                    sw.Close();
+
+                    // Create the output plot file of the gear
+
+                    List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>();
+                    int limit = gear.ToothCount;
+                    double angle = 2*Math.PI;
+                    if (args[0] == "-E")
+                    {
+                        limit = 1;
+                        angle = gear.ToothAngle;
+
+                        gearPoints.Add(Involutes
+                            .CirclePoints(0, angle, GearParameters.AngleStep, gear.PitchCircleDiameter / 2));
+                        gearPoints.Add(Involutes
+                            .CirclePoints(0, angle, GearParameters.AngleStep, gear.InnerDiameter / 2));
+                    }
+
+                    for (int i = 0; i < limit; i++)
+                        gearPoints.Add(gear.ToothProfile(i));
+
+                    if (args[0] == "-e")
+                    {
+                        if (cutouts != null)
+                            foreach (List<PointF> cutout in cutouts)
+                                gearPoints.Add(cutout);
+                        gearPoints.Add(cutoutCalculator.CalculateInlay());
+                        gearPoints.Add(cutoutCalculator.CalculateSpindle());
+                    }
+
+                    using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
+                    img.Save($"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}.png", ImageFormat.Png);
                 }
             }
         }
@@ -258,7 +355,7 @@ namespace InvoluteConsole
 
                     sw.Write("Dc  ");
                     foreach (GearParameters gear in gears)
-                        sw.Write($"{gear.CutterAdjustedDedendumCircleDiameter,7:F3} ");
+                        sw.Write($"{gear.InnerDiameter,7:F3} ");
                     sw.WriteLine();
 
                     sw.Write("Du  ");

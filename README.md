@@ -45,6 +45,43 @@ gears above that, the number of spokes is chosen so that no more that
 eight teeth would be on the perimeter between consecutive spokes. The
 minimum number of spokes is three.
 
+#### Options -e and -E
+
+`gears -e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]`
+
+These options generate an escape wheel with undercut sharp teeth bearing flat
+undercut leading faces and sharp outer corners.
+
+Option `-e` generates an SVG file for the whole esape wheel, 
+as well as a PNG image file of the whole gear for graphical inspection.
+
+Option `-E` generates the same SVG file, but generates a single tooth and gap in an image file
+so that it can be zoomed closely to inspect the tooth profile.
+
+| Argument | Units | Description |
+| -------- | ---- | ----------- |
+| `tooth-count` | Number | The number of teeth this gear will have. |
+| `tolerance` | 100ths of a mm | The tolerated deviation from exact measures of points on the gear curve. |
+| `angle` | 10ths of a degree | The undercut angle for the escape tooth. |
+| `module` | 100ths of a mm | The gear module. Gear diameter = `tooth-count * module` at the pitch circle. |
+| `tooth-length` | 100ths of a mm | The length of the flat part of the undercut face. |
+| `tip-pitch` | 100ths of a mm | The thickness around the perimeter of the tip of the tooth. |
+| `cut-diameter` | 100ths of a mm | Diameter of curve between adjacent tooth roots. |
+
+Example: `gears -E 30 0 50 635 800 300 635`
+
+This will design a 30 tooth escape wheel, with accurate points, an undercut angle
+of 5 degrees, a module of 6.35mm (1/4 inch) with a leading surface on each tooth 8mm deep,
+a 3mm minimum thickness of each tooth at the perimeter, and a diameter of undercut
+set to 1/4 inch.
+
+Note that the current version of this program will generate spokes 
+for the gears in order to reduce their 
+weight and moment of inertia. For teeth up to around 17 teeth no spokes are generated. For
+gears above that, the number of spokes is chosen so that no more that
+eight teeth would be on the perimeter between consecutive spokes. The
+minimum number of spokes is three.
+
 #### Option -m
 
 `gears -m [numerator] [denominator] [min-teeth] [max-teeth]`

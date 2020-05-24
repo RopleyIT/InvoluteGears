@@ -17,7 +17,7 @@ namespace InvoluteGears
         /// The gear this cutout is being applied to
         /// </summary>
 
-        public GearParameters Gear { get; private set; }
+        public IGearProfile Gear { get; private set; }
 
         /// <summary>
         /// Flat raw material thickness from which
@@ -58,7 +58,7 @@ namespace InvoluteGears
         /// <param name="inlay">The diameter of the bearing inlay</param>
         /// <param name="inlayDepth">The depth of the bearing inlay</param>
 
-        public Cutouts(GearParameters gear, double thickness, double spindle, double inlay, double inlayDepth)
+        public Cutouts(IGearProfile gear, double thickness, double spindle, double inlay, double inlayDepth)
         {
             if (spindle < 0 || inlay < 0 || inlayDepth < 0)
                 throw new ArgumentException("Depths and thicknesses cannot be negative");
@@ -79,7 +79,7 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> CalculateSpindle()
             => Involutes.LinearReduction(Involutes.CirclePoints
-                (-Math.PI, Math.PI, Math.PI / 2880, SpindleDiameter / 2).ToList(),
+                (-Math.PI, Math.PI, GearParameters.AngleStep, SpindleDiameter / 2).ToList(),
                 (float)Gear.MaxError);
 
 
@@ -91,7 +91,7 @@ namespace InvoluteGears
 
         public IEnumerable<PointF> CalculateInlay()
             => Involutes.LinearReduction(Involutes.CirclePoints
-                (-Math.PI, Math.PI, Math.PI / 2880, InlayDiameter / 2).ToList(),
+                (-Math.PI, Math.PI, GearParameters.AngleStep, InlayDiameter / 2).ToList(),
                 (float)Gear.MaxError);
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace InvoluteGears
             // For this reference spoke we assume the spoke runs along the
             // positive X axis. We shall rotate it for other spokes.
 
-            double rimDiameter = Gear.CutterAdjustedDedendumCircleDiameter - 1.5 * spokeThickness;
+            double rimDiameter = Gear.InnerDiameter - 1.5 * spokeThickness;
             if (rimDiameter < hubDiameter + 4 * cornerRadius)
                 return null;
 
@@ -150,7 +150,7 @@ namespace InvoluteGears
             PointF rimCornerCentre = new PointF((float)rimCornerCentreX, (float)cornerCentreY);
             double angleAtRim = Math.Atan2(cornerCentreY, rimCornerCentreX);
             IEnumerable<PointF> outerCorner = Involutes.CirclePoints
-                (-Math.PI / 2, angleAtRim, Math.PI / 2880, cornerRadius, rimCornerCentre);
+                (-Math.PI / 2, angleAtRim, GearParameters.AngleStep, cornerRadius, rimCornerCentre);
 
             // Calculate the corner at the inner end of a spoke.
 
@@ -160,17 +160,17 @@ namespace InvoluteGears
             double angleAtHub = Math.Atan2(cornerCentreY, hubCornerCentreX);
 
             IEnumerable<PointF> innerCorner = Involutes.CirclePoints
-                (Math.PI + angleAtHub, 3.0 * Math.PI / 2, Math.PI / 2880, cornerRadius, hubCornerCentre);
+                (Math.PI + angleAtHub, 3.0 * Math.PI / 2, GearParameters.AngleStep, cornerRadius, hubCornerCentre);
 
             // Calculate the outer rim circle segment
 
             IEnumerable<PointF> outerRimSegment = Involutes.CirclePoints
-                (angleAtRim, 2 * Math.PI / spokes - angleAtRim, Math.PI / 2880, rimDiameter / 2);
+                (angleAtRim, 2 * Math.PI / spokes - angleAtRim, GearParameters.AngleStep, rimDiameter / 2);
 
             // Calculate the hub circle segment
 
             IEnumerable<PointF> hubSegment = Involutes.CirclePoints
-                (angleAtHub, 2 * Math.PI / spokes - angleAtHub, Math.PI / 2880, hubDiameter / 2);
+                (angleAtHub, 2 * Math.PI / spokes - angleAtHub, GearParameters.AngleStep, hubDiameter / 2);
 
             // Calculate the far side of the cutout. Reflect the inner spoke
             // across the X axis, and reverse its points. Then rotate it round the gear
