@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 
 namespace InvoluteGears
 {
@@ -20,13 +21,6 @@ namespace InvoluteGears
         public IGearProfile Gear { get; private set; }
 
         /// <summary>
-        /// Flat raw material thickness from which
-        /// the gear is cut
-        /// </summary>
-
-        public double Thickness { get; private set; }
-
-        /// <summary>
         /// The diameter of the hole right through the centre of the gear
         /// </summary>
 
@@ -41,35 +35,73 @@ namespace InvoluteGears
         public double InlayDiameter { get; private set; }
 
         /// <summary>
-        /// The depth of the inlay hole for the thickness
-        /// of the bearing. Adjust as appropriate to
-        /// position the bearing flush with the material
-        /// surface, or central in the material.
+        /// The distance across the flats of the hexagonal
+        /// key shape drawn on the cutout. This hex key is
+        /// used to align adjacent gears where they are
+        /// keyed together as a wheel-pinion pair.
+        /// </summary>
+        
+        public double KeyWidth { get; private set; }
+
+        /// <summary>
+        /// Used for warning or information messages when methods invoked
         /// </summary>
 
-        public double InlayDepth { get; private set; }
-
+        public string Information { get; private set; }
+        
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="gear">The gear we wish to calculate cutouts for</param>
-        /// <param name="thickness">The thickness of the material to be cut</param>
         /// <param name="spindle">The diameter of the central hole in the gear</param>
         /// <param name="inlay">The diameter of the bearing inlay</param>
-        /// <param name="inlayDepth">The depth of the bearing inlay</param>
+        /// <param name="keyWidth">The distance across flats of the hex key for attaching
+        /// gears to each other truly</param>
 
-        public Cutouts(IGearProfile gear, double thickness, double spindle, double inlay, double inlayDepth)
+        public Cutouts(IGearProfile gear, double spindle, double inlay, double keyWidth)
         {
-            if (spindle < 0 || inlay < 0 || inlayDepth < 0)
-                throw new ArgumentException("Depths and thicknesses cannot be negative");
-            if (inlayDepth >= thickness)
-                throw new ArgumentException("Inlay depth too deep for material thickness");
+            if (spindle < 0 || inlay < 0 || keyWidth < 0)
+                throw new ArgumentException("Dimensions cannot be negative");
             Gear = gear ?? throw new ArgumentException("No gear specified for cut out");
-            Thickness = thickness;
             SpindleDiameter = spindle;
             InlayDiameter = inlay;
-            InlayDepth = inlayDepth;
+            KeyWidth = keyWidth;
+
+            // Make the calculations
+
+            CutoutPlots = CalculateCutouts();
+            if (SpindleDiameter > 0)
+            {
+                SpindlePlot = CalculateSpindle();
+                Information += $"Spindle dia. = {SpindleDiameter}mm, ";
+            }
+            else
+                Information += "No spindle, ";
+
+            if (InlayDiameter > 0)
+            {
+                InlayPlot = CalculateInlay();
+                Information += $"inlay dia. = {InlayDiameter}mm, ";
+            }
+            else
+                Information += "no inlay, ";
+            if (KeyWidth > 0)
+            {
+                HexKeyPlot = CalculateHexKey();
+                Information += $"hex key width = {KeyWidth}mm\r\n";
+            }
+            else
+                Information += "no hex key\r\n";
         }
+
+        /// <summary>
+        /// The cutout shapes to be added to the gear point sets
+        /// </summary>
+
+        public List<List<PointF>> CutoutPlots { get; private set; }
+        public List<PointF> SpindlePlot { get; private set; }
+        public List<PointF> InlayPlot { get; private set; }
+        public List<PointF> HexKeyPlot { get; private set; }
 
         /// <summary>
         /// Calculate the points that form the spindle circle
@@ -77,9 +109,9 @@ namespace InvoluteGears
         /// <returns>Sequence of points that make up the hole
         /// in the middle of the gear</returns>
 
-        public IEnumerable<PointF> CalculateSpindle()
+        private List<PointF> CalculateSpindle()
             => Involutes.LinearReduction(Involutes.CirclePoints
-                (-Math.PI, Math.PI, GearParameters.AngleStep, SpindleDiameter / 2).ToList(),
+                (-Math.PI, Math.PI, Involutes.AngleStep, SpindleDiameter / 2).ToList(),
                 (float)Gear.MaxError);
 
 
@@ -89,9 +121,9 @@ namespace InvoluteGears
         /// <returns>Sequence of points that make up the bearing 
         /// inlay in the middle of the gear</returns>
 
-        public IEnumerable<PointF> CalculateInlay()
+        private List<PointF> CalculateInlay()
             => Involutes.LinearReduction(Involutes.CirclePoints
-                (-Math.PI, Math.PI, GearParameters.AngleStep, InlayDiameter / 2).ToList(),
+                (-Math.PI, Math.PI, Involutes.AngleStep, InlayDiameter / 2).ToList(),
                 (float)Gear.MaxError);
 
         /// <summary>
@@ -104,7 +136,7 @@ namespace InvoluteGears
         /// <returns>The point lists that each make up the
         /// outline of the cutouts</returns>
 
-        public List<List<PointF>> CalculateCutouts()
+        private List<List<PointF>> CalculateCutouts()
             => CalculateCutouts(1 + (Gear.ToothCount - 1) / 8);
 
         /// <summary>
@@ -117,10 +149,11 @@ namespace InvoluteGears
         /// <returns>The point lists that each make up the
         /// outline of the cutouts</returns>
 
-        public List<List<PointF>> CalculateCutouts(int spokes)
+        private List<List<PointF>> CalculateCutouts(int spokes)
         {
+            var cutouts = new List<List<PointF>>();
             if (spokes < 3)
-                return null;
+                return cutouts;
 
             // Set some design constants
 
@@ -142,35 +175,37 @@ namespace InvoluteGears
 
             double rimDiameter = Gear.InnerDiameter - 1.5 * spokeThickness;
             if (rimDiameter < hubDiameter + 4 * cornerRadius)
-                return null;
+                return cutouts;
 
             double cornerCentreY = spokeThickness / 2 + cornerRadius;
-            double rimCornerCentreX = Math.Sqrt(Square(rimDiameter / 2 - cornerRadius)
-                - Square(cornerCentreY));
-            PointF rimCornerCentre = new PointF((float)rimCornerCentreX, (float)cornerCentreY);
+            double rimCornerCentreX = Math.Sqrt
+                (Involutes.DiffOfSquares(rimDiameter / 2 - cornerRadius, cornerCentreY));
+            PointF rimCornerCentre = Involutes.CreatePt(rimCornerCentreX, cornerCentreY);
             double angleAtRim = Math.Atan2(cornerCentreY, rimCornerCentreX);
             IEnumerable<PointF> outerCorner = Involutes.CirclePoints
-                (-Math.PI / 2, angleAtRim, GearParameters.AngleStep, cornerRadius, rimCornerCentre);
+                (-Math.PI / 2, angleAtRim, Involutes.AngleStep, cornerRadius, rimCornerCentre);
 
             // Calculate the corner at the inner end of a spoke.
 
-            double hubCornerCentreX = Math.Sqrt(Square(hubDiameter / 2 + cornerRadius)
-                - Square(cornerCentreY));
-            PointF hubCornerCentre = new PointF((float)hubCornerCentreX, (float)cornerCentreY);
+            //double hubCornerCentreX = Math.Sqrt(Square(hubDiameter / 2 + cornerRadius)
+            //    - Square(cornerCentreY));
+            double hubCornerCentreX = Math.Sqrt
+                (Involutes.DiffOfSquares(hubDiameter / 2 + cornerRadius, cornerCentreY));
+            PointF hubCornerCentre = Involutes.CreatePt(hubCornerCentreX, cornerCentreY);
             double angleAtHub = Math.Atan2(cornerCentreY, hubCornerCentreX);
 
             IEnumerable<PointF> innerCorner = Involutes.CirclePoints
-                (Math.PI + angleAtHub, 3.0 * Math.PI / 2, GearParameters.AngleStep, cornerRadius, hubCornerCentre);
+                (Math.PI + angleAtHub, 3.0 * Math.PI / 2, Involutes.AngleStep, cornerRadius, hubCornerCentre);
 
             // Calculate the outer rim circle segment
 
             IEnumerable<PointF> outerRimSegment = Involutes.CirclePoints
-                (angleAtRim, 2 * Math.PI / spokes - angleAtRim, GearParameters.AngleStep, rimDiameter / 2);
+                (angleAtRim, 2 * Math.PI / spokes - angleAtRim, Involutes.AngleStep, rimDiameter / 2);
 
             // Calculate the hub circle segment
 
             IEnumerable<PointF> hubSegment = Involutes.CirclePoints
-                (angleAtHub, 2 * Math.PI / spokes - angleAtHub, GearParameters.AngleStep, hubDiameter / 2);
+                (angleAtHub, 2 * Math.PI / spokes - angleAtHub, Involutes.AngleStep, hubDiameter / 2);
 
             // Calculate the far side of the cutout. Reflect the inner spoke
             // across the X axis, and reverse its points. Then rotate it round the gear
@@ -179,12 +214,11 @@ namespace InvoluteGears
 
             IEnumerable<PointF> nearSide = innerCorner.Concat(outerCorner);
             IEnumerable<PointF> farSide = GearParameters.ReflectY(nearSide)
-                .Select(p => GearParameters.RotateAboutOrigin(2 * Math.PI / spokes, p))
+                .Select(p => Involutes.RotateAboutOrigin(2 * Math.PI / spokes, p))
                 .Reverse();
 
             // Now create the lists of points for each of the cut outs
 
-            List<List<PointF>> cutouts = new List<List<PointF>>();
             List<PointF> cutout = new List<PointF>();
             cutout.AddRange(nearSide);
             cutout.AddRange(outerRimSegment);
@@ -194,11 +228,41 @@ namespace InvoluteGears
             cutouts.Add(cutout);
             for (int i = 1; i < spokes; i++)
                 cutouts.Add(new List<PointF>(cutout.Select
-                    (p => GearParameters.RotateAboutOrigin(2 * Math.PI * i / spokes, p))));
+                    (p => Involutes.RotateAboutOrigin(2 * Math.PI * i / spokes, p))));
             return cutouts;
         }
 
-        private static double Square(double x) => x * x;
+        /// <summary>
+        /// Create a hexagonal key shape
+        /// around the inlay so that
+        /// two gears can be married on
+        /// the same centres correctly
+        /// </summary>
+        /// <returns>The list of points 
+        /// corresponding to the hex key</returns>
+        
+        private List<PointF> CalculateHexKey()
+        {
+            // Generate the points for one sixth of the key
+            double ctrToFace = KeyWidth / 2;
+            PointF cornerCtr = Involutes.CreatePt(
+                ctrToFace - Gear.Module, 
+                (ctrToFace - Gear.Module) / Math.Sqrt(3.0));
+            var firstSegment = new List<PointF>
+            {
+                Involutes.CreatePt(ctrToFace, 0),
+                Involutes.CreatePt(ctrToFace, cornerCtr.Y)
+            };
+            firstSegment.AddRange(
+                Involutes.CirclePoints(0, Math.PI / 3, Involutes.AngleStep,
+                    Gear.Module, cornerCtr));
+            firstSegment.Add(Involutes.CreatePt(ctrToFace/2, Math.Sin(Math.PI/3)* ctrToFace));
+            firstSegment = Involutes.LinearReduction(firstSegment, (float)Gear.MaxError);
+            return Enumerable
+                .Range(0, 6)
+                .Select(i => Involutes.RotateAboutOrigin(i * Math.PI / 3.0, firstSegment))
+                .SelectMany(ep => ep).ToList();
+        }
     }
 }
 

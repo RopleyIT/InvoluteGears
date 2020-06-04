@@ -12,42 +12,24 @@ namespace InvoluteConsole
     {
         private static void Main(string[] args)
         {
+            // First chop the spindle description off the end of the arg list
+
+            string[] spindleArgs = null;
+            int idx = Array.FindIndex(args, a => String.Compare(a, "-s", true) == 0);
+            if (idx >= 0)
+            {
+                spindleArgs = new string[args.Length - idx];
+                Array.Copy(args, idx, spindleArgs, 0, spindleArgs.Length);
+                var newArgs = new string[idx];
+                Array.Copy(args, 0, newArgs, 0, idx);
+                args = newArgs;
+            }
+
             if (args.Length > 0)
             {
                 if (args[0] == "-h")
                 {
-                    Console.WriteLine("Compute data or diagrams for involute gears. Options:");
-                    Console.WriteLine(
-                        "-p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
-                            + "\twhere -p generates whole gear image, -P one tooth image\r\n"
-                            + "\twhere tooth count is digits\r\n"
-                            + "\tprofile shift is in thousandths of the module\r\n"
-                            + "\ttolerance is in 100ths of mm\r\n"
-                            + "\tangle is pressure angle in 10ths of a degree\r\n"
-                            + "\tmodule is in 100ths of a mm\r\n"
-                            + "\tbacklash is in thousandths of the module\r\n"
-                            + "\tcutter diameter is in 100ths of a mm");
-                    Console.WriteLine("-e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]\r\n"
-                            + "\twhere -e generates whole escape wheel image, -E one tooth image\r\n"
-                            + "\twhere tooth count is digits\r\n"
-                            + "\ttolerance is in 100ths of mm\r\n"
-                            + "\tangle is undercut angle in 10ths of a degree\r\n"
-                            + "\tmodule is in 100ths of a mm\r\n"
-                            + "\ttooth length is in 100ths of a mm\r\n"
-                            + "\ttip pitch is in 100ths of a mm\r\n"
-                            + "\tcut diameter is in 100ths of a mm");
-                    Console.WriteLine("-m num denom teethMin teethMax -- find gear-pinion pairs with same separation");
-                    Console.WriteLine("\tnum: numerator of the overall gear ratio");
-                    Console.WriteLine("\tdenom: denominator of the overall gear ratio");
-                    Console.WriteLine("\tteethMin, teethMax: ranges of tooth counts for search");
-                    Console.WriteLine("-C output-file-path -- contact ratios for various profile shifts and angles");
-                    Console.WriteLine("\toutput-file-path: Where to store the results");
-                    Console.WriteLine("-c output-file-path comma-sep-angles comma-sep-teeth module cutter-diameter");
-                    Console.WriteLine("\toutput-file-path: Where to store the results");
-                    Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
-                    Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
-                    Console.WriteLine("\tmodule: gear module in 100ths of a mm");
-                    Console.WriteLine("\tcutter-diameter: diameter of end mill in 100ths of a mm");
+                    Usage(null);
                     return;
                 }
                 if (args[0] == "-m")
@@ -56,7 +38,7 @@ namespace InvoluteConsole
                         !int.TryParse(args[1], out int numerator) || !int.TryParse(args[2], out int denominator)
                         || !int.TryParse(args[3], out int minTeeth) | !int.TryParse(args[4], out int maxTeeth))
                     {
-                        Console.WriteLine("Usage: gears -m 13 5 10 108\r\n\tWhere 13/5 is the overall gear ratio, 10 and 108 the min and max number of teeth");
+                        Usage("-m option needs 4 arguments");
                         return;
                     }
                     Console.WriteLine(GearParameters.MatchedPairs(numerator, denominator, minTeeth, maxTeeth));
@@ -66,8 +48,7 @@ namespace InvoluteConsole
                 {
                     if (args.Length != 2)
                     {
-                        Console.WriteLine("Usage: gears -C output-file-path -- contact ratios for various profile shifts and angles");
-                        Console.WriteLine("\toutput-file-path: Where to store the results");
+                        Usage("-C option needs just a filename as an argument");
                         return;
                     }
                     int[] pressureAngles = new int[] { 145, 200, 250 };
@@ -80,12 +61,7 @@ namespace InvoluteConsole
                 {
                     if (args.Length != 6)
                     {
-                        Console.WriteLine("Usage: gears -c output-file-path comma-sep-angles comma-sep-teeth module cutter-diameter");
-                        Console.WriteLine("\toutput-file-path: Where to store the results");
-                        Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
-                        Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
-                        Console.WriteLine("\tmodule: Gear module in 100ths of a mm");
-                        Console.WriteLine("\tcutter-diameter: Diameter of end mill in 100ths of a mm");
+                        Usage("-c option needs 5 arguments");
                         return;
                     }
                     string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -96,7 +72,7 @@ namespace InvoluteConsole
                             angles.Add(result);
                         else
                         {
-                            Console.WriteLine("Angles should be a comma-separated list of integers, measured in tenths of a degree");
+                            Usage("Pressure angles should be a comma-separated list of integers, measured in tenths of a degree");
                             return;
                         }
 
@@ -107,19 +83,19 @@ namespace InvoluteConsole
                             toothList.Add(result);
                         else
                         {
-                            Console.WriteLine("Tooth counts should be a comma-separated list of integers");
+                            Usage("Tooth counts should be a comma-separated list of integers");
                             return;
                         }
 
                     if (!int.TryParse(args[4], out int module))
                     {
-                        Console.WriteLine("Module should be an integer measured in 100ths of a mm");
+                        Usage("Module should be an integer measured in 100ths of a mm");
                         return;
                     }
 
                     if (!int.TryParse(args[5], out int cutterDiameter))
                     {
-                        Console.WriteLine("Cutter diameter should be an integer measured in 100ths of a mm");
+                        Usage("Cutter diameter should be an integer measured in 100ths of a mm");
                         return;
                     }
 
@@ -138,15 +114,7 @@ namespace InvoluteConsole
                         || !int.TryParse(args[6], out int backlash)
                         || !int.TryParse(args[7], out int cutterDiameter))
                     {
-                        Console.WriteLine("Usage: gears -p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
-                            + "\twhere -p generates whole gear image, -P one tooth image\r\n"
-                            + "\twhere tooth count is digits\r\n"
-                            + "\tprofile shift is in thousandths of the module\r\n"
-                            + "\ttolerance is in 100ths of mm\r\n"
-                            + "\tangle is pressure angle in 10ths of a degree\r\n"
-                            + "\tmodule is in 100ths of a mm\r\n"
-                            + "\tbacklash is in thousandths of the module\r\n"
-                            + "\tcutter diameter is in 100ths of a mm");
+                        Usage("-p and -P options need seven arguments, plus an optional following -s argument list");
                         return;
                     }
                     GearParameters gear = new GearParameters(
@@ -155,38 +123,15 @@ namespace InvoluteConsole
                         Math.PI * pressureAngle / 1800.0,
                         shift / 1000.0,
                         maxErr / 100.0,
-                        backlash / 1000.0,
+                        backlash / (double)module,
                         cutterDiameter / 100.0);
 
-                    Cutouts cutoutCalculator = new Cutouts(gear, 18.0, 8.0, 22.0, 7.0);
-                    List<List<PointF>> cutouts = cutoutCalculator.CalculateCutouts();
+                    Cutouts cutoutCalculator = CreateCutouts(gear, spindleArgs);
 
                     // Generate the SVG version of the gear path
 
-                    SVGPath svgPath = new SVGPath(gear.GenerateCompleteGearPath(), true);
-                    SVGCreator svgCreator = new SVGCreator();
-                    svgCreator.AddPath(svgPath);
-                    if (cutouts != null)
-                        foreach (List<PointF> cutout in cutouts)
-                            svgCreator.AddPath(new SVGPath(cutout, true));
-                    svgCreator.AddPath(new SVGPath(cutoutCalculator.CalculateInlay(), true));
-                    svgCreator.AddPath(new SVGPath(cutoutCalculator.CalculateSpindle(), true));
-
-                    //svgCreator.DocumentDimensions = new SizeF
-                    //    ((float)(gear.Module * (gear.ToothCount + 2)), (float)(gear.Module * (gear.ToothCount + 2)));
-                    //svgCreator.DocumentDimensionUnits = "mm";
-                    svgCreator.DocumentDimensions = new SizeF
-                        ((float)gear.AddendumCircleDiameter, (float)gear.AddendumCircleDiameter);
-                    svgCreator.DocumentDimensionUnits = "mm";
-                    svgCreator.ViewBoxDimensions = new RectangleF(
-                        -svgCreator.DocumentDimensions.Width / 2f,
-                        -svgCreator.DocumentDimensions.Width / 2f,
-                        svgCreator.DocumentDimensions.Width, svgCreator.DocumentDimensions.Height);
-                    svgCreator.ViewBoxDimensionUnits = "";
-                    using StreamWriter sw = new StreamWriter
-                        ($"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}.svg");
-                    sw.Write(svgCreator.ToString());
-                    sw.Close();
+                    GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.AddendumCircleDiameter,
+                        $"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}");
 
                     // Create the output plot file of the gear
 
@@ -200,8 +145,8 @@ namespace InvoluteConsole
 
                     List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>
                     {
-                        Involutes.CirclePoints(-angle, angle, GearParameters.AngleStep, gear.PitchCircleDiameter / 2),
-                        Involutes.CirclePoints(-angle, angle, GearParameters.AngleStep, gear.BaseCircleDiameter / 2)
+                        Involutes.CirclePoints(-angle, angle, Involutes.AngleStep, gear.PitchCircleDiameter / 2),
+                        Involutes.CirclePoints(-angle, angle, Involutes.AngleStep, gear.BaseCircleDiameter / 2)
                     };
 
                     //IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.AddendumCircleDiameter / 2);
@@ -211,13 +156,12 @@ namespace InvoluteConsole
                         gearPoints.AddRange(gear.GeneratePointsForOnePitch(i));
 
                     if (args[0] == "-p")
-                    {
-                        if (cutouts != null)
-                            foreach (List<PointF> cutout in cutouts)
-                                gearPoints.Add(cutout);
-                        gearPoints.Add(cutoutCalculator.CalculateInlay());
-                        gearPoints.Add(cutoutCalculator.CalculateSpindle());
-                    }
+                        GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
+
+                    // Report what was created
+
+                    Console.WriteLine(gear.Information);
+                    Console.WriteLine(cutoutCalculator.Information);
 
                     using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
                     img.Save($"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}.png", ImageFormat.Png);
@@ -233,15 +177,7 @@ namespace InvoluteConsole
                         || !int.TryParse(args[6], out int tipPitch)
                         || !int.TryParse(args[7], out int cutDiameter))
                     {
-                        Console.WriteLine("Usage: gears -e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]\r\n"
-                            + "\twhere -e generates whole escape wheel image, -E one tooth image\r\n"
-                            + "\twhere tooth count is digits\r\n"
-                            + "\ttolerance is in 100ths of mm\r\n"
-                            + "\tangle is undercut angle in 10ths of a degree\r\n"
-                            + "\tmodule is in 100ths of a mm\r\n"
-                            + "\ttooth length is in 100ths of a mm\r\n"
-                            + "\ttip pitch is in 100ths of a mm\r\n"
-                            + "\tcut diameter is in 100ths of a mm");
+                        Usage("-e and -E options require 7 arguments, plus an optional -s argument list");
                         return;
                     }
                     EscapeGearParameters gear = new EscapeGearParameters(
@@ -254,68 +190,107 @@ namespace InvoluteConsole
                         maxErr / 100.0
                         );
 
-                    Cutouts cutoutCalculator = new Cutouts(gear, 18.0, 8.0, 22.0, 7.0);
-                    List<List<PointF>> cutouts = cutoutCalculator.CalculateCutouts();
+                    Cutouts cutoutCalculator = CreateCutouts(gear, spindleArgs);
 
                     // Generate the SVG version of the gear path
 
-                    SVGPath svgPath = new SVGPath(gear.GenerateCompleteGearPath(), true);
-                    SVGCreator svgCreator = new SVGCreator();
-                    svgCreator.AddPath(svgPath);
-                    if (cutouts != null)
-                        foreach (List<PointF> cutout in cutouts)
-                            svgCreator.AddPath(new SVGPath(cutout, true));
-                    svgCreator.AddPath(new SVGPath(cutoutCalculator.CalculateInlay(), true));
-                    svgCreator.AddPath(new SVGPath(cutoutCalculator.CalculateSpindle(), true));
-
-                    svgCreator.DocumentDimensions = new SizeF
-                        ((float)(gear.Module * (gear.ToothCount + 2)), (float)(gear.Module * (gear.ToothCount + 2)));
-                    svgCreator.DocumentDimensionUnits = "mm";
-                    svgCreator.DocumentDimensions = new SizeF
-                        ((float)gear.PitchCircleDiameter, (float)gear.PitchCircleDiameter);
-                    svgCreator.DocumentDimensionUnits = "mm";
-                    svgCreator.ViewBoxDimensions = new RectangleF(
-                        -svgCreator.DocumentDimensions.Width / 2f,
-                        -svgCreator.DocumentDimensions.Width / 2f,
-                        svgCreator.DocumentDimensions.Width, svgCreator.DocumentDimensions.Height);
-                    svgCreator.ViewBoxDimensionUnits = "";
-                    using StreamWriter sw = new StreamWriter
-                        ($"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}.svg");
-                    sw.Write(svgCreator.ToString());
-                    sw.Close();
+                    GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.PitchCircleDiameter, 
+                        $"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}");
 
                     // Create the output plot file of the gear
 
                     List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>();
                     int limit = gear.ToothCount;
-                    double angle = 2*Math.PI;
+                    double angle = 2 * Math.PI;
                     if (args[0] == "-E")
                     {
                         limit = 1;
                         angle = gear.ToothAngle;
 
                         gearPoints.Add(Involutes
-                            .CirclePoints(0, angle, GearParameters.AngleStep, gear.PitchCircleDiameter / 2));
+                            .CirclePoints(0, angle, Involutes.AngleStep, gear.PitchCircleDiameter / 2));
                         gearPoints.Add(Involutes
-                            .CirclePoints(0, angle, GearParameters.AngleStep, gear.InnerDiameter / 2));
+                            .CirclePoints(0, angle, Involutes.AngleStep, gear.InnerDiameter / 2));
                     }
 
                     for (int i = 0; i < limit; i++)
                         gearPoints.Add(gear.ToothProfile(i));
 
                     if (args[0] == "-e")
-                    {
-                        if (cutouts != null)
-                            foreach (List<PointF> cutout in cutouts)
-                                gearPoints.Add(cutout);
-                        gearPoints.Add(cutoutCalculator.CalculateInlay());
-                        gearPoints.Add(cutoutCalculator.CalculateSpindle());
-                    }
+                        GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 
+                    // Report what was created
+
+                    Console.WriteLine(gear.Information);
+                    Console.WriteLine(cutoutCalculator.Information);
+                    
                     using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
                     img.Save($"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}.png", ImageFormat.Png);
                 }
             }
+            else
+                Usage("Missing or unrecognised arguments");
+        }
+
+        private static Cutouts CreateCutouts(IGearProfile gear, string[] spindleArgs)
+        {
+            if (spindleArgs == null 
+                || spindleArgs.Length != 4
+                || !int.TryParse(spindleArgs[1], out int spindleDia)
+                || !int.TryParse(spindleArgs[2], out int inlayDia)
+                || !int.TryParse(spindleArgs[3], out int keyFlats))
+            {
+                Usage("-s option needs three arguments");
+                return new Cutouts(gear, 0, 0, 0);
+            }
+            else return new Cutouts
+                (gear, spindleDia / 100.0, inlayDia / 100.0, keyFlats / 100.0);
+        }
+
+        private static void Usage(string errMsg)
+        {
+            if (!String.IsNullOrEmpty(errMsg))
+                Console.WriteLine($"ERROR: {errMsg}");
+            else
+                Console.WriteLine("Compute data or diagrams for involute gears and escape wheels.");
+            Console.WriteLine("USAGE: gears -p|P|e|E|c|C|m gear-options [-s spindle=options]\r\n");
+            Console.WriteLine(
+                "-p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
+                    + "\twhere -p generates whole gear image, -P one tooth image\r\n"
+                    + "\twhere tooth count is digits\r\n"
+                    + "\tprofile shift is in 10ths of a % of the module\r\n"
+                    + "\ttolerance is in 100ths of mm\r\n"
+                    + "\tangle is pressure angle in 10ths of a degree\r\n"
+                    + "\tmodule is in 100ths of a mm\r\n"
+                    + "\tbacklash is in 100ths of a mm\r\n"
+                    + "\tcutter diameter is in 100ths of a mm\r\n");
+            Console.WriteLine("-e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]\r\n"
+                    + "\twhere -e generates whole escape wheel image, -E one tooth image\r\n"
+                    + "\twhere tooth count is digits\r\n"
+                    + "\ttolerance is in 100ths of mm\r\n"
+                    + "\tangle is undercut angle in 10ths of a degree\r\n"
+                    + "\tmodule is in 100ths of a mm\r\n"
+                    + "\ttooth length is in 100ths of a mm\r\n"
+                    + "\ttip pitch is in 100ths of a mm\r\n"
+                    + "\tcut diameter is in 100ths of a mm\r\n");
+            Console.WriteLine("-s [spindle] [inlay] [hex key], units all in 100ths mm");
+            Console.WriteLine("\tOptionally -s can be used at the end of the -p, -P, -e or -E argument list");
+            Console.WriteLine("\tspindle is centre bore diameter");
+            Console.WriteLine("\tinlay is a larger diameter central bore for a bearing");
+            Console.WriteLine("\thex key is the distance across flats for a hex key for attaching pinions to gears\r\n");
+            Console.WriteLine("-m num denom teethMin teethMax -- find gear-pinion pairs with same separation");
+            Console.WriteLine("\tnum: numerator of the overall gear ratio");
+            Console.WriteLine("\tdenom: denominator of the overall gear ratio");
+            Console.WriteLine("\tteethMin, teethMax: ranges of tooth counts for search\r\n");
+            Console.WriteLine("-C output-file-path -- contact ratios for various profile shifts and angles");
+            Console.WriteLine("\toutput-file-path: Where to store the results\r\n");
+            Console.WriteLine("-c output-file-path comma-sep-angles comma-sep-teeth module cutter-diameter");
+            Console.WriteLine("\toutput-file-path: Where to store the results");
+            Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
+            Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
+            Console.WriteLine("\tmodule: gear module in 100ths of a mm");
+            Console.WriteLine("\tcutter-diameter: diameter of end mill in 100ths of a mm\r\n");
+            Console.WriteLine("-h -- generate this help text\r\n");
         }
 
         public static string GenerateGearTables(IList<int> angles, IList<int> teeth, int module, int cutterDiameter)
@@ -327,7 +302,7 @@ namespace InvoluteConsole
                 sw.WriteLine($"MODULE {module / 100.0:F2}mm, CUTTER DIAMETER {cutterDiameter / 100.0:F2}mm");
                 for (double s = 0; s <= 0.211; s += 0.03)
                 {
-                    sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFT {s * 200}%");
+                    sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFTS {s * 100}% + {s * 100}%");
                     sw.Write("TEETH");
                     foreach (int t in teeth)
                         sw.Write($"{t,3}     ");

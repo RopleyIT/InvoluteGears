@@ -31,13 +31,26 @@ namespace InvoluteGears
             TipPitch = tipPitch;
             CutDiameter = cutDiameter;
             MaxError = maxErr;
+            SetInformation();
             CalculatePoints();
         }
+        private void SetInformation()
+        {
+            Information = $"{ToothCount} teeth, module = {Module}mm, undercut angle = {UndercutAngle * 180 / Math.PI:N1}\u00b0\r\n";
+            Information += $"tooth face = {ToothFaceLength}mm, precision = {MaxError}mm\r\n";
+            Information += $"tip width = {TipPitch}mm, tooth gap diameter = {CutDiameter}mm\r\n";
+        }
+
+        /// <summary>
+        /// Used for warning or information messages when methods invoked
+        /// </summary>
+
+        public string Information { get; private set; }
 
         /// <summary>
         /// The accuracy of the points in the profile
         /// </summary>
-        
+
         public double MaxError { get; private set; }
 
         /// <summary>
@@ -134,36 +147,32 @@ namespace InvoluteGears
         private PointF ToothTip;
         private PointF UnderCutCentre;
         private PointF FaceEnd;
-        private PointF BackEnd;
         private PointF BackTip;
         private double BackAngle;
         private List<PointF> OneToothProfile;
-
-        private PointF CreatePt(double x, double y) =>
-            new PointF((float)x, (float)y);
 
         private void CalculatePoints()
         {
             // Unrotated tooth tip is on the X axis
 
-            ToothTip = CreatePt(PitchCircleDiameter / 2, 0);
+            ToothTip = Involutes.CreatePt(PitchCircleDiameter / 2, 0);
 
             // Navigate down the slope of the tooth face
 
-            FaceEnd = CreatePt(
-                PitchCircleDiameter / 2 - ToothFaceLength * Math.Cos(ToothAngle),
-                -ToothFaceLength * Math.Sin(ToothAngle));
+            FaceEnd = Involutes.CreatePt(
+                PitchCircleDiameter / 2 - ToothFaceLength * Math.Cos(UndercutAngle),
+                -ToothFaceLength * Math.Sin(UndercutAngle));
 
             // Now find the centre of the undercut circle
 
-            UnderCutCentre = CreatePt
+            UnderCutCentre = Involutes.CreatePt
                 (FaceEnd.X - CutDiameter * Math.Sin(UndercutAngle) / 2,
                 FaceEnd.Y + CutDiameter * Math.Cos(UndercutAngle) / 2);
 
             // Find the coordinates of the back tip corner of
             // the next tooth in an anticlockwise direction
 
-            BackTip = CreatePt(ToothTip.X * Math.Cos(GapAngle),
+            BackTip = Involutes.CreatePt(ToothTip.X * Math.Cos(GapAngle),
                 ToothTip.X * Math.Sin(GapAngle));
 
             // Find the coordinates of the tangent to the
@@ -171,34 +180,31 @@ namespace InvoluteGears
             // back of the tooth tip
 
             var tipToEndAngle = 
-                Math.Asin(CutDiameter / (2 * DistanceBetween(BackTip, UnderCutCentre)));
+                Math.Asin(CutDiameter / (2 * Involutes.DistanceBetween(BackTip, UnderCutCentre)));
             var tiptoCtrAngle = 
                 Math.Atan2(BackTip.Y - UnderCutCentre.Y, BackTip.X - UnderCutCentre.X);
             BackAngle = 
                 tiptoCtrAngle + Math.PI / 2 - tipToEndAngle;
-            BackEnd = CreatePt(UnderCutCentre.X + CutDiameter * Math.Cos(BackAngle) /2,
-                UnderCutCentre.Y + CutDiameter * Math.Sin(BackAngle) /2);
             OneToothProfile = ComputeOnePitch();
         }
 
         private List<PointF> ComputeOnePitch()
         {
-            var points = new List<PointF>();
-
-            // The facing edge of the tooth
-
-            points.Add(ToothTip);
-            points.Add(FaceEnd);
+            var points = new List<PointF>
+            {
+                ToothTip,
+                FaceEnd
+            };
             var startAngle = -Math.PI / 2 + UndercutAngle;
             points.AddRange(
                 Involutes.CirclePoints(
-                    BackAngle, 2*Math.PI + startAngle, GearParameters.AngleStep, 
+                    BackAngle, 2*Math.PI + startAngle, Involutes.AngleStep, 
                     CutDiameter / 2, UnderCutCentre)
                 .Reverse());
             points.Add(BackTip);
             points.AddRange(
                 Involutes.CirclePoints(
-                    GapAngle, ToothAngle, GearParameters.AngleStep, 
+                    GapAngle, ToothAngle, Involutes.AngleStep, 
                     PitchCircleDiameter / 2));
             return Involutes.LinearReduction(points, (float)MaxError);
         }
@@ -214,13 +220,10 @@ namespace InvoluteGears
         /// values of gap.</param>
         /// <returns>The set of points describing the
         /// profile of the selected tooth.</returns>
-        
-        public IEnumerable<PointF> ToothProfile(int gap)
-        {
-            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            return OneToothProfile.Select
-                (p => GearParameters.RotateAboutOrigin(gapCentreAngle, p));
-        }
+
+        public IEnumerable<PointF> ToothProfile(int gap) 
+            => Involutes.RotateAboutOrigin
+                ((gap % ToothCount) * ToothAngle, OneToothProfile);
 
         /// <summary>
         /// Generate the complete path of
@@ -244,15 +247,6 @@ namespace InvoluteGears
         /// </summary>
 
         public double InnerDiameter 
-            => 2 * DistanceBetween(UnderCutCentre, PointF.Empty) - CutDiameter;
-
-        private static double Square(double x) => x * x;
-        private static double SumOfSquares(double x, double y) 
-            => Square(x) + Square(y);
-        private static double DiffOfSquares(double x, double y) 
-            => Square(x) - Square(y);
-
-        private double DistanceBetween(PointF p1, PointF p2) 
-            => Math.Sqrt(SumOfSquares(p2.Y - p1.Y, p2.X - p1.X));
+            => 2 * Involutes.DistanceBetween(UnderCutCentre, PointF.Empty) - CutDiameter;
     }
 }

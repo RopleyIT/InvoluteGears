@@ -1,0 +1,109 @@
+﻿@page "/involutes"
+@using GearClient.Shared
+@inject HttpClient Http
+
+<h3>Generate Involute Gear Vector Profiles</h3>
+<EditForm Model=@GearData OnSubmit="@Generate">
+    <DataAnnotationsValidator />
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="Teeth">Number of teeth</label>
+            <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
+            <small class="form-text text-muted">The number of teeth on the gear. Minimum value is 6.</small>
+            <ValidationMessage For="() => GearData.Teeth" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="ProfileShift">Profile shift</label>
+            <InputNumber @bind-Value="GearData.ProfileShift" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="ProfileShift" />
+            <small class="form-text text-muted">Profile shift for teeth, measured in 10ths of a % of the tooth module value.</small>
+            <ValidationMessage For="() => GearData.ProfileShift" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Tolerance">Precision</label>
+            <InputNumber @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Tolerance" />
+            <small class="form-text text-muted">Precision of points in vector output, used to reduce point count. Measured in 100ths of a mm.</small>
+            <ValidationMessage For="() => GearData.Tolerance" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="PressureAngle">Pressure angle</label>
+            <InputNumber @bind-Value="GearData.PressureAngle" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="PressureAngle" />
+            <small class="form-text text-muted">Pressure angle for teeth on gear in 10ths of a degree. Common values are 145, 200 or 250.</small>
+            <ValidationMessage For="() => GearData.PressureAngle" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Module">Module</label>
+            <InputNumber @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Module" />
+            <small class="form-text text-muted">Module for gear in 100ths of a mm. Diameter of gear at pitch circle will be number of teeth times the module.</small>
+            <ValidationMessage For="() => GearData.Module" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Backlash">Backlash</label>
+            <InputNumber @bind-Value="GearData.Backlash" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Backlash" />
+            <small class="form-text text-muted">Backlash between gear teeth in 100ths of a mm. Set zero for a perfect tight fitting gear.</small>
+            <ValidationMessage For="() => GearData.Backlash" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="CutterDiameter">Cutter diameter</label>
+            <InputNumber @bind-Value="GearData.CutterDiameter" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="CutterDiameter" />
+            <small class="form-text text-muted">Diameter of end mill bit used to cut the gear in 100ths of a mm. Causes gear shape adjustment for tight corners.</small>
+            <ValidationMessage For="() => GearData.CutterDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="SpindleDiameter">Spindle diameter</label>
+            <InputNumber @bind-Value="GearData.SpindleDiameter" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="SpindleDiameter" />
+            <small class="form-text text-muted">Diameter of central bore through gear in 100ths of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.SpindleDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="InlayDiameter">Inlay diameter</label>
+            <InputNumber @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="InlayDiameter" />
+            <small class="form-text text-muted">Diameter of central inlay for inserting a bearing in 100ths of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.InlayDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="KeyWidth">Key width</label>
+            <InputNumber @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="KeyWidth" />
+            <small class="form-text text-muted">Distance across flats of hex key at gear centre in 100ths of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.KeyFlatWidth" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Generate</button>
+</EditForm>
+<p>&nbsp;</p>
+<div class="card">
+    <img src="@InvImage" class="card-img-top" alt="Image of gear will appear here" />
+    <div class="card-body">
+        <p>@ImageDescription</p>
+    </div>
+</div>
+@code {
+    GearParams GearData = new GearParams();
+    string InvImage = string.Empty;
+    string ImageDescription = string.Empty;
+    string SVG = string.Empty;
+
+    async Task Generate(EditContext ctx)
+    {
+        if(ctx.Validate())
+        {
+            var response = await Http.PostAsJsonAsync<GearParams>("api/involute", GearData);
+            if (response.IsSuccessStatusCode)
+            {
+                var gearProfile = await response.Content.ReadFromJsonAsync<GearProfiles>();
+                ImageDescription = gearProfile.Description;
+                InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
+                SVG = gearProfile.SvgData;
+            }
+            else
+            {
+                ImageDescription = "Status: " + response.StatusCode + ", Reason: " + response.ReasonPhrase;
+                InvImage = "";
+                SVG = string.Empty;
+            }
+        }
+    }
+}

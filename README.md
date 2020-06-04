@@ -14,7 +14,7 @@ on which option has been selected.
 
 #### Options -p and -P
 
-`gears -p|-P [tooth-count] [profile-shift] [tolerance] [angle] [module] [backlash] [cutter-diameter]`
+`gears -p|-P [tooth-count] [profile-shift] [tolerance] [angle] [module] [backlash] [cutter-diameter] [-s [spindle-diameter] [inlay-diameter] [hex-width]]`
 
 Option `-p` generates an SVG file for the whole gear, 
 as well as a PNG image file of the whole gear for graphical inspection.
@@ -29,7 +29,7 @@ so that it can be zoomed closely to inspect the tooth profile.
 | `tolerance` | 100ths of a mm | The tolerated deviation from exact measures of points on the gear curve. |
 | `angle` | 10ths of a degree | The pressure angle for the gear. Usually 145, 200, or 250. |
 | `module` | 100ths of a mm | The gear module. Gear diameter = `tooth-count * module` at the pitch circle. |
-| `backlash` | 10ths of a percent of the module | Adjustment made to allow backlash in the gear. |
+| `backlash` | 100ths of a mm | Adjustment made to allow backlash in the gear. |
 | `cutter-diameter` | 100ths of a mm | Diameter of end-mill used to cut gear teeth. |
 
 Example: `gears -P 12 0 10 200 500 20 500`
@@ -45,9 +45,30 @@ gears above that, the number of spokes is chosen so that no more that
 eight teeth would be on the perimeter between consecutive spokes. The
 minimum number of spokes is three.
 
+#### Option -s
+
+`-s [spindle-diameter] [inlay-diameter] [hex-width]`
+
+At the end of the list of arguments for the `-p` or `-P` options, and in fact for the
+`-e` and `-E` options described below, it is possible to include an optional `-s`
+argument with its three additional arguments.
+
+This option allows you to include cutouts for the gear's surfaces, as well as a central
+hole bored through the gear. It also allows you to specify a second centre
+circle diameter should a bearing need to be inlaid to one face of the
+gear. Finally should you wish to put a large and small gear side by side
+as a gear and pinion pair, it allows you to set up a hexagonal cutout
+or raised shape so that the hexagonal shapes can interlock.
+
+| Argument | Units | Description |
+| -------- | ----- | ----------- |
+| spindle-diameter | 100ths mm | The diameter of a central hole to be bored through the gear hub |
+| inlay-diameter | 100th mm | The diameter of a circular inlay into which a bearing might be fitted. Set zero to disable. |
+| hex-width | 100th mm | The distance across the flats of the hexagonal cutout. Set zero to disable. |
+
 #### Options -e and -E
 
-`gears -e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]`
+`gears -e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter] [-s [spindle-diameter] [inlay-diameter] [hex-width]]`
 
 These options generate an escape wheel with undercut sharp teeth bearing flat
 undercut leading faces and sharp outer corners.

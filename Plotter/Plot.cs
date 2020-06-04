@@ -15,10 +15,12 @@ namespace Plotter
             return Math.Min(scaleX, scaleY);
         }
 
-        public static Image PlotGraphs(IEnumerable<IEnumerable<PointF>> points, int width, int height)
+        public static Image PlotGraphs(IEnumerable<IEnumerable<PointF>> points, int width, int height, Color? color = null)
         {
             Color[] colours = { Color.Black, Color.Brown, Color.Red, Color.DarkBlue,
                 Color.Green, Color.Blue, Color.Purple, Color.Gray};
+            if (color.HasValue)
+                colours = new Color[] { color.Value };
 
             Bitmap bmp = new Bitmap(width, height);
             BoundsF bounds = new BoundsF();
@@ -34,7 +36,7 @@ namespace Plotter
             PlotAxes(bounds, scale, bmp);
             int index = 0;
             foreach (List<PointF> pl in plots)
-                PlotGraph(pl, g, bounds.Bounds, scale, colours[index++ % 7]);
+                PlotGraph(pl, g, bounds.Bounds, scale, colours[index++ % colours.Length]);
             return bmp;
         }
 
@@ -124,7 +126,7 @@ namespace Plotter
         private static void PlotGraph(List<PointF> points, Graphics g,
             RectangleF bounds, double scale, Color penColor)
         {
-            using Pen p = new Pen(penColor, 1.0f);
+            using Pen p = new Pen(penColor, 3);
             for (int i = 0; i < points.Count - 1; i++)
                 g.DrawLine(p, (int)(0.5 + scale * (points[i].X - bounds.X)),
                     (int)(0.5 + scale * (points[i].Y - bounds.Y)),

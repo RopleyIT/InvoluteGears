@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace InvoluteGears
 {
@@ -12,6 +13,56 @@ namespace InvoluteGears
 
     public static class Involutes
     {
+        /// <summary>
+        /// Helper function to create PointF structures from two doubles
+        /// </summary>
+        /// <param name="x">X ccordinate</param>
+        /// <param name="y">Y coordinate</param>
+        /// <returns>A PointF initialised from the two doubles</returns>
+        
+        public static PointF CreatePt(double x, double y) =>
+            new PointF((float)x, (float)y);
+
+        /// <summary>
+        /// Rotate a point about the origin in the anticlockwise
+        /// direction by the angle phi
+        /// </summary>
+        /// <param name="phi">The angle to rotate by in radians</param>
+        /// <param name="pt">The point from which a rotated
+        /// point will be generated</param>
+        /// <returns>The rotated point</returns>
+
+        public static PointF RotateAboutOrigin(double phi, PointF pt)
+        {
+            if (phi == 0)
+                return pt;
+            if (phi == Math.PI / 2)
+                return CreatePt(-pt.Y, pt.X);
+            if (phi == Math.PI)
+                return CreatePt(-pt.X, -pt.Y);
+            if (phi == 3 * Math.PI / 2)
+                return CreatePt(pt.Y, -pt.X);
+
+            double cosPhi = Math.Cos(phi);
+            double sinPhi = Math.Sin(phi);
+
+            return CreatePt(
+                pt.X * cosPhi - pt.Y * sinPhi,
+                pt.X * sinPhi + pt.Y * cosPhi);
+        }
+
+        /// <summary>
+        /// Rotate a sequence of points about the origin in the anticlockwise
+        /// direction by the angle phi
+        /// </summary>
+        /// <param name="phi">The angle to rotate by in radians</param>
+        /// <param name="points">The points from which a rotated
+        /// point sequence will be generated</param>
+        /// <returns>The sequence of rotated points</returns>
+
+        public static IEnumerable<PointF> RotateAboutOrigin(double phi, IEnumerable<PointF> points)
+            => points.Select(pt => RotateAboutOrigin(phi, pt));
+
         /// <summary>
         /// Obtain a point on an involute or a trochoidal curve
         /// </summary>
@@ -38,7 +89,7 @@ namespace InvoluteGears
 
             double x = radius * (cosPhiTotal + phi * sinPhiTotal) + offX * cosPhiTotal - offY * sinPhiTotal;
             double y = radius * (sinPhiTotal - phi * cosPhiTotal) + offX * sinPhiTotal + offY * cosPhiTotal;
-            return new PointF((float)x, (float)y);
+            return CreatePt(x, y);
         }
 
         /// <summary>
@@ -50,7 +101,7 @@ namespace InvoluteGears
         /// <returns>The point on the circle.</returns>
 
         public static PointF Circle(double radius, double phi)
-            => new PointF((float)(radius * Math.Cos(phi)), (float)(radius * Math.Sin(phi)));
+            => CreatePt(radius * Math.Cos(phi), radius * Math.Sin(phi));
 
         /// <summary>
         /// Generate a sequence of points on a circle, centred on a nominated point
@@ -167,7 +218,7 @@ namespace InvoluteGears
             // Check that lines cross
 
             if (Between(x, p11.X, p12.X) && Between(y, p11.Y, p12.Y))
-                return new PointF((float)x, (float)y);
+                return CreatePt(x, y);
             else
                 return null;
         }
@@ -335,7 +386,7 @@ namespace InvoluteGears
         {
             double m = (pt2.Y - pt1.Y) / (pt2.X - pt1.X);
             double y = pt1.Y + (x - pt1.X) * m;
-            return new PointF((float)x, (float)y);
+            return CreatePt(x, y);
         }
 
         /// <summary>
@@ -403,13 +454,17 @@ namespace InvoluteGears
             numerator -= (p2.X - p1.X) * p0.Y;
             numerator += p2.X * p1.Y - p2.Y * p1.X;
             numerator = Math.Abs(numerator);
-            double denom = Square(p2.Y - p1.Y);
-            denom += Square(p2.X - p1.X);
-            denom = Math.Sqrt(denom);
+            var denom = Math.Sqrt(SumOfSquares(p2.X - p1.X, p2.Y - p1.Y));
             return (float)(numerator / denom);
         }
 
-        private static double Square(double v) => v * v;
+        /// <summary>
+        /// Generate the square of a number
+        /// </summary>
+        /// <param name="v">The value to be squared</param>
+        /// <returns>v*v</returns>
+        
+        public static double Square(double v) => v * v;
 
         /// <summary>
         /// Given two points, find the centres of the two
@@ -428,13 +483,13 @@ namespace InvoluteGears
         {
             // Find the centre of the line from p1 to p2
 
-            PointF midPoint = new PointF((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
+            PointF midPoint = CreatePt((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
 
             // Find the square of the linear distance
             // from one point to the midpoint
 
             double sqrDistToMidPoint =
-                (Square(p2.X - p1.X) + Square(p2.Y - p1.Y)) / 4;
+                SumOfSquares(p2.X - p1.X, p2.Y - p1.Y) / 4;
 
             // Find the gradient of a line normal to 
             // the line between the two points
@@ -456,8 +511,8 @@ namespace InvoluteGears
 
             return new PointF[]
             {
-                new PointF((float)(midPoint.X - dx), (float)(midPoint.Y - dy)),
-                new PointF((float)(midPoint.X + dx), (float)(midPoint.Y + dy)),
+                CreatePt(midPoint.X - dx, midPoint.Y - dy),
+                CreatePt(midPoint.X + dx, midPoint.Y + dy),
             };
         }
 
@@ -466,10 +521,51 @@ namespace InvoluteGears
         /// </summary>
         /// <param name="pt">The point being tested</param>
         /// <param name="centre">The coordinates of the circle centre</param>
-        /// <param name="radius">The radius of the circl</param>
+        /// <param name="radius">The radius of the circle</param>
         /// <returns>True if the point is within the circle</returns>
 
         public static bool PointInCircle(PointF pt, PointF centre, double radius)
-            => Square(pt.X - centre.X) + Square(pt.Y - centre.Y) < Square(radius);
+            => SumOfSquares(pt.X - centre.X, pt.Y - centre.Y) < Square(radius);
+
+        /// <summary>
+        /// Compute the sum of the squares of two numbers
+        /// </summary>
+        /// <param name="x">First number to be squared and summed</param>
+        /// <param name="y">Second number to be squared and summed</param>
+        /// <returns>x*x + y*y</returns>
+        
+        public static double SumOfSquares(double x, double y)
+            => Square(x) + Square(y);
+        public  static double DiffOfSquares(double x, double y)
+            => Square(x) - Square(y);
+
+        /// <summary>
+        /// Compute the difference between the squares of two numbers
+        /// </summary>
+        /// <param name="x">The subtractor</param>
+        /// <param name="y">The subtrahend</param>
+        /// <returns>x*x - y*y</returns>
+
+        public static double DistanceBetween(PointF p1, PointF p2)
+            => Math.Sqrt(SumOfSquares(p2.Y - p1.Y, p2.X - p1.X));
+
+        /// <summary>
+        /// The resolution of points on the various curves
+        /// that are plotted as part of the gear profile
+        /// generation. This figure is the number of points
+        /// in the full rotation of the gear along a rack.
+        /// The default value of 7200 allows for 20
+        /// points per degree or one point for every
+        /// three minutes of arc.
+        /// </summary>
+
+        public const int PointsPerRotation = 7200;
+
+        /// <summary>
+        /// The step size used when plotting points on a curve
+        /// over a sequence of angles
+        /// </summary>
+
+        public static double AngleStep => 2 * Math.PI / PointsPerRotation;
     }
 }

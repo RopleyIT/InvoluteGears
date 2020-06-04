@@ -18,6 +18,10 @@ namespace Plotter
 
     public class SVGPath
     {
+        public string Stroke { get; private set; }
+        public string StrokeWidth { get; private set; }
+        public string Fill { get; private set; }
+
         public IList<SVGPathElement> Elements { get; private set; }
             = new List<SVGPathElement>();
 
@@ -26,11 +30,23 @@ namespace Plotter
             if (points == null || !points.Any())
                 throw new ArgumentException("No points for SVG path");
 
-            Elements.Add(SVGPathElement.MoveTo(points.First()));
+            PointF prev = points.First();
+            Elements.Add(SVGPathElement.MoveTo(prev));
             foreach (PointF p in points.Skip(1))
-                Elements.Add(SVGPathElement.LineTo(p));
+            {
+                if (p != prev)
+                    Elements.Add(SVGPathElement.LineTo(p));
+                prev = p;
+            }
             if (closed)
                 Elements.Add(SVGPathElement.Close());
+        }
+
+        public void SetDrawingParams(string strokeColour, int strokeWidth, string fillColour)
+        {
+            Stroke = strokeColour;
+            StrokeWidth = strokeWidth.ToString();
+            Fill = fillColour;
         }
 
         public override string ToString()
@@ -44,7 +60,14 @@ namespace Plotter
                 if (++i % 10 == 0)
                     sw.WriteLine();
             }
-            sw.WriteLine("\"/>");
+            sw.Write("\"");
+            if (!string.IsNullOrEmpty(Stroke))
+                sw.Write($" stroke=\"{Stroke}\"");
+            if (!string.IsNullOrEmpty(StrokeWidth))
+                sw.Write($" stroke-width=\"{StrokeWidth}\"");
+            if (!string.IsNullOrEmpty(Fill))
+                sw.Write($" fill=\"{Fill}\"");
+            sw.WriteLine("/>");
             return sw.ToString();
         }
     }

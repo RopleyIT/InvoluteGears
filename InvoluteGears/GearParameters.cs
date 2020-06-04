@@ -18,11 +18,25 @@ namespace InvoluteGears
             MaxError = maxErr;
             Backlash = backlash;
             CutterDiameter = cutterDiam;
+            SetInformation();
             InitPointLists();
         }
 
+        private void SetInformation()
+        {
+            Information = $"{ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n";
+            Information += $"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n";
+            Information += $"backlash = {Backlash}mm, cutter diameter = {CutterDiameter}mm\r\n";
+        }
+
         /// <summary>
-        /// The diameter of the bit used to cut out the gear
+        /// Used for warning or information messages when methods invoked
+        /// </summary>
+        
+        public string Information { get; private set; }
+
+        /// <summary>
+        /// The diameter of the bit used to cut out the gear. In mm.
         /// </summary>
 
         public double CutterDiameter
@@ -58,12 +72,14 @@ namespace InvoluteGears
         /// though we still compute the undercut as if a full length tooth
         /// then shorten the tooth slightly to remove rubbing at the
         /// dedendum surface.
-        /// Backlash is measured in fractions of the Module. Typical values
-        /// for hardwood teeth might be 0.1 to 0.3mm measured along the pitch
-        /// circle, for which a value might be set in this property of
-        /// 0.1/mπ to 0.3/mπ, depending on the quality and finish of the
-        /// wood being machined. For a Module of 5mm, these would
-        /// have values 6.366e-3 and 19.1e-3 respectively.
+        /// Backlash is measured in fractions of the Module. This
+        /// equates to the same fraction of the module for shortening
+        /// of the addendum height. However, we don't multiply by PI
+        /// circumferentially, we take the fraction of the module
+        /// as measured at the pitch circle. Hence at the pitch
+        /// circle for a backlash of 0.2 and a module of 5mm,
+        /// both radially and circumferentially we would get a
+        /// backlash of 1mm.
         /// </summary>
 
         public double Backlash { get; private set; }
@@ -78,25 +94,6 @@ namespace InvoluteGears
         /// </summary>
 
         public double ProfileShift { get; private set; }
-
-        /// <summary>
-        /// The resolution of points on the various curves
-        /// that are plotted as part of the gear profile
-        /// generation. This figure is the number of points
-        /// in the full rotation of the gear along a rack.
-        /// The default value of 7200 allows for 20
-        /// points per degree or one point for every
-        /// three minutes of arc.
-        /// </summary>
-
-        public const int PointsPerRotation = 7200;
-
-        /// <summary>
-        /// The step size used when plotting
-        /// over a sequence of angles
-        /// </summary>
-        
-        public static double AngleStep => 2 * Math.PI / PointsPerRotation;
 
         /// <summary>
         /// Two gears that are engaged with each other each
@@ -184,7 +181,7 @@ namespace InvoluteGears
         /// given tooth width. In practice this value is often
         /// used to determine pitch circle diameter and tooth
         /// separation, rather than the other way round. Units
-        /// in millimetres (mm).
+        /// in mm.
         /// </summary>
 
         public double Module { get; private set; }
@@ -252,7 +249,7 @@ namespace InvoluteGears
         /// </summary>
 
         private double AddendumInvoluteAngle
-            => Math.Sqrt(Square(AddendumCircleDiameter / BaseCircleDiameter) - 1);
+            => Math.Sqrt(Involutes.Square(AddendumCircleDiameter / BaseCircleDiameter) - 1);
 
         /// <summary>
         /// The angle occupied by one tooth and one gap
@@ -292,7 +289,7 @@ namespace InvoluteGears
         /// </summary>
 
         private double SquaredUndercutRadius
-            => Square(underCutPoint.X) + Square(underCutPoint.Y);
+            => Involutes.SumOfSquares(underCutPoint.X, underCutPoint.Y);
 
         /// <summary>
         /// Obtain the radius of the point at which the gear's
@@ -328,7 +325,10 @@ namespace InvoluteGears
         public double ContactDistanceWithGear(GearParameters meshedGear)
         {
             if (!CanMeshWith(meshedGear))
-                throw new ArgumentException("Gears have differing modules or pressure angles");
+            {
+                Information = "Gears have differing modules or pressure angles";
+                return 0;
+            }
             double distanceBetweenCentres
                 = PitchCircleDiameter / 2
                 + meshedGear.PitchCircleDiameter / 2
@@ -337,11 +337,11 @@ namespace InvoluteGears
                 * BaseCircleDiameter / (BaseCircleDiameter + meshedGear.BaseCircleDiameter);
             double meshedDistToPitchPoint = distanceBetweenCentres - distToPitchPoint;
             double contactLength
-                = Math.Sqrt(Square(distToPitchPoint) - Square(BaseCircleDiameter / 2))
-                - Math.Sqrt(SquaredUndercutRadius - Square(BaseCircleDiameter / 2));
+                = Math.Sqrt(Involutes.DiffOfSquares(distToPitchPoint, BaseCircleDiameter / 2))
+                - Math.Sqrt(SquaredUndercutRadius - Involutes.Square(BaseCircleDiameter / 2));
             double meshedContactLength
-                = Math.Sqrt(Square(meshedDistToPitchPoint) - Square(meshedGear.BaseCircleDiameter / 2))
-                - Math.Sqrt(meshedGear.SquaredUndercutRadius - Square(meshedGear.BaseCircleDiameter / 2));
+                = Math.Sqrt(Involutes.DiffOfSquares(meshedDistToPitchPoint, meshedGear.BaseCircleDiameter / 2))
+                - Math.Sqrt(meshedGear.SquaredUndercutRadius - Involutes.Square(meshedGear.BaseCircleDiameter / 2));
             return contactLength + meshedContactLength;
         }
 
@@ -375,7 +375,7 @@ namespace InvoluteGears
             int limit = AngleIndexFloor(AddendumInvoluteAngle);
             for (int i = limit; i >= 0; i--)
             {
-                double angle = (i % PointsPerRotation) * AngleStep;
+                double angle = (i % Involutes.PointsPerRotation) * Involutes.AngleStep;
                 yield return Involutes.InvolutePlusOffset
                     (BaseCircleDiameter / 2, 0, 0, angle, involuteBaseAngle);
             }
@@ -387,7 +387,7 @@ namespace InvoluteGears
             int upperLimit = AngleIndexFloor(DedendumArcAngle / 2);
             for (int i = lowerLimit; i <= upperLimit; i++)
             {
-                double angle = (i % PointsPerRotation) * AngleStep;
+                double angle = (i % Involutes.PointsPerRotation) * Involutes.AngleStep;
                 yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2,
                     -Module * (1 - ProfileShift),
                     Module * (Math.PI / 4 - Math.Tan(PressureAngle)), angle, 0);
@@ -444,7 +444,7 @@ namespace InvoluteGears
             // Find the point on the cutter circle that intersects a line from
             // its centre to the centre of the gear profile (origin 0,0)
 
-            double cutterCentreRadius = Math.Sqrt(Square(cutterCentre.X) + Square(cutterCentre.Y));
+            double cutterCentreRadius = Math.Sqrt(Involutes.SumOfSquares(cutterCentre.X, cutterCentre.Y));
 
             // Find the end angle for the cutter radius curve. This is the same as
             // the angle at the origin to the cutter centre, reflected by 180 degrees.
@@ -462,7 +462,7 @@ namespace InvoluteGears
 
             DedendumPoints = new List<PointF>(Involutes.CirclePoints
                 (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI,
-                GearParameters.AngleStep, cutterCentreRadius - CutterDiameter / 2));
+                Involutes.AngleStep, cutterCentreRadius - CutterDiameter / 2));
 
             // Record the new dedendum diameter since the cutter has reduced it
 
@@ -477,15 +477,15 @@ namespace InvoluteGears
         private IEnumerable<PointF> ComputeDedendumCirclePoints()
             => Involutes.CirclePoints
                 (-(BacklashAngle + DedendumArcAngle / 2), DedendumArcAngle / 2,
-                GearParameters.AngleStep, DedendumCircleDiameter / 2);
+                Involutes.AngleStep, DedendumCircleDiameter / 2);
 
         private IEnumerable<PointF> ComputeAddendumCirclePoints()
             => Involutes.CirclePoints
                     (GapWidthAngleAtPitchCircle / 2 + ToothTipOffset,
                     ToothAngle - GapWidthAngleAtPitchCircle / 2 - ToothTipOffset - BacklashAngle,
-                    GearParameters.AngleStep, AddendumCircleDiameter / 2);
+                    Involutes.AngleStep, AddendumCircleDiameter / 2);
 
-        private PointF underCutPoint = new PointF(0, 0);
+        private PointF underCutPoint = PointF.Empty;
 
         private void InitPointLists()
         {
@@ -501,9 +501,9 @@ namespace InvoluteGears
             InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
             UndercutPoints.RemoveRange(0, undercutIdx + 1);
             if (CutterDiameter > 0 && AdjustPointsForCircularCutter())
-                Console.WriteLine("Undercut and dedendum adjusted for cutter diameter");
+                Information += "Undercut and dedendum adjusted for cutter diameter\r\n";
             if (ToothGapAtUndercut < CutterDiameter)
-                Console.WriteLine($"Cutter dia. {CutterDiameter} too wide for tooth gap of {ToothGapAtUndercut}");
+                Information += $"Cutter dia. {CutterDiameter} too wide for tooth gap of {ToothGapAtUndercut}\r\n";
 
             // TODO: Ideally should use AdjustPointsForCircularCutter return
             // value to prevent reduction in tooth addendum height used for
@@ -553,35 +553,19 @@ namespace InvoluteGears
         /// <returns>The reflected points</returns>
 
         public static IEnumerable<PointF> ReflectY(IEnumerable<PointF> points)
-            => points.Select(p => new PointF(p.X, -p.Y));
-
-        /// <summary>
-        /// Rotate a point about the origin in the anticlockwise
-        /// direction by the angle phi
-        /// </summary>
-        /// <param name="phi">The angle to rotate by in radians</param>
-        /// <param name="pt">The point from which a rotated
-        /// point will be generated</param>
-        /// <returns>The rotated point</returns>
-
-        public static PointF RotateAboutOrigin(double phi, PointF pt)
-        {
-            double cosPhi = Math.Cos(phi);
-            double sinPhi = Math.Sin(phi);
-
-            return new PointF((float)(pt.X * cosPhi - pt.Y * sinPhi),
-                (float)(pt.X * sinPhi + pt.Y * cosPhi));
-        }
+            => points.Select(p => Involutes.CreatePt(p.X, -p.Y));
 
         /// <summary>
         /// The angle around the gear subtended by the Backlash
         /// property value. Backlash is measured as a fraction
-        /// of the Module, so in angular terms, this means a fraction
-        /// of the angle occupied by one tooth.
+        /// of the Module, but we don't want to have units
+        /// scaled up by PI around the gear but not radially.
+        /// Hence we define backlash as the fraction of the
+        /// module length around the pitch circle.
         /// </summary>
 
         private double BacklashAngle
-            => Backlash * ToothAngle;
+            => 2 * Backlash / ToothCount;
 
         /// <summary>
         /// Given a list of points, rotate them about the origin
@@ -593,10 +577,7 @@ namespace InvoluteGears
         /// <returns>The rotated set of points</returns>
 
         private IEnumerable<PointF> RotateByTeeth(IEnumerable<PointF> points, int gap)
-        {
-            double gapCentreAngle = (gap % ToothCount) * ToothAngle;
-            return points.Select(p => RotateAboutOrigin(gapCentreAngle, p));
-        }
+            => Involutes.RotateAboutOrigin((gap % ToothCount) * ToothAngle, points);
 
         /// <summary>
         /// Given the selected tooth number, compute the list of points that
@@ -640,7 +621,7 @@ namespace InvoluteGears
             // teeth in radians is 2*PI / ToothCount
 
             double gapCentreAngle = (gap % ToothCount) * ToothAngle - BacklashAngle;
-            return ReflectY(points).Select(p => RotateAboutOrigin(gapCentreAngle, p));
+            return ReflectY(points).Select(p => Involutes.RotateAboutOrigin(gapCentreAngle, p));
         }
 
         /// <summary>
@@ -661,7 +642,7 @@ namespace InvoluteGears
         {
             double gapCentreAngle = (gap % ToothCount) * ToothAngle;
             return UndercutPoints
-                .Select(p => RotateAboutOrigin(gapCentreAngle, p))
+                .Select(p => Involutes.RotateAboutOrigin(gapCentreAngle, p))
                 .Reverse();
         }
 
@@ -703,16 +684,14 @@ namespace InvoluteGears
             get
             {
                 double shiftedModule = Module * (1 - ProfileShift);
-                double k = Math.Sqrt(shiftedModule * PitchCircleDiameter - Square(shiftedModule));
+                double k = Math.Sqrt(shiftedModule * PitchCircleDiameter - Involutes.Square(shiftedModule));
                 double j = k - Module * (Math.PI / 4 - Math.Tan(PressureAngle));
                 return 2 * j / PitchCircleDiameter;
             }
         }
 
-        private static double Square(double v) => v * v;
-
         private static int AngleIndexFloor(double angle)
-            => (int)(angle / AngleStep);
+            => (int)(angle / Involutes.AngleStep);
 
         /// <summary>
         /// Given an overall gear ratio (numerator/denominator) and the minimum

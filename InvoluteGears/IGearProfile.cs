@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace InvoluteGears
@@ -11,9 +12,11 @@ namespace InvoluteGears
     
     public interface IGearProfile
     {
+        string Information { get; }
         int ToothCount { get; }
         double Module { get; }
         double MaxError { get; }
         double InnerDiameter { get; }
+        IEnumerable<PointF> GenerateCompleteGearPath();
     }
 }

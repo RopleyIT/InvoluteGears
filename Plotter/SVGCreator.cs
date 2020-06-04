@@ -26,6 +26,13 @@ namespace Plotter
 
         public void AddPath(SVGPath path) => svgPaths.Add(path);
 
+        public void AddClosedPath(IEnumerable<PointF> points, string stroke, int strokeWidth, string fill)
+        {
+            var path = new SVGPath(points, true);
+            path.SetDrawingParams(stroke, strokeWidth, fill);
+            AddPath(path);
+        }
+
         public SizeF DocumentDimensions { get; set; }
 
         public string DocumentDimensionUnits { get; set; }
