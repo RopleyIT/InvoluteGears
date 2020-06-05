@@ -12,7 +12,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AC50544D-ED2F-43AF-9512-6C2369ECEFE3}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
-		TODO.txt = TODO.txt
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GearClient.Server", "GearClient\Server\GearClient.Server.csproj", "{0A04B4E4-7472-4839-8972-EF7EE3D19216}"
