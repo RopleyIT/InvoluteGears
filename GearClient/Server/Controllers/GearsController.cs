@@ -34,20 +34,15 @@ namespace GearClient.Server.Controllers
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
+            return CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
+        }
+
+        private GearProfiles CreateGearPlot(Cutouts cutoutCalculator, double size)
+        {
             // Create the output plot file of the gear
 
-            //List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>
-            //{
-            //    Involutes.CirclePoints(-Math.PI, Math.PI, Involutes.AngleStep, gear.PitchCircleDiameter / 2),
-            //    Involutes.CirclePoints(-Math.PI, Math.PI, Involutes.AngleStep, gear.BaseCircleDiameter / 2),
-            //    Involutes.CirclePoints(-Math.PI , Math.PI, Involutes.AngleStep, gear.AddendumCircleDiameter / 2),
-            //    Involutes.CirclePoints(-Math.PI, Math.PI, Involutes.AngleStep, gear.DedendumCircleDiameter / 2)
-            //};
-
-            List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>();
-
-            for (int i = 0; i < gear.ToothCount; i++)
-                gearPoints.AddRange(gear.GeneratePointsForOnePitch(i));
+            var gearPoints = new List<IEnumerable<PointF>>();
+            gearPoints.Add(cutoutCalculator.Gear.GenerateCompleteGearPath());
             GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 
             // Now convert to image bytes to return from Web API
@@ -62,8 +57,29 @@ namespace GearClient.Server.Controllers
             {
                 Description = cutoutCalculator.Gear.Information + cutoutCalculator.Information,
                 JpegBase64 = Convert.ToBase64String(bytes),
-                SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)gear.AddendumCircleDiameter)
+                SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size)
             };
+        }
+
+        [HttpPost("api/escape")]
+        public GearProfiles CalcEscapeImage(EscapeWheelParams gParams)
+        {
+            EscapeGearParameters gear = new EscapeGearParameters(
+                gParams.Teeth,
+                double.Parse(gParams.Module),
+                Math.PI * double.Parse(gParams.UndercutAngle) / 180.0,
+                double.Parse(gParams.FaceLength),
+                double.Parse(gParams.TipPitch),
+                double.Parse(gParams.BaseDiameter),
+                double.Parse(gParams.Tolerance));
+
+            Cutouts cutoutCalculator = new Cutouts(
+                gear,
+                double.Parse(gParams.SpindleDiameter),
+                double.Parse(gParams.InlayDiameter),
+                double.Parse(gParams.KeyFlatWidth));
+
+            return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
         }
     }
 }

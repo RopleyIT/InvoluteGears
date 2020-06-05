@@ -24,7 +24,6 @@ namespace GearClient.Shared
         [RegularExpression(@"\d+(\.\d)?", ErrorMessage = "Positive angle to nearest 10th of a degree")]
         public string PressureAngle { get; set; }
 
-        [Range(1, 100000, ErrorMessage = "One or more, measured in 100ths of a mm")]
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Number > 0 to nearest 100th of a mm")]
         public string Module { get; set; }
@@ -48,6 +47,5 @@ namespace GearClient.Shared
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string KeyFlatWidth { get; set; }
-
     }
 }
