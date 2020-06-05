@@ -8,26 +8,46 @@ namespace GearClient.Shared
 {
     public class GearParams
     {
+        [Required]
         [Range(6, 1000, ErrorMessage = "Must be 6 or more")]
         public int Teeth { get; set; }
-        [Range(0, 1000, ErrorMessage = "Zero or more, measured in 10ths of a %")]
-        public int ProfileShift { get; set; }
-        [Range(0, 100000, ErrorMessage = "Zero or more, measured in 100ths of a mm")]
-        public int Tolerance { get; set; }
-        [Range(100, 600, ErrorMessage = "100 to 600, measured in 10ths of a degree")]
-        public int PressureAngle { get; set; }
+
+        [Required]
+        [RegularExpression(@"-?\d?\d(\.\d)?", ErrorMessage = "Number to nearest 10th of a %")]
+        public string ProfileShift { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string Tolerance { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d)?", ErrorMessage = "Positive angle to nearest 10th of a degree")]
+        public string PressureAngle { get; set; }
+
         [Range(1, 100000, ErrorMessage = "One or more, measured in 100ths of a mm")]
-        public int Module { get; set; }
-        [Range(0, 100000, ErrorMessage = "Zero or more, measured in 100ths of a mm")]
-        public int Backlash { get; set; }
-        [Range(0, 100000, ErrorMessage = "Zero or more, measured in 100ths of a mm")]
-        public int CutterDiameter { get; set; }
-        [Range(0, 100000, ErrorMessage = "Zero or more, measured in 100ths of a mm")]
-        public int SpindleDiameter { get; set; }
-        [Range(0, 100000, ErrorMessage = "Zero or more, measured in 100ths of a mm")]
-        public int InlayDiameter { get; set; }
-        [Range(0, 100000, ErrorMessage = "Zero or more, measured in 100ths of a mm")]
-        public int KeyFlatWidth { get; set; }
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Number > 0 to nearest 100th of a mm")]
+        public string Module { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string Backlash { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string CutterDiameter { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string SpindleDiameter { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string InlayDiameter { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string KeyFlatWidth { get; set; }
 
     }
 }

@@ -43,6 +43,13 @@ namespace InvoluteGears
         {
                 foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
                     gearPoints.Add(cutout);
+            if (cutoutCalculator.HexKeyPlot != null)
+                gearPoints.Add(cutoutCalculator.HexKeyPlot);
+            if (cutoutCalculator.InlayPlot != null)
+                gearPoints.Add(cutoutCalculator.InlayPlot);
+            if (cutoutCalculator.SpindlePlot != null)
+                gearPoints.Add(cutoutCalculator.SpindlePlot);
+
         }
     }
 }

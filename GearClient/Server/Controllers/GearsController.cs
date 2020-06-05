@@ -21,18 +21,18 @@ namespace GearClient.Server.Controllers
         {
             GearParameters gear = new GearParameters(
                 gParams.Teeth,
-                gParams.Module / 100.0,
-                Math.PI * gParams.PressureAngle / 1800.0,
-                gParams.ProfileShift / 1000.0,
-                gParams.Tolerance / 100.0,
-                gParams.Backlash / (double)gParams.Module,
-                gParams.CutterDiameter / 100.0);
+                double.Parse(gParams.Module),
+                Math.PI * double.Parse(gParams.PressureAngle) / 180.0,
+                double.Parse(gParams.ProfileShift) / 100.0,
+                double.Parse(gParams.Tolerance),
+                double.Parse(gParams.Backlash) / double.Parse(gParams.Module),
+                double.Parse(gParams.CutterDiameter));
 
             Cutouts cutoutCalculator = new Cutouts(
                 gear,
-                gParams.SpindleDiameter / 100.0,
-                gParams.InlayDiameter / 100.0,
-                gParams.KeyFlatWidth / 100.0);
+                double.Parse(gParams.SpindleDiameter),
+                double.Parse(gParams.InlayDiameter),
+                double.Parse(gParams.KeyFlatWidth));
 
             // Create the output plot file of the gear
 
