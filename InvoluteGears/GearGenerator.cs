@@ -19,6 +19,7 @@ namespace InvoluteGears
         public static string GenerateSVG(Cutouts cutoutCalculator, float docDimension)
         {
             SVGCreator svgCreator = new SVGCreator();
+            svgCreator.InfoComment = cutoutCalculator.Gear.Information + cutoutCalculator.Information;
             svgCreator.AddClosedPath(cutoutCalculator.Gear.GenerateCompleteGearPath(), string.Empty, 0, "black");
             foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
                 svgCreator.AddClosedPath(cutout, string.Empty, 0, "white");

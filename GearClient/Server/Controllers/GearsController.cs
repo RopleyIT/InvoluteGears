@@ -37,6 +37,14 @@ namespace GearClient.Server.Controllers
             return CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
         }
 
+        [HttpPost("api/invzip")]
+        public async Task<IActionResult> CalcInvoluteSvgZip(GearParams gParams)
+        {
+            var profiles = CalcInvoluteImage(gParams);
+            var zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            return File(zipStream, "application/zip");
+        }
+
         private GearProfiles CreateGearPlot(Cutouts cutoutCalculator, double size)
         {
             // Create the output plot file of the gear
@@ -56,6 +64,7 @@ namespace GearClient.Server.Controllers
             return new GearProfiles
             {
                 Description = cutoutCalculator.Gear.Information + cutoutCalculator.Information,
+                ShortName = cutoutCalculator.Gear.ShortName,
                 JpegBase64 = Convert.ToBase64String(bytes),
                 SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size)
             };
@@ -80,6 +89,14 @@ namespace GearClient.Server.Controllers
                 double.Parse(gParams.KeyFlatWidth));
 
             return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+        }
+
+        [HttpPost("api/esczip")]
+        public async Task<IActionResult> CalcEscapeWheelSvgZip(EscapeWheelParams gParams)
+        {
+            var profiles = CalcEscapeImage(gParams);
+            var zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            return File(zipStream, "application/zip");
         }
     }
 }

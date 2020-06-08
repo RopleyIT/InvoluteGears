@@ -41,6 +41,8 @@ namespace Plotter
 
         public string ViewBoxDimensionUnits { get; set; }
 
+        public string InfoComment { get; set; }
+
         private static string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 
         private string StartSvg =>
@@ -58,6 +60,12 @@ namespace Plotter
         {
             StringWriter sw = new StringWriter();
             sw.WriteLine(XmlHeader);
+            if(!string.IsNullOrWhiteSpace(InfoComment))
+            {
+                sw.WriteLine("<!--");
+                sw.Write(InfoComment);
+                sw.WriteLine("-->");
+            }
             sw.WriteLine(StartSvg);
             foreach (SVGPath path in svgPaths)
                 sw.WriteLine(path.ToString());

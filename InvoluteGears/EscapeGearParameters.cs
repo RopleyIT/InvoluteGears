@@ -40,6 +40,9 @@ namespace InvoluteGears
             Information += $"tooth face = {ToothFaceLength}mm, precision = {MaxError}mm\r\n";
             Information += $"tip width = {TipPitch}mm, tooth gap diameter = {CutDiameter}mm\r\n";
         }
+        public string ShortName
+            => $"t{ToothCount}m{Module:N2}u{UndercutAngle * 180 / Math.PI:N1}f{ToothFaceLength:N2}"
+                + $"e{MaxError:N2}p{TipPitch:N2}c{CutDiameter:N2}.svg";
 
         /// <summary>
         /// Used for warning or information messages when methods invoked

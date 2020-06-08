@@ -29,6 +29,10 @@ namespace InvoluteGears
             Information += $"backlash = {Backlash}mm, cutter diameter = {CutterDiameter}mm\r\n";
         }
 
+        public string ShortName
+            =>  $"t{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
+                + $"e{MaxError:N2}b{Backlash:N2}c{CutterDiameter:N2}.svg";
+
         /// <summary>
         /// Used for warning or information messages when methods invoked
         /// </summary>

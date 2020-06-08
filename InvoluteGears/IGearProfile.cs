@@ -13,6 +13,7 @@ namespace InvoluteGears
     public interface IGearProfile
     {
         string Information { get; }
+        string ShortName { get; }
         int ToothCount { get; }
         double Module { get; }
         double MaxError { get; }

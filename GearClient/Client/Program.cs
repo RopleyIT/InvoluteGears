@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Components;
 
 namespace GearClient.Client
 {
@@ -21,5 +22,8 @@ namespace GearClient.Client
 
             await builder.Build().RunAsync();
         }
+
+        public static MarkupString ToHtmlText(string text) 
+            => new MarkupString(text.Replace("\r\n", "<br />\r\n"));
     }
 }

@@ -1,6 +1,7 @@
 ﻿@page "/escapewheels"
 @using GearClient.Shared
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <h3>Generate Escape Wheel Vector Profiles</h3>
 <EditForm Model=@GearData OnSubmit="@Generate">
@@ -71,19 +72,31 @@
             <ValidationMessage For="() => GearData.KeyFlatWidth" />
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Generate</button>
-</EditForm>
-<p>&nbsp;</p>
-<div class="card">
-    <img src="@InvImage" class="card-img-top" alt="Image of gear will appear here" />
-    <div class="card-body">
-        <p>@ImageDescription</p>
+    <div class="form-row">
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Generate</button>
+        </div>
+        <div class="col-md-9">
+            <button type="button" class="btn btn-primary" disabled="@IsDisabled" @onclick="(()=>SvgToClipboard())">Copy SVG</button>
+        </div>
     </div>
-</div>
+</EditForm>
+@if (!IsDisabled)
+{
+    <div class="card m-md-4">
+        <div class="card-body">
+            <h5 class="card-title">Escape wheel</h5>
+            <p class="card-text">@ImageDescription</p>
+        </div>
+        <img src="@InvImage" class="card-img-bottom" alt="Image of gear will appear here" />
+    </div>
+}
+
 @code {
+    bool IsDisabled = true;
     EscapeWheelParams GearData = new EscapeWheelParams();
     string InvImage = string.Empty;
-    string ImageDescription = string.Empty;
+    MarkupString ImageDescription = new MarkupString(string.Empty);
     string SVG = string.Empty;
 
     async Task Generate(EditContext ctx)
@@ -94,16 +107,26 @@
             if (response.IsSuccessStatusCode)
             {
                 var gearProfile = await response.Content.ReadFromJsonAsync<GearProfiles>();
-                ImageDescription = gearProfile.Description;
+                ImageDescription = Program.ToHtmlText(gearProfile.Description);
                 InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
                 SVG = gearProfile.SvgData;
+                IsDisabled = false;
             }
             else
             {
-                ImageDescription = "Status: " + response.StatusCode + ", Reason: " + response.ReasonPhrase;
+                ImageDescription = Program.ToHtmlText("Status: " + response.StatusCode + ", Reason: " + response.ReasonPhrase);
                 InvImage = "";
                 SVG = string.Empty;
+                IsDisabled = true;
             }
         }
+        else
+            IsDisabled = true;
     }
+
+    async Task SvgToClipboard()
+    {
+        await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", SVG);
+    }
+
 }
