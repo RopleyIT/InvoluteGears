@@ -16,6 +16,7 @@ namespace InvoluteGears
         double Module { get; }
         double MaxError { get; }
         double InnerDiameter { get; }
+        double CutDiameter { get; }
         IEnumerable<PointF> GenerateCompleteGearPath();
     }
 }

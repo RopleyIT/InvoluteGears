@@ -245,8 +245,8 @@ namespace InvoluteGears
             // Generate the points for one sixth of the key
             double ctrToFace = KeyWidth / 2;
             PointF cornerCtr = Involutes.CreatePt(
-                ctrToFace - Gear.Module,
-                (ctrToFace - Gear.Module) / Math.Sqrt(3.0));
+                ctrToFace - Gear.CutDiameter/2,
+                (ctrToFace - Gear.CutDiameter / 2) / Math.Sqrt(3.0));
             List<PointF> firstSegment = new List<PointF>
             {
                 Involutes.CreatePt(ctrToFace, 0),
@@ -254,7 +254,7 @@ namespace InvoluteGears
             };
             firstSegment.AddRange(
                 Involutes.CirclePoints(0, Math.PI / 3, Involutes.AngleStep,
-                    Gear.Module, cornerCtr));
+                    Gear.CutDiameter / 2, cornerCtr));
             firstSegment.Add(Involutes.CreatePt(ctrToFace / 2, Math.Sin(Math.PI / 3) * ctrToFace));
             firstSegment = Involutes.LinearReduction(firstSegment, (float)Gear.MaxError);
             return Enumerable

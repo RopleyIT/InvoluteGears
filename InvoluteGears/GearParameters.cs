@@ -17,7 +17,7 @@ namespace InvoluteGears
             ProfileShift = profileShift;
             MaxError = maxErr;
             Backlash = backlash;
-            CutterDiameter = cutterDiam;
+            CutDiameter = cutterDiam;
             SetInformation();
             InitPointLists();
         }
@@ -26,12 +26,12 @@ namespace InvoluteGears
         {
             Information = $"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n";
             Information += $"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n";
-            Information += $"backlash = {Backlash}mm, cutter diameter = {CutterDiameter}mm\r\n";
+            Information += $"backlash = {Backlash}mm, cutter diameter = {CutDiameter}mm\r\n";
         }
 
         public string ShortName
             => $"It{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
-                + $"e{MaxError:N2}b{Backlash:N2}c{CutterDiameter:N2}.svg";
+                + $"e{MaxError:N2}b{Backlash:N2}c{CutDiameter:N2}.svg";
 
         /// <summary>
         /// Used for warning or information messages when methods invoked
@@ -43,7 +43,7 @@ namespace InvoluteGears
         /// The diameter of the bit used to cut out the gear. In mm.
         /// </summary>
 
-        public double CutterDiameter
+        public double CutDiameter
         {
             get;
             private set;
@@ -421,12 +421,12 @@ namespace InvoluteGears
             PointF cutterCentre = PointF.Empty;
             while (!cornerFound && i < UndercutPoints.Count - 2)
             {
-                PointF[] centres = Involutes.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutterDiameter / 2);
+                PointF[] centres = Involutes.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutDiameter / 2);
                 if (centres[0].Y < centres[1].Y)
                     cutterCentre = centres[0];
                 else
                     cutterCentre = centres[1];
-                cornerFound = Involutes.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutterDiameter / 2);
+                cornerFound = Involutes.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutDiameter / 2);
                 i++; // i indexes the last point from the undercut point list that we can cut to
             }
 
@@ -459,18 +459,18 @@ namespace InvoluteGears
             // of adjustedUndercut, to the point at which it crosses yDedendum (y value).
 
             UndercutPoints.AddRange(Involutes.CirclePoints
-                (startAngle, endAngle, Math.PI / 180, CutterDiameter / 2, cutterCentre));
+                (startAngle, endAngle, Math.PI / 180, CutDiameter / 2, cutterCentre));
 
             // Then add new dedendum circle points round to the y=0 axis, based on
             // the tangent to the cutter circle at yDedendum.
 
             DedendumPoints = new List<PointF>(Involutes.CirclePoints
                 (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI,
-                Involutes.AngleStep, cutterCentreRadius - CutterDiameter / 2));
+                Involutes.AngleStep, cutterCentreRadius - CutDiameter / 2));
 
             // Record the new dedendum diameter since the cutter has reduced it
 
-            cutterAdjustedDedendumDircleDiameter = 2 * cutterCentreRadius - CutterDiameter;
+            cutterAdjustedDedendumDircleDiameter = 2 * cutterCentreRadius - CutDiameter;
 
             // Undercut points and dedendum points were rewritten. Return
             // true to flag this fact.
@@ -504,10 +504,10 @@ namespace InvoluteGears
             int undercutIdx = Involutes.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
             InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
             UndercutPoints.RemoveRange(0, undercutIdx + 1);
-            if (CutterDiameter > 0 && AdjustPointsForCircularCutter())
+            if (CutDiameter > 0 && AdjustPointsForCircularCutter())
                 Information += "Undercut and dedendum adjusted for cutter diameter\r\n";
-            if (ToothGapAtUndercut < CutterDiameter)
-                Information += $"Cutter dia. {CutterDiameter} too wide for tooth gap of {ToothGapAtUndercut}\r\n";
+            if (ToothGapAtUndercut < CutDiameter)
+                Information += $"Cutter dia. {CutDiameter} too wide for tooth gap of {ToothGapAtUndercut}\r\n";
 
             // TODO: Ideally should use AdjustPointsForCircularCutter return
             // value to prevent reduction in tooth addendum height used for
