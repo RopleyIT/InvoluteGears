@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace InvoluteGears
 {
@@ -19,7 +18,7 @@ namespace InvoluteGears
         /// <param name="x">X ccordinate</param>
         /// <param name="y">Y coordinate</param>
         /// <returns>A PointF initialised from the two doubles</returns>
-        
+
         public static PointF CreatePt(double x, double y) =>
             new PointF((float)x, (float)y);
 
@@ -454,7 +453,7 @@ namespace InvoluteGears
             numerator -= (p2.X - p1.X) * p0.Y;
             numerator += p2.X * p1.Y - p2.Y * p1.X;
             numerator = Math.Abs(numerator);
-            var denom = Math.Sqrt(SumOfSquares(p2.X - p1.X, p2.Y - p1.Y));
+            double denom = Math.Sqrt(SumOfSquares(p2.X - p1.X, p2.Y - p1.Y));
             return (float)(numerator / denom);
         }
 
@@ -463,7 +462,7 @@ namespace InvoluteGears
         /// </summary>
         /// <param name="v">The value to be squared</param>
         /// <returns>v*v</returns>
-        
+
         public static double Square(double v) => v * v;
 
         /// <summary>
@@ -533,10 +532,10 @@ namespace InvoluteGears
         /// <param name="x">First number to be squared and summed</param>
         /// <param name="y">Second number to be squared and summed</param>
         /// <returns>x*x + y*y</returns>
-        
+
         public static double SumOfSquares(double x, double y)
             => Square(x) + Square(y);
-        public  static double DiffOfSquares(double x, double y)
+        public static double DiffOfSquares(double x, double y)
             => Square(x) - Square(y);
 
         /// <summary>

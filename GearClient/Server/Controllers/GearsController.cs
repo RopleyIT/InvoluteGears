@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using InvoluteGears;
-using Plotter;
-using GearClient.Shared;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Threading.Tasks;
+using GearClient.Shared;
+using InvoluteGears;
+using Microsoft.AspNetCore.Mvc;
+using Plotter;
 
 namespace GearClient.Server.Controllers
 {
@@ -19,6 +17,9 @@ namespace GearClient.Server.Controllers
         [HttpPost("api/involute")]
         public GearProfiles CalcInvoluteImage(GearParams gParams)
         {
+            if (gParams == null)
+                throw new ArgumentNullException(nameof(gParams));
+
             GearParameters gear = new GearParameters(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
@@ -40,8 +41,8 @@ namespace GearClient.Server.Controllers
         [HttpPost("api/invzip")]
         public async Task<IActionResult> CalcInvoluteSvgZip(GearParams gParams)
         {
-            var profiles = CalcInvoluteImage(gParams);
-            var zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            GearProfiles profiles = CalcInvoluteImage(gParams);
+            Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
             return File(zipStream, "application/zip");
         }
 
@@ -49,8 +50,10 @@ namespace GearClient.Server.Controllers
         {
             // Create the output plot file of the gear
 
-            var gearPoints = new List<IEnumerable<PointF>>();
-            gearPoints.Add(cutoutCalculator.Gear.GenerateCompleteGearPath());
+            List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>
+            {
+                cutoutCalculator.Gear.GenerateCompleteGearPath()
+            };
             GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 
             // Now convert to image bytes to return from Web API
@@ -59,7 +62,7 @@ namespace GearClient.Server.Controllers
             using MemoryStream ms = new MemoryStream();
             img.Save(ms, ImageFormat.Jpeg);
             ms.Seek(0L, SeekOrigin.Begin);
-            Byte[] bytes = ms.GetBuffer();
+            byte[] bytes = ms.GetBuffer();
 
             return new GearProfiles
             {
@@ -73,6 +76,9 @@ namespace GearClient.Server.Controllers
         [HttpPost("api/escape")]
         public GearProfiles CalcEscapeImage(EscapeWheelParams gParams)
         {
+            if (gParams == null)
+                throw new ArgumentNullException(nameof(gParams));
+
             EscapeGearParameters gear = new EscapeGearParameters(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
@@ -94,8 +100,8 @@ namespace GearClient.Server.Controllers
         [HttpPost("api/esczip")]
         public async Task<IActionResult> CalcEscapeWheelSvgZip(EscapeWheelParams gParams)
         {
-            var profiles = CalcEscapeImage(gParams);
-            var zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            GearProfiles profiles = CalcEscapeImage(gParams);
+            Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
             return File(zipStream, "application/zip");
         }
     }

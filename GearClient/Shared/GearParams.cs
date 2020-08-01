@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Numerics;
-using System.Text;
 
 namespace GearClient.Shared
 {

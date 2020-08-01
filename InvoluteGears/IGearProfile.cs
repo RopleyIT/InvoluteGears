@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 
 namespace InvoluteGears
 {
@@ -9,7 +7,7 @@ namespace InvoluteGears
     /// Interface used when computing
     /// the shape of gear cutouts
     /// </summary>
-    
+
     public interface IGearProfile
     {
         string Information { get; }

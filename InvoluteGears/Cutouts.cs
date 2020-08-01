@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Reflection;
 
 namespace InvoluteGears
 {
@@ -40,7 +39,7 @@ namespace InvoluteGears
         /// used to align adjacent gears where they are
         /// keyed together as a wheel-pinion pair.
         /// </summary>
-        
+
         public double KeyWidth { get; private set; }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace InvoluteGears
         /// </summary>
 
         public string Information { get; private set; }
-        
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -151,7 +150,7 @@ namespace InvoluteGears
 
         private List<List<PointF>> CalculateCutouts(int spokes)
         {
-            var cutouts = new List<List<PointF>>();
+            List<List<PointF>> cutouts = new List<List<PointF>>();
             if (spokes < 3)
                 return cutouts;
 
@@ -240,15 +239,15 @@ namespace InvoluteGears
         /// </summary>
         /// <returns>The list of points 
         /// corresponding to the hex key</returns>
-        
+
         private List<PointF> CalculateHexKey()
         {
             // Generate the points for one sixth of the key
             double ctrToFace = KeyWidth / 2;
             PointF cornerCtr = Involutes.CreatePt(
-                ctrToFace - Gear.Module, 
+                ctrToFace - Gear.Module,
                 (ctrToFace - Gear.Module) / Math.Sqrt(3.0));
-            var firstSegment = new List<PointF>
+            List<PointF> firstSegment = new List<PointF>
             {
                 Involutes.CreatePt(ctrToFace, 0),
                 Involutes.CreatePt(ctrToFace, cornerCtr.Y)
@@ -256,7 +255,7 @@ namespace InvoluteGears
             firstSegment.AddRange(
                 Involutes.CirclePoints(0, Math.PI / 3, Involutes.AngleStep,
                     Gear.Module, cornerCtr));
-            firstSegment.Add(Involutes.CreatePt(ctrToFace/2, Math.Sin(Math.PI/3)* ctrToFace));
+            firstSegment.Add(Involutes.CreatePt(ctrToFace / 2, Math.Sin(Math.PI / 3) * ctrToFace));
             firstSegment = Involutes.LinearReduction(firstSegment, (float)Gear.MaxError);
             return Enumerable
                 .Range(0, 6)

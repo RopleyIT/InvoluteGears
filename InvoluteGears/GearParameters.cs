@@ -24,19 +24,19 @@ namespace InvoluteGears
 
         private void SetInformation()
         {
-            Information = $"{ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n";
+            Information = $"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n";
             Information += $"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n";
             Information += $"backlash = {Backlash}mm, cutter diameter = {CutterDiameter}mm\r\n";
         }
 
         public string ShortName
-            =>  $"t{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
+            => $"It{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
                 + $"e{MaxError:N2}b{Backlash:N2}c{CutterDiameter:N2}.svg";
 
         /// <summary>
         /// Used for warning or information messages when methods invoked
         /// </summary>
-        
+
         public string Information { get; private set; }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace InvoluteGears
         /// radii that are in the same ratio as the gear
         /// ratio between the two gears.
         /// </summary>
-        
+
         public double PitchCircleDiameter => Module * ToothCount;
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace InvoluteGears
         /// Allowance has been made for profile shifting
         /// of the teeth.
         /// </summary>
-        
+
         public double DedendumCircleDiameter
             => PitchCircleDiameter - 2 * Module
             * (1 - ProfileShift);
@@ -145,7 +145,7 @@ namespace InvoluteGears
         /// meaning that the dedendum may dig deeper into the
         /// gear, but with shallower turns.
         /// </summary>
-        
+
         public double InnerDiameter
         {
             get
@@ -164,7 +164,7 @@ namespace InvoluteGears
         /// gear. If zero, it is a rack. If negative, it
         /// is an internal gear.
         /// </summary>
-        
+
         public int ToothCount { get; private set; }
 
         /// <summary>
@@ -531,14 +531,11 @@ namespace InvoluteGears
         /// the gear. The last point should be joined back
         /// onto the first point to close the outline.</returns>
 
-        public IEnumerable<PointF> GenerateCompleteGearPath()
-        {
-            return Enumerable
+        public IEnumerable<PointF> GenerateCompleteGearPath() => Enumerable
                 .Range(0, ToothCount)
                 .Select(i => GeneratePointsForOnePitch(i))
                 .SelectMany(ep => ep)
-                .SelectMany(p=>p);
-        }
+                .SelectMany(p => p);
 
         public IEnumerable<IEnumerable<PointF>> GeneratePointsForOnePitch(int i)
         {

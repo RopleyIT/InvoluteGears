@@ -50,7 +50,7 @@ minimum number of spokes is three.
 `-s [spindle-diameter] [inlay-diameter] [hex-width]`
 
 At the end of the list of arguments for the `-p` or `-P` options, and in fact for the
-`-e` and `-E` options described below, it is possible to include an optional `-s`
+`-r`, `-e` and `-E` options described below, it is possible to include an optional `-s`
 argument with its three additional arguments.
 
 This option allows you to include cutouts for the gear's surfaces, as well as a central
@@ -102,6 +102,28 @@ weight and moment of inertia. For teeth up to around 17 teeth no spokes are gene
 gears above that, the number of spokes is chosen so that no more that
 eight teeth would be on the perimeter between consecutive spokes. The
 minimum number of spokes is three.
+
+#### Option -r
+
+`gears -r [teeth] [max-error] [module] [inner-diameter] [cut-diameter] [-s [spindle-diameter] [inlay-diameter] [hex-width]]`
+
+This option generates a ratchet gear suitable for use with a pawl in a
+winding mechanism.
+
+| Argument | Units | Description |
+| -------- | ---- | ----------- |
+| `teeth` | Number | The number of teeth this ratchet will have. |
+| `max-error` | 100ths of a mm | The tolerated deviation from exact measures of points on the gear curve. |
+| `module` | 100ths of a mm | The gear module. Gear diameter = `tooth-count * module` at the tooth tips. |
+| `inner-diameter` | 100ths of a mm | The diameter of the circle that meets the base of the teeth. |
+| `cut-diameter` | 100ths of a mm | Diameter of end mill tool used to cut tooth. Rounds the inside corner of the tooth face. |
+
+Example: `gears -r 6 0 1000 5000 0`
+
+This creates a ratchet with six teeth, outer diameter 10mm * 6 = 60mm, inner
+diameter 50mm. There is no reduction in the number of points on the curve
+as the tolerance is set to zero. Also there is no rounding of the inside
+corner of the tooth face as the cutter diameter is set to zero.
 
 #### Option -m
 

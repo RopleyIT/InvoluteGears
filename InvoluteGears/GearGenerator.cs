@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using Plotter;
 using System.IO;
+using Plotter;
 
 namespace InvoluteGears
 {
@@ -18,8 +16,10 @@ namespace InvoluteGears
 
         public static string GenerateSVG(Cutouts cutoutCalculator, float docDimension)
         {
-            SVGCreator svgCreator = new SVGCreator();
-            svgCreator.InfoComment = cutoutCalculator.Gear.Information + cutoutCalculator.Information;
+            SVGCreator svgCreator = new SVGCreator
+            {
+                InfoComment = cutoutCalculator.Gear.Information + cutoutCalculator.Information
+            };
             svgCreator.AddClosedPath(cutoutCalculator.Gear.GenerateCompleteGearPath(), string.Empty, 0, "black");
             foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
                 svgCreator.AddClosedPath(cutout, string.Empty, 0, "white");
@@ -42,8 +42,8 @@ namespace InvoluteGears
 
         public static void GenerateCutoutPlot(Cutouts cutoutCalculator, List<IEnumerable<PointF>> gearPoints)
         {
-                foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
-                    gearPoints.Add(cutout);
+            foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
+                gearPoints.Add(cutout);
             if (cutoutCalculator.HexKeyPlot != null)
                 gearPoints.Add(cutoutCalculator.HexKeyPlot);
             if (cutoutCalculator.InlayPlot != null)

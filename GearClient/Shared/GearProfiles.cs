@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GearClient.Shared
+﻿namespace GearClient.Shared
 {
     public class GearProfiles
     {

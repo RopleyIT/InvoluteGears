@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Xml.Schema;
 
 namespace InvoluteGears
 {
@@ -12,12 +9,12 @@ namespace InvoluteGears
     /// Describe the shape of an escape wheel
     /// with inclined sharp teeth.
     /// </summary>
-    
+
     public class EscapeGearParameters : IGearProfile
     {
         public EscapeGearParameters(
-            int toothCount, 
-            double module, 
+            int toothCount,
+            double module,
             double undercutAngle,
             double toothFaceLength,
             double tipPitch,
@@ -36,12 +33,12 @@ namespace InvoluteGears
         }
         private void SetInformation()
         {
-            Information = $"{ToothCount} teeth, module = {Module}mm, undercut angle = {UndercutAngle * 180 / Math.PI:N1}\u00b0\r\n";
+            Information = $"Escape: {ToothCount} teeth, module = {Module}mm, undercut angle = {UndercutAngle * 180 / Math.PI:N1}\u00b0\r\n";
             Information += $"tooth face = {ToothFaceLength}mm, precision = {MaxError}mm\r\n";
             Information += $"tip width = {TipPitch}mm, tooth gap diameter = {CutDiameter}mm\r\n";
         }
         public string ShortName
-            => $"t{ToothCount}m{Module:N2}u{UndercutAngle * 180 / Math.PI:N1}f{ToothFaceLength:N2}"
+            => $"Et{ToothCount}m{Module:N2}u{UndercutAngle * 180 / Math.PI:N1}f{ToothFaceLength:N2}"
                 + $"e{MaxError:N2}p{TipPitch:N2}c{CutDiameter:N2}.svg";
 
         /// <summary>
@@ -137,7 +134,7 @@ namespace InvoluteGears
         /// The angle at the centre of the gear subtended by
         /// the width of the tip of a tooth.
         /// </summary>
-        
+
         public double TipAngle => 2 * TipPitch / (ToothCount * Module);
 
         /// <summary>
@@ -182,32 +179,32 @@ namespace InvoluteGears
             // undercut circle of a line drawn from the
             // back of the tooth tip
 
-            var tipToEndAngle = 
+            double tipToEndAngle =
                 Math.Asin(CutDiameter / (2 * Involutes.DistanceBetween(BackTip, UnderCutCentre)));
-            var tiptoCtrAngle = 
+            double tiptoCtrAngle =
                 Math.Atan2(BackTip.Y - UnderCutCentre.Y, BackTip.X - UnderCutCentre.X);
-            BackAngle = 
+            BackAngle =
                 tiptoCtrAngle + Math.PI / 2 - tipToEndAngle;
             OneToothProfile = ComputeOnePitch();
         }
 
         private List<PointF> ComputeOnePitch()
         {
-            var points = new List<PointF>
+            List<PointF> points = new List<PointF>
             {
                 ToothTip,
                 FaceEnd
             };
-            var startAngle = -Math.PI / 2 + UndercutAngle;
+            double startAngle = -Math.PI / 2 + UndercutAngle;
             points.AddRange(
                 Involutes.CirclePoints(
-                    BackAngle, 2*Math.PI + startAngle, Involutes.AngleStep, 
+                    BackAngle, 2 * Math.PI + startAngle, Involutes.AngleStep,
                     CutDiameter / 2, UnderCutCentre)
                 .Reverse());
             points.Add(BackTip);
             points.AddRange(
                 Involutes.CirclePoints(
-                    GapAngle, ToothAngle, Involutes.AngleStep, 
+                    GapAngle, ToothAngle, Involutes.AngleStep,
                     PitchCircleDiameter / 2));
             return Involutes.LinearReduction(points, (float)MaxError);
         }
@@ -224,7 +221,7 @@ namespace InvoluteGears
         /// <returns>The set of points describing the
         /// profile of the selected tooth.</returns>
 
-        public IEnumerable<PointF> ToothProfile(int gap) 
+        public IEnumerable<PointF> ToothProfile(int gap)
             => Involutes.RotateAboutOrigin
                 ((gap % ToothCount) * ToothAngle, OneToothProfile);
 
@@ -235,13 +232,10 @@ namespace InvoluteGears
         /// <returns>The set of points describing the escape wheel
         /// </returns>
 
-        public IEnumerable<PointF> GenerateCompleteGearPath()
-        {
-            return Enumerable
+        public IEnumerable<PointF> GenerateCompleteGearPath() => Enumerable
                 .Range(0, ToothCount)
                 .Select(i => ToothProfile(i))
                 .SelectMany(p => p);
-        }
 
         /// <summary>
         /// The distance from the centre of the gear to the
@@ -249,7 +243,7 @@ namespace InvoluteGears
         /// trailing faces of the teeth.
         /// </summary>
 
-        public double InnerDiameter 
+        public double InnerDiameter
             => 2 * Involutes.DistanceBetween(UnderCutCentre, PointF.Empty) - CutDiameter;
     }
 }

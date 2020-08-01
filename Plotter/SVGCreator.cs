@@ -28,7 +28,7 @@ namespace Plotter
 
         public void AddClosedPath(IEnumerable<PointF> points, string stroke, int strokeWidth, string fill)
         {
-            var path = new SVGPath(points, true);
+            SVGPath path = new SVGPath(points, true);
             path.SetDrawingParams(stroke, strokeWidth, fill);
             AddPath(path);
         }
@@ -60,7 +60,7 @@ namespace Plotter
         {
             StringWriter sw = new StringWriter();
             sw.WriteLine(XmlHeader);
-            if(!string.IsNullOrWhiteSpace(InfoComment))
+            if (!string.IsNullOrWhiteSpace(InfoComment))
             {
                 sw.WriteLine("<!--");
                 sw.Write(InfoComment);

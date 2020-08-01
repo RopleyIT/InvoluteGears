@@ -15,12 +15,12 @@ namespace InvoluteConsole
             // First chop the spindle description off the end of the arg list
 
             string[] spindleArgs = null;
-            int idx = Array.FindIndex(args, a => String.Compare(a, "-s", true) == 0);
+            int idx = Array.FindIndex(args, a => string.Compare(a, "-s", true) == 0);
             if (idx >= 0)
             {
                 spindleArgs = new string[args.Length - idx];
                 Array.Copy(args, idx, spindleArgs, 0, spindleArgs.Length);
-                var newArgs = new string[idx];
+                string[] newArgs = new string[idx];
                 Array.Copy(args, 0, newArgs, 0, idx);
                 args = newArgs;
             }
@@ -194,7 +194,7 @@ namespace InvoluteConsole
 
                     // Generate the SVG version of the gear path
 
-                    GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.PitchCircleDiameter, 
+                    GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.PitchCircleDiameter,
                         $"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}");
 
                     // Create the output plot file of the gear
@@ -223,9 +223,52 @@ namespace InvoluteConsole
 
                     Console.WriteLine(gear.Information);
                     Console.WriteLine(cutoutCalculator.Information);
-                    
+
                     using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
                     img.Save($"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}.png", ImageFormat.Png);
+                }
+                if (args[0].ToLower() == "-r")
+                {
+                    if (args.Length != 6
+                        || !int.TryParse(args[1], out int teeth)
+                        || !int.TryParse(args[2], out int maxErr)
+                        || !int.TryParse(args[3], out int module)
+                        || !int.TryParse(args[4], out int innerDiameter)
+                        || !int.TryParse(args[5], out int cutterrDiameter))
+                    {
+                        Usage("-r option requires 5 arguments, plus an optional -s argument list");
+                        return;
+                    }
+                    Ratchet gear = new Ratchet(
+                        teeth,
+                        module / 100.0,
+                        maxErr / 100.0,
+                        innerDiameter / 100.0,
+                        cutterrDiameter / 100.0
+                        );
+
+                    Cutouts cutoutCalculator = CreateCutouts(gear, spindleArgs);
+
+                    // Generate the SVG version of the gear path
+
+                    GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.PitchCircleDiameter,
+                        $"t{gear.ToothCount}m{module}i{innerDiameter}");
+
+                    // Create the output plot file of the gear
+
+                    List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>();
+                    for (int i = 0; i < gear.ToothCount; i++)
+                        gearPoints.Add(gear.ToothProfile(i));
+
+                    GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
+
+                    // Report what was created
+
+                    Console.WriteLine(gear.Information);
+                    Console.WriteLine(cutoutCalculator.Information);
+
+                    using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
+                    img.Save($"t{teeth}m{module}e{maxErr}i{innerDiameter}.png", ImageFormat.Png);
                 }
             }
             else
@@ -234,7 +277,7 @@ namespace InvoluteConsole
 
         private static Cutouts CreateCutouts(IGearProfile gear, string[] spindleArgs)
         {
-            if (spindleArgs == null 
+            if (spindleArgs == null
                 || spindleArgs.Length != 4
                 || !int.TryParse(spindleArgs[1], out int spindleDia)
                 || !int.TryParse(spindleArgs[2], out int inlayDia)
@@ -249,11 +292,11 @@ namespace InvoluteConsole
 
         private static void Usage(string errMsg)
         {
-            if (!String.IsNullOrEmpty(errMsg))
+            if (!string.IsNullOrEmpty(errMsg))
                 Console.WriteLine($"ERROR: {errMsg}");
             else
                 Console.WriteLine("Compute data or diagrams for involute gears and escape wheels.");
-            Console.WriteLine("USAGE: gears -p|P|e|E|c|C|m gear-options [-s spindle=options]\r\n");
+            Console.WriteLine("USAGE: gears -p|P|e|E|c|C|m gear-options [-s spindle-options]\r\n");
             Console.WriteLine(
                 "-p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
                     + "\twhere -p generates whole gear image, -P one tooth image\r\n"
@@ -272,6 +315,12 @@ namespace InvoluteConsole
                     + "\tmodule is in 100ths of a mm\r\n"
                     + "\ttooth length is in 100ths of a mm\r\n"
                     + "\ttip pitch is in 100ths of a mm\r\n"
+                    + "\tcut diameter is in 100ths of a mm\r\n");
+            Console.WriteLine("-r [tooth count] [tolerance] [module] [inner diameter] [cut diameter]\r\n"
+                    + "\twhere tooth count is digits\r\n"
+                    + "\ttolerance is in 100ths of mm\r\n"
+                    + "\tmodule is in 100ths of a mm\r\n"
+                    + "\tinner diameter is in 100ths of a mm\r\n"
                     + "\tcut diameter is in 100ths of a mm\r\n");
             Console.WriteLine("-s [spindle] [inlay] [hex key], units all in 100ths mm");
             Console.WriteLine("\tOptionally -s can be used at the end of the -p, -P, -e or -E argument list");
