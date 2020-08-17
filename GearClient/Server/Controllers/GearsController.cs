@@ -104,5 +104,35 @@ namespace GearClient.Server.Controllers
             Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
             return File(zipStream, "application/zip");
         }
+
+        [HttpPost("api/ratchet")]
+        public GearProfiles CalcRatchetImage(RatchetParams gParams)
+        {
+            if (gParams == null)
+                throw new ArgumentNullException(nameof(gParams));
+
+            Ratchet gear = new Ratchet(
+                gParams.Teeth,
+                double.Parse(gParams.Module),
+                double.Parse(gParams.Tolerance),
+                double.Parse(gParams.InnerDiameter),
+                double.Parse(gParams.CutterDiameter));
+
+            Cutouts cutoutCalculator = new Cutouts(
+                gear,
+                double.Parse(gParams.SpindleDiameter),
+                double.Parse(gParams.InlayDiameter),
+                double.Parse(gParams.KeyFlatWidth));
+
+            return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+        }
+
+        [HttpPost("api/rchzip")]
+        public async Task<IActionResult> CalcRatchetSvgZip(RatchetParams gParams)
+        {
+            GearProfiles profiles = CalcRatchetImage(gParams);
+            Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            return File(zipStream, "application/zip");
+        }
     }
 }
