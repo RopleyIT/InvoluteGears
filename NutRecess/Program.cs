@@ -6,6 +6,20 @@ using System.IO;
 
 namespace NutRecess
 {
+    /// <summary>
+    /// Given hex headed nuts which we would like to recess into panels, it is not possible to cut out
+    /// a hexagonal inset with a circular end mill. What we do instead is cut out a triangle with
+    /// rounded vertices, the rounding being at least the diameter of the end mill.
+    /// 
+    /// Given the distance across the flats of the nut to be inlaid, and the diameter of the
+    /// desired hole coaxial with the nut's threaded hole, prepare an SVG for the hole and
+    /// rounded triangular inlay that can be imported into a CAD tool for use in a design.
+    /// 
+    /// Usage:
+    /// 
+    /// nutrecess distance-across-flats-in-mm hole-diameter-in-mm destination-file-path
+    /// </summary>
+    
     class Program
     {
         private static readonly double Root3 = Math.Sqrt(3);
@@ -24,6 +38,8 @@ namespace NutRecess
                 Usage("Distance across flats must be non-zero and positive");
             if (holeDiameter < 0)
                 Usage("Hole diameter must be positive, or set to zero for no hole");
+            if (!args[2].EndsWith(".svg", StringComparison.CurrentCultureIgnoreCase))
+                Usage("Destination file must have a '.svg' extension");
 
             // Create the cutout and its centering crosshairs
 
