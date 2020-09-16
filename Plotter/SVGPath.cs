@@ -42,7 +42,7 @@ namespace Plotter
                 Elements.Add(SVGPathElement.Close());
         }
 
-        public void SetDrawingParams(string strokeColour, int strokeWidth, string fillColour)
+        public void SetDrawingParams(string strokeColour, double strokeWidth, string fillColour)
         {
             Stroke = strokeColour;
             StrokeWidth = strokeWidth.ToString();

@@ -157,7 +157,7 @@ namespace InvoluteGears
             // Set some design constants
 
             double cornerRadius = Gear.Module;
-            double spokeThickness = 2.5 * Gear.Module;
+            double spokeThickness = 2.0 * Gear.Module;
             double minHubDiameter = 8 * Gear.Module;
 
             // Calculate the minimum hub diameter for a given number of
@@ -172,7 +172,7 @@ namespace InvoluteGears
             // For this reference spoke we assume the spoke runs along the
             // positive X axis. We shall rotate it for other spokes.
 
-            double rimDiameter = Gear.InnerDiameter - 1.5 * spokeThickness;
+            double rimDiameter = Gear.InnerDiameter - 1.0 * spokeThickness;
             if (rimDiameter < hubDiameter + 4 * cornerRadius)
                 return cutouts;
 
