@@ -26,12 +26,12 @@ namespace InvoluteGears
         {
             Information = $"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n";
             Information += $"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n";
-            Information += $"backlash = {Backlash}mm, cutter diameter = {CutDiameter}mm\r\n";
+            Information += $"backlash = {Backlash*Module}mm, cutter diameter = {CutDiameter}mm\r\n";
         }
 
         public string ShortName
             => $"It{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
-                + $"e{MaxError:N2}b{Backlash:N2}c{CutDiameter:N2}.svg";
+                + $"e{MaxError:N2}b{Backlash*Module:N2}c{CutDiameter:N2}.svg";
 
         /// <summary>
         /// Used for warning or information messages when methods invoked

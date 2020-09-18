@@ -43,10 +43,13 @@ namespace NutRecess
 
             // Create the cutout and its centering crosshairs
 
-            var svgCreator = new SVGCreator();
-            svgCreator.DocumentDimensions = NewSz(flats * 2, flats * 2);
-            svgCreator.DocumentDimensionUnits = "mm";
-            svgCreator.ViewBoxDimensions = NewRect(-flats, -flats, 2 * flats, 2 * flats);
+            var svgCreator = new SVGCreator
+            {
+                DocumentDimensions = NewSz(flats * 2, flats * 2),
+                DocumentDimensionUnits = "mm",
+                ViewBoxDimensions = NewRect(-flats, -flats, 2 * flats, 2 * flats)
+            };
+
             svgCreator.AddClosedPath(NutRecessPoints(flats), "black", 0.03, "gray");
             if(holeDiameter > 0)
                 svgCreator.AddClosedPath(Arc(0, 360, holeDiameter/2, PointF.Empty), "black", 0.03, "darkgray");
