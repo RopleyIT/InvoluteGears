@@ -172,7 +172,7 @@ namespace InvoluteGears
             // For this reference spoke we assume the spoke runs along the
             // positive X axis. We shall rotate it for other spokes.
 
-            double rimDiameter = Gear.InnerDiameter - 1.0 * spokeThickness;
+            double rimDiameter = Gear.InnerDiameter - 2.0 * spokeThickness;
             if (rimDiameter < hubDiameter + 4 * cornerRadius)
                 return cutouts;
 
