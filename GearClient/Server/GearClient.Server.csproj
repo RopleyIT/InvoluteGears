@@ -19,7 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\InvoluteGears\InvoluteGears.csproj" />
     <ProjectReference Include="..\..\Plotter\Plotter.csproj" />
-    <ProjectReference Include="..\Client\GearClient.Client.csproj" />
     <ProjectReference Include="..\Shared\GearClient.Shared.csproj" />
   </ItemGroup>
 
