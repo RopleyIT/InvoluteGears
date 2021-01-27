@@ -1,10 +1,10 @@
-﻿using System;
+﻿using InvoluteGears;
+using Plotter;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using InvoluteGears;
-using Plotter;
 
 namespace InvoluteConsole
 {

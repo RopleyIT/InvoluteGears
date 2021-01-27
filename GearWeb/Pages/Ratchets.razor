@@ -1,7 +1,8 @@
 ﻿@page "/ratchets"
 @using GearWeb.Shared
 @inject IJSRuntime JSRuntime
-
+@inject StringCache Cache
+ 
 <h3>Generate Ratchet Vector Profiles</h3>
 <EditForm Model=@GearData OnSubmit="@Generate">
     <DataAnnotationsValidator />
@@ -97,7 +98,7 @@
                 InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id="
-                    + StringCache.Instance.Insert(gearProfile.ShortName, SVG);
+                    + Cache.Insert(gearProfile.ShortName, SVG);
                 IsDisabled = false;
             }
             catch (Exception x)

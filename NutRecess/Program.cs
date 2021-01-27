@@ -1,7 +1,7 @@
-﻿using System;
-using System.Drawing;
+﻿using Plotter;
+using System;
 using System.Collections.Generic;
-using Plotter;
+using System.Drawing;
 using System.IO;
 
 namespace NutRecess
@@ -19,7 +19,7 @@ namespace NutRecess
     /// 
     /// nutrecess distance-across-flats-in-mm hole-diameter-in-mm destination-file-path
     /// </summary>
-    
+
     class Program
     {
         private static readonly double Root3 = Math.Sqrt(3);
@@ -51,8 +51,8 @@ namespace NutRecess
             };
 
             svgCreator.AddClosedPath(NutRecessPoints(flats), "black", 0.03, "gray");
-            if(holeDiameter > 0)
-                svgCreator.AddClosedPath(Arc(0, 360, holeDiameter/2, PointF.Empty), "black", 0.03, "darkgray");
+            if (holeDiameter > 0)
+                svgCreator.AddClosedPath(Arc(0, 360, holeDiameter / 2, PointF.Empty), "black", 0.03, "darkgray");
             var pathX = new SVGPath(Line(-2 * flats / 3.0, 0, 2 * flats / 3.0, 0), false);
             pathX.SetDrawingParams("black", 0.03, "");
             svgCreator.AddPath(pathX);
@@ -75,7 +75,7 @@ namespace NutRecess
         private static IEnumerable<PointF> Arc(double startAngle, double endAngle, double radius, PointF origin)
         {
             for (double a = startAngle; a <= endAngle; a += 0.1)
-                yield return NewPt(radius * Math.Cos(DegToRad(a)) + origin.X, 
+                yield return NewPt(radius * Math.Cos(DegToRad(a)) + origin.X,
                     radius * Math.Sin(DegToRad(a)) + origin.Y);
         }
 

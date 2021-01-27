@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Plotter;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Plotter;
 
 namespace InvoluteGears
 {

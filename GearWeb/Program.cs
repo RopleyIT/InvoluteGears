@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace GearWeb
 {
@@ -23,7 +17,7 @@ namespace GearWeb
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-        
+
         public static MarkupString ToHtmlText(string text)
             => new MarkupString(text.Replace("\r\n", "<br />\r\n"));
 
