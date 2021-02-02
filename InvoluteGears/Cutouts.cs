@@ -94,6 +94,18 @@ namespace InvoluteGears
         }
 
         /// <summary>
+        /// Add an extra cutout profile to the set of plots 
+        /// in this shape. Used for chain sprockets for example
+        /// where there is a recess groove as well as an outer shape.
+        /// </summary>
+        /// <param name="points">The contour to add to the plot</param>
+        
+        public void AddPlot(List<PointF> points)
+        {
+            CutoutPlots.Add(points);
+        }
+
+        /// <summary>
         /// The cutout shapes to be added to the gear point sets
         /// </summary>
 

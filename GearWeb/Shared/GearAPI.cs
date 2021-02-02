@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 
 namespace GearWeb.Shared
 {
@@ -121,6 +122,38 @@ namespace GearWeb.Shared
         public static Stream CalcRatchetSvgZip(RatchetParams gParams)
         {
             GearProfiles profiles = CalcRatchetImage(gParams);
+            Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            return zipStream;
+        }
+
+        public static GearProfiles CalcChainSprocketImage(ChainSprocketParams gParams)
+        {
+            if (gParams == null)
+                throw new ArgumentNullException(nameof(gParams));
+
+            ChainSprocket gear = new ChainSprocket(
+                gParams.Teeth,
+                double.Parse(gParams.WireThickness),
+                double.Parse(gParams.Tolerance),
+                double.Parse(gParams.InnerLinkLength),
+                double.Parse(gParams.OuterLinkWidth),
+                double.Parse(gParams.CutterDiameter));
+
+            Cutouts cutoutCalculator = new Cutouts(
+                gear,
+                double.Parse(gParams.SpindleDiameter),
+                double.Parse(gParams.InlayDiameter),
+                double.Parse(gParams.KeyFlatWidth));
+            cutoutCalculator.AddPlot
+                (gear.GenerateInnerGearPath().ToList());
+
+            return CreateGearPlot(cutoutCalculator, 
+                gear.InnerDiameter + gear.OuterLinkWidth);
+        }
+
+        public static Stream CalcChainSProcketSvgZip(ChainSprocketParams gParams)
+        {
+            GearProfiles profiles = CalcChainSprocketImage(gParams);
             Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
             return zipStream;
         }

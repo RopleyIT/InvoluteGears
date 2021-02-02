@@ -1,0 +1,131 @@
+﻿@page "/chainsprockets"
+@inject IJSRuntime JSRuntime
+@inject StringCache Cache
+@using GearWeb.Shared;
+
+<h3>Generate Involute Gear Vector Profiles</h3>
+<EditForm Model=@GearData OnSubmit="@Generate">
+    <DataAnnotationsValidator />
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="Teeth">Number of teeth</label>
+            <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
+            <small class="form-text text-muted">The number of horizontal chain links round the gear. Minimum value is 4.</small>
+            <ValidationMessage For="() => GearData.Teeth" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="WireThickness">Link thickness</label>
+            <InputText @bind-Value="GearData.WireThickness" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="WireThickness" />
+            <small class="form-text text-muted">Wire diameter for each chain link, to nearest 100th of a mm, e.g. 0.05</small>
+            <ValidationMessage For="() => GearData.WireThickness" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Tolerance">Precision</label>
+            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
+            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
+            <ValidationMessage For="() => GearData.Tolerance" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="InnerLinkLength">Inside link length</label>
+            <InputText @bind-Value="GearData.InnerLinkLength" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="InnerLinkLength" />
+            <small class="form-text text-muted">Inside length for each chain link, to nearest 100th of a mm, e.g. 0.05</small>
+            <ValidationMessage For="() => GearData.InnerLinkLength" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="OuterLinkWidth">Outside link width</label>
+            <InputText @bind-Value="GearData.OuterLinkWidth" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="OuterLinkWidth" />
+            <small class="form-text text-muted">Outside width for each chain link, to nearest 100th of a mm, e.g. 0.05</small>
+            <ValidationMessage For="() => GearData.OuterLinkWidth" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Backlash">Backlash</label>
+            <InputText @bind-Value="GearData.Backlash" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 0.25" id="Backlash" />
+            <small class="form-text text-muted">Backlash between links to nearest 100th of a mm. Set zero for a perfectly tight fitting gear.</small>
+            <ValidationMessage For="() => GearData.Backlash" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="CutterDiameter">Cutter diameter</label>
+            <InputText @bind-Value="GearData.CutterDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="CutterDiameter" />
+            <small class="form-text text-muted">Diameter of end mill bit used to cut the gear to nearest 100th of a mm. Set zero for ideal gear shape.</small>
+            <ValidationMessage For="() => GearData.CutterDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="SpindleDiameter">Spindle diameter</label>
+            <InputText @bind-Value="GearData.SpindleDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="SpindleDiameter" />
+            <small class="form-text text-muted">Diameter of central bore through gear to nearest 100th of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.SpindleDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="InlayDiameter">Inlay diameter</label>
+            <InputText @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="InlayDiameter" />
+            <small class="form-text text-muted">Diameter to nearest 100th of a mm of central inlay for inserting a bearing. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.InlayDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="KeyWidth">Key width</label>
+            <InputText @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="KeyWidth" />
+            <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.KeyFlatWidth" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Generate</button>
+        </div>
+        <div class="col-md-9">
+            <a class="btn btn-primary" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+        </div>
+    </div>
+</EditForm>
+@if (!IsDisabled)
+{
+    <div class="card m-md-4">
+        <div class="card-body">
+            <h5 class="card-title">Chain sprocket</h5>
+            <p class="card-text">@ImageDescription</p>
+        </div>
+        <img src="@InvImage" class="card-img-bottom" alt="Image of sprocket will appear here" />
+    </div>
+}
+
+@code {
+    bool IsDisabled = true;
+    ChainSprocketParams GearData = new ChainSprocketParams();
+    string InvImage = string.Empty;
+    MarkupString ImageDescription = new MarkupString(string.Empty);
+    string SVG = string.Empty;
+    string SvgUrl = "/";
+
+    void Generate(EditContext ctx)
+    {
+        IsDisabled = true;
+        if (ctx.Validate())
+        {
+            try
+            {
+                var gearProfile = GearAPI.CalcChainSprocketImage(GearData);
+                ImageDescription = Program.ToHtmlText(gearProfile.Description);
+                InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
+                SVG = gearProfile.SvgData;
+                SvgUrl = "/api/download?id="
+                    + Cache.Insert(gearProfile.ShortName, SVG);
+                IsDisabled = false;
+            }
+            catch (Exception x)
+            {
+                ImageDescription = Program.ToHtmlText("Status: " + x.Message);
+                InvImage = "";
+                SVG = string.Empty;
+            }
+        }
+    }
+
+    async Task SvgToClipboard()
+    {
+        await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", SVG);
+    }
+}
