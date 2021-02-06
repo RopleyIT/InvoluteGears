@@ -9,12 +9,13 @@ namespace InvoluteGears
 {
     public class ChainSprocket : IGearProfile
     {
-        public ChainSprocket(int teeth, double wire, double err, double inner, double outer, double cutDiameter)
+        public ChainSprocket(int teeth, double wire, double err, double inner, double outer, double cutDiameter, double backlash)
         {
             ToothCount = teeth;
             WireThickness = wire;
             OuterLinkWidth = outer;
             MaxError = err;
+            Backlash = backlash;
             InnerLinkLength = inner;
             CutDiameter = cutDiameter;
             SetInformation();
@@ -74,6 +75,16 @@ namespace InvoluteGears
         
         public double MaxError { get; private set; }
 
+        /// <summary>
+        /// Loosening of the sprocket to allow for
+        /// variation in chain link dimensions.
+        /// Manifests itself as longer grooves where
+        /// the coplanar links bed into the edge of
+        /// the sprocket.
+        /// </summary>
+        
+        public double Backlash { get; private set; }
+        
         /// <summary>
         /// The diameter of the cutter bit used to cut out
         /// the sprocket shape
@@ -222,12 +233,13 @@ namespace InvoluteGears
             grooveStartAngle = Math.PI * (1.0 + ToothCount) / ToothCount 
                 - grooveStartAngle;
 
+            PointF bt = Involutes.CreatePt(t.X - Backlash * sinTooth, t.Y + Backlash * cosTooth);
             List<PointF> groovePoints = new List<PointF>();
             InnerDiameter = 2 * t.X - OuterLinkWidth;
             Module = InnerDiameter / ToothCount;
-            groovePoints.Add(Involutes.CreatePt(InnerDiameter / 2, 0));
+            groovePoints.Add(Involutes.CreatePt(InnerDiameter / 2 - Backlash * sinTooth, 0));
             groovePoints.AddRange(Involutes.CirclePoints(
-                grooveStartAngle, Math.PI, Math.PI / 180, OuterLinkWidth / 2, t)
+                grooveStartAngle, Math.PI, Math.PI / 180, OuterLinkWidth / 2, bt)
                 .Reverse());
             groovePoints.Add(z);
             return (points, groovePoints);

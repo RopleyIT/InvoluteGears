@@ -137,7 +137,8 @@ namespace GearWeb.Shared
                 double.Parse(gParams.Tolerance),
                 double.Parse(gParams.InnerLinkLength),
                 double.Parse(gParams.OuterLinkWidth),
-                double.Parse(gParams.CutterDiameter));
+                double.Parse(gParams.CutterDiameter),
+                double.Parse(gParams.Backlash));
 
             Cutouts cutoutCalculator = new Cutouts(
                 gear,
