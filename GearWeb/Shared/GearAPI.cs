@@ -16,7 +16,7 @@ namespace GearWeb.Shared
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
 
-            GearParameters gear = new GearParameters(
+            GearParameters gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
                 Math.PI * double.Parse(gParams.PressureAngle) / 180.0,
@@ -25,7 +25,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.Backlash) / double.Parse(gParams.Module),
                 double.Parse(gParams.CutterDiameter));
 
-            Cutouts cutoutCalculator = new Cutouts(
+            Cutouts cutoutCalculator = new(
                 gear,
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
@@ -45,7 +45,7 @@ namespace GearWeb.Shared
         {
             // Create the output plot file of the gear
 
-            List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>
+            List<IEnumerable<PointF>> gearPoints = new()
             {
                 cutoutCalculator.Gear.GenerateCompleteGearPath()
             };
@@ -54,7 +54,7 @@ namespace GearWeb.Shared
             // Now convert to image bytes to return from Web API
 
             using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048, Color.Black);
-            using MemoryStream ms = new MemoryStream();
+            using MemoryStream ms = new();
             img.Save(ms, ImageFormat.Jpeg);
             ms.Seek(0L, SeekOrigin.Begin);
             byte[] bytes = ms.GetBuffer();
@@ -73,7 +73,7 @@ namespace GearWeb.Shared
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
 
-            EscapeGearParameters gear = new EscapeGearParameters(
+            EscapeGearParameters gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
                 Math.PI * double.Parse(gParams.UndercutAngle) / 180.0,
@@ -82,7 +82,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.BaseDiameter),
                 double.Parse(gParams.Tolerance));
 
-            Cutouts cutoutCalculator = new Cutouts(
+            Cutouts cutoutCalculator = new(
                 gear,
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
@@ -103,14 +103,14 @@ namespace GearWeb.Shared
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
 
-            Ratchet gear = new Ratchet(
+            Ratchet gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
                 double.Parse(gParams.Tolerance),
                 double.Parse(gParams.InnerDiameter),
                 double.Parse(gParams.CutterDiameter));
 
-            Cutouts cutoutCalculator = new Cutouts(
+            Cutouts cutoutCalculator = new(
                 gear,
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
@@ -131,7 +131,7 @@ namespace GearWeb.Shared
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
 
-            ChainSprocket gear = new ChainSprocket(
+            ChainSprocket gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.WireThickness),
                 double.Parse(gParams.Tolerance),
@@ -140,7 +140,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.CutterDiameter),
                 double.Parse(gParams.Backlash));
 
-            Cutouts cutoutCalculator = new Cutouts(
+            Cutouts cutoutCalculator = new(
                 gear,
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
@@ -149,7 +149,7 @@ namespace GearWeb.Shared
                 (gear.GenerateInnerGearPath().ToList());
 
             return CreateGearPlot(cutoutCalculator, 
-                gear.InnerDiameter + gear.OuterLinkWidth);
+                gear.InnerDiameter + 2*gear.OuterLinkWidth);
         }
 
         public static Stream CalcChainSProcketSvgZip(ChainSprocketParams gParams)

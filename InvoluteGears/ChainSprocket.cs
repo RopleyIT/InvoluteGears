@@ -215,7 +215,7 @@ namespace InvoluteGears
 
             // Now plot one chain link worth of profile
 
-            List<PointF> points = new List<PointF>
+            List<PointF> points = new()
             {
                 Involutes.CreatePt(t.X + OuterLinkWidth / 2, 0)
             };
@@ -234,7 +234,7 @@ namespace InvoluteGears
                 - grooveStartAngle;
 
             PointF bt = Involutes.CreatePt(t.X - Backlash * sinTooth, t.Y + Backlash * cosTooth);
-            List<PointF> groovePoints = new List<PointF>();
+            List<PointF> groovePoints = new();
             InnerDiameter = 2 * t.X - OuterLinkWidth;
             Module = InnerDiameter / ToothCount;
             groovePoints.Add(Involutes.CreatePt(InnerDiameter / 2 - Backlash * sinTooth, 0));
@@ -248,7 +248,7 @@ namespace InvoluteGears
         private readonly List<PointF> OuterToothProfile = null;
         private readonly List<PointF> InnerToothProfile = null;
 
-        private static PointF ReflectY(PointF p) => new PointF(p.X, -p.Y);
+        private static PointF ReflectY(PointF p) => new(p.X, -p.Y);
 
         /// <summary>
         /// Generate the sequence of points describing the
