@@ -566,5 +566,8 @@ namespace InvoluteGears
         /// </summary>
 
         public static double AngleStep => 2 * Math.PI / PointsPerRotation;
+
+        public static PointF Conjugate(PointF p) => new(p.X, -p.Y);
+
     }
 }

@@ -248,7 +248,6 @@ namespace InvoluteGears
         private readonly List<PointF> OuterToothProfile = null;
         private readonly List<PointF> InnerToothProfile = null;
 
-        private static PointF ReflectY(PointF p) => new(p.X, -p.Y);
 
         /// <summary>
         /// Generate the sequence of points describing the
@@ -271,7 +270,7 @@ namespace InvoluteGears
                 .Skip(1)
                 .Reverse()
                 //.Skip(1)
-                .Select(p => ReflectY(p))
+                .Select(p => Involutes.Conjugate(p))
                 .Concat(profile)
                 .Select(p => Involutes.RotateAboutOrigin(angle, p));
         }

@@ -148,13 +148,45 @@ namespace GearWeb.Shared
             cutoutCalculator.AddPlot
                 (gear.GenerateInnerGearPath().ToList());
 
-            return CreateGearPlot(cutoutCalculator, 
-                gear.InnerDiameter + 2*gear.OuterLinkWidth);
+            return CreateGearPlot(cutoutCalculator,
+                gear.InnerDiameter + 2 * gear.OuterLinkWidth);
         }
 
         public static Stream CalcChainSProcketSvgZip(ChainSprocketParams gParams)
         {
             GearProfiles profiles = CalcChainSprocketImage(gParams);
+            Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
+            return zipStream;
+        }
+
+        public static GearProfiles CalcRollerSprocketImage(RollerSprocketParams gParams)
+        {
+            if (gParams == null)
+                throw new ArgumentNullException(nameof(gParams));
+
+            RollerSprocket gear = new(
+                gParams.Teeth,
+                double.Parse(gParams.Pitch),
+                double.Parse(gParams.Tolerance),
+                double.Parse(gParams.RollerDiameter),
+                double.Parse(gParams.Backlash),
+                double.Parse(gParams.ChainWidth),
+                double.Parse(gParams.CutterDiameter));
+
+            Cutouts cutoutCalculator = new(
+                gear,
+                double.Parse(gParams.SpindleDiameter),
+                double.Parse(gParams.InlayDiameter),
+                double.Parse(gParams.KeyFlatWidth));
+            cutoutCalculator.AddPlot
+                (gear.GenerateInnerGearPath().ToList());
+
+            return CreateGearPlot(cutoutCalculator, gear.OuterDiameter);
+        }
+
+        public static Stream CalcRollerSProcketSvgZip(RollerSprocketParams gParams)
+        {
+            GearProfiles profiles = CalcRollerSprocketImage(gParams);
             Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);
             return zipStream;
         }
