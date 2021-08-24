@@ -99,7 +99,7 @@ namespace InvoluteGears
         /// where there is a recess groove as well as an outer shape.
         /// </summary>
         /// <param name="points">The contour to add to the plot</param>
-        
+
         public void AddPlot(List<PointF> points)
         {
             CutoutPlots.Add(points);
@@ -162,7 +162,7 @@ namespace InvoluteGears
 
         private List<List<PointF>> CalculateCutouts(int spokes)
         {
-            List<List<PointF>> cutouts = new List<List<PointF>>();
+            List<List<PointF>> cutouts = new();
             if (spokes < 3)
                 return cutouts;
 
@@ -230,7 +230,7 @@ namespace InvoluteGears
 
             // Now create the lists of points for each of the cut outs
 
-            List<PointF> cutout = new List<PointF>();
+            List<PointF> cutout = new();
             cutout.AddRange(nearSide);
             cutout.AddRange(outerRimSegment);
             cutout.AddRange(farSide);
@@ -259,7 +259,7 @@ namespace InvoluteGears
             PointF cornerCtr = Involutes.CreatePt(
                 ctrToFace - Gear.CutDiameter / 2,
                 (ctrToFace - Gear.CutDiameter / 2) / Math.Sqrt(3.0));
-            List<PointF> firstSegment = new List<PointF>
+            List<PointF> firstSegment = new()
             {
                 Involutes.CreatePt(ctrToFace, 0),
                 Involutes.CreatePt(ctrToFace, cornerCtr.Y)

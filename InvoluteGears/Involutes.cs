@@ -20,7 +20,7 @@ namespace InvoluteGears
         /// <returns>A PointF initialised from the two doubles</returns>
 
         public static PointF CreatePt(double x, double y) =>
-            new PointF((float)x, (float)y);
+            new((float)x, (float)y);
 
         /// <summary>
         /// Rotate a point about the origin in the anticlockwise
@@ -274,8 +274,8 @@ namespace InvoluteGears
         {
             // First clone each list so that we don't destroy the originals
 
-            List<PointF> list1 = new List<PointF>(ptList1);
-            List<PointF> list2 = new List<PointF>(ptList2);
+            List<PointF> list1 = new(ptList1);
+            List<PointF> list2 = new(ptList2);
 
             // Populate list1 with extra points having same X values as list 2,
             // then list2 with extra points having same X values as list 1
@@ -309,8 +309,8 @@ namespace InvoluteGears
         {
             // First clone each list so that we don't destroy the originals
 
-            List<PointF> list1 = new List<PointF>(ptList1);
-            List<PointF> list2 = new List<PointF>(ptList2);
+            List<PointF> list1 = new(ptList1);
+            List<PointF> list2 = new(ptList2);
 
             // Populate list1 with extra points having same X values as list 2,
             // then list2 with extra points having same X values as list 1
@@ -399,7 +399,7 @@ namespace InvoluteGears
 
         public static List<PointF> LinearReduction(IList<PointF> source, float maxErr)
         {
-            List<PointF> result = new List<PointF>();
+            List<PointF> result = new();
             int startIndex = 0;
             while (startIndex < source.Count - 1)
             {

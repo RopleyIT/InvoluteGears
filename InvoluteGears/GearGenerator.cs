@@ -9,14 +9,14 @@ namespace InvoluteGears
     {
         public static void GenerateSVGFile(Cutouts cutoutCalculator, float docDimension, string file)
         {
-            using StreamWriter sw = new StreamWriter($"{file}.svg");
+            using StreamWriter sw = new($"{file}.svg");
             sw.Write(GenerateSVG(cutoutCalculator, docDimension));
             sw.Close();
         }
 
         public static string GenerateSVG(Cutouts cutoutCalculator, float docDimension)
         {
-            SVGCreator svgCreator = new SVGCreator
+            SVGCreator svgCreator = new()
             {
                 InfoComment = cutoutCalculator.Gear.Information + cutoutCalculator.Information
             };

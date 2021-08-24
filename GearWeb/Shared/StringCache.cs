@@ -7,7 +7,7 @@ namespace GearWeb.Shared
     public class StringCache
     {
         private readonly Dictionary<string, string> cache
-            = new Dictionary<string, string>();
+            = new();
         private int id = 0;
 
         private string UniqueId()

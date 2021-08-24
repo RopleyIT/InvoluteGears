@@ -190,7 +190,7 @@ namespace InvoluteGears
 
         private List<PointF> ComputeOnePitch()
         {
-            List<PointF> points = new List<PointF>
+            List<PointF> points = new()
             {
                 ToothTip,
                 FaceEnd

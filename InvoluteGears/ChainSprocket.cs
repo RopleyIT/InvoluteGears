@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InvoluteGears
 {
@@ -44,14 +42,14 @@ namespace InvoluteGears
         /// links that are parallel to the surface of the sprocket,
         /// not the alternate ones that are normal to it.
         /// </summary>
-        
+
         public int ToothCount { get; private set; }
 
         /// <summary>
         /// The distance across the width of a chain link
         /// including the thickness of the link wire
         /// </summary>
-        
+
         public double OuterLinkWidth { get; private set; }
 
         /// <summary>
@@ -59,20 +57,20 @@ namespace InvoluteGears
         /// chain link, measured between the inner ends
         /// of a link
         /// </summary>
-        
+
         public double InnerLinkLength { get; private set; }
 
         /// <summary>
         /// The diameter of the wire used to make each
         /// chain link, asssumed to be cylindrical
         /// </summary>
-        
+
         public double WireThickness { get; private set; }
 
         /// <summary>
         /// The tolerance in precision for cutting the sprocket
         /// </summary>
-        
+
         public double MaxError { get; private set; }
 
         /// <summary>
@@ -82,14 +80,14 @@ namespace InvoluteGears
         /// the coplanar links bed into the edge of
         /// the sprocket.
         /// </summary>
-        
+
         public double Backlash { get; private set; }
-        
+
         /// <summary>
         /// The diameter of the cutter bit used to cut out
         /// the sprocket shape
         /// </summary>
-        
+
         public double CutDiameter { get; private set; }
 
         /// <summary>
@@ -99,7 +97,7 @@ namespace InvoluteGears
         /// the spoke thicknesses, so set a value notionally
         /// based on the diameter and number of chain links
         /// </summary>
-        
+
         public double Module { get; private set; }
 
         private double radius = 0;
@@ -135,7 +133,7 @@ namespace InvoluteGears
             lSquared += Sqr(b);
             lSquared -= 2 * a * b * Math.Cos(C);
             double l = Math.Sqrt(lSquared);
-            
+
             // Find the other two angles, A and B at the other two
             // corners of the same triangle
 
@@ -178,7 +176,7 @@ namespace InvoluteGears
             double arcAngle;
             double arcRadius = CutDiameter / 2; // Assume cutter bigger than wire
             PointF convexCtr;
-            
+
             // Find length to mid point of face on which
             // perpendicular link lies
 
@@ -209,7 +207,7 @@ namespace InvoluteGears
 
                 // Find the angle from the perpendicular to the intersection point
 
-                arcAngle = Math.Acos(cPerp / arcRadius) 
+                arcAngle = Math.Acos(cPerp / arcRadius)
                     + Math.PI / 2 - Math.PI / ToothCount;
             }
 
@@ -230,7 +228,7 @@ namespace InvoluteGears
             // Now calculate the recess profile
 
             double grooveStartAngle = Math.Acos(WireThickness / OuterLinkWidth);
-            grooveStartAngle = Math.PI * (1.0 + ToothCount) / ToothCount 
+            grooveStartAngle = Math.PI * (1.0 + ToothCount) / ToothCount
                 - grooveStartAngle;
 
             PointF bt = Involutes.CreatePt(t.X - Backlash * sinTooth, t.Y + Backlash * cosTooth);

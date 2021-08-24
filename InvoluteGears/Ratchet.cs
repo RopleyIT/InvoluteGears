@@ -58,7 +58,7 @@ namespace InvoluteGears
 
         private void CalculatePoints()
         {
-            List<PointF> points = new List<PointF>();
+            List<PointF> points = new();
             double innerRadius = InnerDiameter / 2;
             double cutterRadius = CutDiameter / 2;
 

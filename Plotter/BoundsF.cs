@@ -11,8 +11,8 @@ namespace Plotter
 
     public class BoundsF
     {
-        private PointF topLeft = new PointF(float.MaxValue, float.MaxValue);
-        private PointF bottomRight = new PointF(float.MinValue, float.MinValue);
+        private PointF topLeft = new(float.MaxValue, float.MaxValue);
+        private PointF bottomRight = new(float.MinValue, float.MinValue);
 
         /// <summary>
         /// As points pass through this IEnumerable filter, keep track
@@ -43,7 +43,6 @@ namespace Plotter
         /// Generate the calculated bounding box around the points
         /// </summary>
 
-        public RectangleF Bounds => new RectangleF
-            (topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+        public RectangleF Bounds => new (topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
     }
 }

@@ -19,7 +19,7 @@ namespace GearWeb
                 });
 
         public static MarkupString ToHtmlText(string text)
-            => new MarkupString(text.Replace("\r\n", "<br />\r\n"));
+            => new(text.Replace("\r\n", "<br />\r\n"));
 
     }
 }

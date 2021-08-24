@@ -22,9 +22,9 @@ namespace Plotter
             if (color.HasValue)
                 colours = new Color[] { color.Value };
 
-            Bitmap bmp = new Bitmap(width, height);
-            BoundsF bounds = new BoundsF();
-            List<List<PointF>> plots = new List<List<PointF>>();
+            Bitmap bmp = new (width, height);
+            BoundsF bounds = new();
+            List<List<PointF>> plots = new();
             foreach (IEnumerable<PointF> pl in points)
                 plots.Add(bounds.Track(pl).ToList());
             double scale = ScaleFactor(bounds.Bounds, width, height);
@@ -48,7 +48,7 @@ namespace Plotter
             using Graphics g = Graphics.FromImage(bmp);
             for (double v = RoundUp(bounds.Bounds.X, unitsX); v < bounds.Bounds.Right; v += unitsX)
             {
-                List<PointF> rule = new List<PointF>
+                List<PointF> rule = new()
                 {
                     new PointF { X = (float)v, Y = bounds.Bounds.Y },
                     new PointF { X = (float)v, Y = bounds.Bounds.Bottom }
@@ -58,7 +58,7 @@ namespace Plotter
             }
             for (double v = RoundUp(bounds.Bounds.Y, unitsY); v < bounds.Bounds.Bottom; v += unitsY)
             {
-                List<PointF> rule = new List<PointF>
+                List<PointF> rule = new()
                 {
                     new PointF { Y = (float)v, X = bounds.Bounds.X },
                     new PointF { Y = (float)v, X = bounds.Bounds.Right }
@@ -73,7 +73,7 @@ namespace Plotter
             // First generate label string
 
             string label = v.ToString("G2");
-            Font font = new Font("Consolas", 30F);
+            Font font = new ("Consolas", 30F);
             SizeF txtSize = g.MeasureString(label, font);
 
             // Find the line position
@@ -89,7 +89,7 @@ namespace Plotter
             // First generate label string
 
             string label = v.ToString("G3");
-            Font font = new Font("Consolas", 30F);
+            Font font = new("Consolas", 30F);
             SizeF txtSize = g.MeasureString(label, font);
 
             // Find the line position
@@ -119,14 +119,14 @@ namespace Plotter
 
         public static Image PlotGraph(List<PointF> points, int width, int height)
         {
-            List<List<PointF>> pointLists = new List<List<PointF>> { points };
+            List<List<PointF>> pointLists = new() { points };
             return PlotGraphs(pointLists, width, height);
         }
 
         private static void PlotGraph(List<PointF> points, Graphics g,
             RectangleF bounds, double scale, Color penColor)
         {
-            using Pen p = new Pen(penColor, 3);
+            using Pen p = new(penColor, 3);
             for (int i = 0; i < points.Count - 1; i++)
                 g.DrawLine(p, (int)(0.5 + scale * (points[i].X - bounds.X)),
                     (int)(0.5 + scale * (points[i].Y - bounds.Y)),

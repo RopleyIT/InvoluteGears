@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InvoluteGears
 {
@@ -24,7 +22,7 @@ namespace InvoluteGears
                 (oneTooth, (float)MaxError);
         }
 
-        private List<PointF> OuterToothProfile = null;
+        private readonly List<PointF> OuterToothProfile = null;
 
         public string ShortName
             => $"RSt{ToothCount}p{Pitch:N2}e{MaxError:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}.svg";
@@ -105,7 +103,7 @@ namespace InvoluteGears
         /// <summary>
         /// Radius of sprocket to centre of chain roller
         /// </summary>
-        
+
         public double PitchRadius =>
             Pitch / (2 * Math.Sin(Math.PI / ToothCount));
 
@@ -218,8 +216,8 @@ namespace InvoluteGears
             var rollerRadius = (RollerDiameter + Backlash) / 2;
             var addendumRadius = PitchRadius + rollerRadius;
             var toothRadius = Pitch - rollerRadius;
-            var cosCentreAngle = PitchRadius * PitchRadius 
-                + addendumRadius * addendumRadius 
+            var cosCentreAngle = PitchRadius * PitchRadius
+                + addendumRadius * addendumRadius
                 - toothRadius * toothRadius;
             cosCentreAngle /= 2 * PitchRadius * addendumRadius;
             return Math.Acos(cosCentreAngle) - Math.PI / ToothCount;
@@ -232,12 +230,12 @@ namespace InvoluteGears
         /// <param name="addendumAngle">The addendum angle as computed
         /// by calling AddendumAngle()</param>
         /// <returns>The angle to the interssection point</returns>
-        
+
         private double ToothCurveAngle(double addendumAngle)
         {
             // Find the centre of the lower roller
 
-            var rx = Math.Sqrt(PitchRadius*PitchRadius - Pitch*Pitch/4);
+            var rx = Math.Sqrt(PitchRadius * PitchRadius - Pitch * Pitch / 4);
             var ry = -Pitch / 2;
 
             // Find the intersection point coordinates

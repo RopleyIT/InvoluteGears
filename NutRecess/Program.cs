@@ -43,7 +43,7 @@ namespace NutRecess
 
             // Create the cutout and its centering crosshairs
 
-            var svgCreator = new SVGCreator
+            SVGCreator svgCreator = new()
             {
                 DocumentDimensions = NewSz(flats * 2, flats * 2),
                 DocumentDimensionUnits = "mm",
@@ -53,10 +53,10 @@ namespace NutRecess
             svgCreator.AddClosedPath(NutRecessPoints(flats), "black", 0.03, "gray");
             if (holeDiameter > 0)
                 svgCreator.AddClosedPath(Arc(0, 360, holeDiameter / 2, PointF.Empty), "black", 0.03, "darkgray");
-            var pathX = new SVGPath(Line(-2 * flats / 3.0, 0, 2 * flats / 3.0, 0), false);
+            SVGPath pathX = new(Line(-2 * flats / 3.0, 0, 2 * flats / 3.0, 0), false);
             pathX.SetDrawingParams("black", 0.03, "");
             svgCreator.AddPath(pathX);
-            var pathY = new SVGPath(Line(0, -2 * flats / 3.0, 0, 2 * flats / 3.0), false);
+            SVGPath pathY = new(Line(0, -2 * flats / 3.0, 0, 2 * flats / 3.0), false);
             pathY.SetDrawingParams("black", 0.03, "");
             svgCreator.AddPath(pathY);
 
@@ -97,11 +97,11 @@ namespace NutRecess
             Environment.Exit(-1);
         }
 
-        private static PointF NewPt(double x, double y) => new PointF((float)x, (float)y);
+        private static PointF NewPt(double x, double y) => new((float)x, (float)y);
 
-        private static SizeF NewSz(double x, double y) => new SizeF((float)x, (float)y);
+        private static SizeF NewSz(double x, double y) => new((float)x, (float)y);
 
         private static RectangleF NewRect(double x, double y, double w, double h) =>
-            new RectangleF(NewPt(x, y), NewSz(w, h));
+            new(NewPt(x, y), NewSz(w, h));
     }
 }

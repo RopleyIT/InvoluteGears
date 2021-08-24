@@ -19,10 +19,10 @@ namespace GearWeb.Controllers
             if (cache.Contains(id))
             {
                 var buffer = Encoding.UTF8.GetBytes(cache.Get(id));
-                var stream = new MemoryStream(buffer);
+                MemoryStream stream = new(buffer);
                 //var stream = new FileStream(filename);
 
-                var result = new FileStreamResult(stream, "text/plain")
+                FileStreamResult result = new(stream, "text/plain")
                 {
                     FileDownloadName = id
                 };

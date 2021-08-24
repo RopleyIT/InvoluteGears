@@ -53,7 +53,7 @@ namespace InvoluteConsole
                     }
                     int[] pressureAngles = new int[] { 145, 200, 250 };
                     int[] teeth = new int[] { 8, 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 };
-                    using StreamWriter sw = new StreamWriter(args[1]);
+                    using StreamWriter sw = new(args[1]);
                     sw.Write(GenerateGearTables(pressureAngles, teeth, 100, 0));
                     return;
                 }
@@ -66,7 +66,7 @@ namespace InvoluteConsole
                     }
                     string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-                    List<int> angles = new List<int>();
+                    List<int> angles = new();
                     foreach (string s in values)
                         if (int.TryParse(s, out int result))
                             angles.Add(result);
@@ -77,7 +77,7 @@ namespace InvoluteConsole
                         }
 
                     values = args[3].Split(',', StringSplitOptions.RemoveEmptyEntries);
-                    List<int> toothList = new List<int>();
+                    List<int> toothList = new();
                     foreach (string s in values)
                         if (int.TryParse(s, out int result))
                             toothList.Add(result);
@@ -99,7 +99,7 @@ namespace InvoluteConsole
                         return;
                     }
 
-                    using StreamWriter sw = new StreamWriter(args[1]);
+                    using StreamWriter sw = new(args[1]);
                     sw.Write(GenerateGearTables(angles, toothList, module, cutterDiameter));
                     return;
                 }
@@ -117,7 +117,7 @@ namespace InvoluteConsole
                         Usage("-p and -P options need seven arguments, plus an optional following -s argument list");
                         return;
                     }
-                    GearParameters gear = new GearParameters(
+                    GearParameters gear = new(
                         teeth,
                         module / 100.0,
                         Math.PI * pressureAngle / 1800.0,
@@ -143,7 +143,7 @@ namespace InvoluteConsole
                         angle = gear.ToothAngle / 2;
                     }
 
-                    List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>
+                    List<IEnumerable<PointF>> gearPoints = new()
                     {
                         Involutes.CirclePoints(-angle, angle, Involutes.AngleStep, gear.PitchCircleDiameter / 2),
                         Involutes.CirclePoints(-angle, angle, Involutes.AngleStep, gear.BaseCircleDiameter / 2)
@@ -180,7 +180,7 @@ namespace InvoluteConsole
                         Usage("-e and -E options require 7 arguments, plus an optional -s argument list");
                         return;
                     }
-                    EscapeGearParameters gear = new EscapeGearParameters(
+                    EscapeGearParameters gear = new(
                         teeth,
                         module / 100.0,
                         Math.PI * undercutAngle / 1800.0,
@@ -199,7 +199,7 @@ namespace InvoluteConsole
 
                     // Create the output plot file of the gear
 
-                    List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>();
+                    List<IEnumerable<PointF>> gearPoints = new();
                     int limit = gear.ToothCount;
                     double angle = 2 * Math.PI;
                     if (args[0] == "-E")
@@ -239,7 +239,7 @@ namespace InvoluteConsole
                         Usage("-r option requires 5 arguments, plus an optional -s argument list");
                         return;
                     }
-                    Ratchet gear = new Ratchet(
+                    Ratchet gear = new(
                         teeth,
                         module / 100.0,
                         maxErr / 100.0,
@@ -256,7 +256,7 @@ namespace InvoluteConsole
 
                     // Create the output plot file of the gear
 
-                    List<IEnumerable<PointF>> gearPoints = new List<IEnumerable<PointF>>();
+                    List<IEnumerable<PointF>> gearPoints = new();
                     for (int i = 0; i < gear.ToothCount; i++)
                         gearPoints.Add(gear.ToothProfile(i));
 
@@ -344,7 +344,7 @@ namespace InvoluteConsole
 
         public static string GenerateGearTables(IList<int> angles, IList<int> teeth, int module, int cutterDiameter)
         {
-            using StringWriter sw = new StringWriter();
+            using StringWriter sw = new();
             foreach (int pa in angles)
             {
                 sw.WriteLine($"PRESSURE ANGLE {pa / 10.0:F1} DEGREES");
@@ -358,10 +358,10 @@ namespace InvoluteConsole
                     sw.WriteLine();
 
                     sw.Write("GAP ");
-                    List<GearParameters> gears = new List<GearParameters>();
+                    List<GearParameters> gears = new();
                     foreach (int i in teeth)
                     {
-                        GearParameters gear = new GearParameters(i, module / 100.0, Math.PI * pa / 1800.0, s, 0, 0, cutterDiameter / 100.0);
+                        GearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, s, 0, 0, cutterDiameter / 100.0);
                         sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
                         gears.Add(gear);
                     }
