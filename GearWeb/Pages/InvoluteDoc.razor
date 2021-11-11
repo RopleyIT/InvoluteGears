@@ -1,0 +1,50 @@
+﻿<h3>Understanding the Involute Gear Fields</h3>
+<p>
+    Filling in the form to create an involute spur gear is tricky, if you've
+    never looked at the design and maths for involute gears. This section
+    tries to help you to understand enough about these gears to make
+    sensible choices for the parameters.
+</p>
+<p>
+    Below is a diagram of two gears that are intermeshing. All the teeth have
+    been removed, except the contacting faces of two of the teeth. We shall describe
+    the form fields to be filled in by explaining this diagram.
+</p>
+<p><img src="InvolutesMeshing.jpg" alt="Two involute gears meshing" /></p>
+<p>
+    Involute gears are designed so that a straight line drawn tangential to
+    the <em>base circles</em> of each gear always passes through the point
+    of contact between the teeth as they roll past each other. It is as if
+    a piece of string wrapped around one base circle is being unwound, then
+    rewound onto the other base circle of the other gear. Hence if the rotation
+    of the driving gear is a constant number of degrees per second, so will
+    the driven gear have a constant angular velocity, but differing by the
+    ratio of the numbers of teeth on the two gears.
+</p>
+<p>
+    When the two teeth are touching at exactly the point where the line through
+    the two centres of the gears passes through, this being the mid-point of
+    the contact between those teeth, the point of contact is at a distance
+    from each gear centre known as the <em>pitch radius</em>. On the diagram,
+    this is the point on the line from O2 to O3 where the two pitch circles
+    cross it, and are tangential to each other.
+</p>
+<p>The pitch circle radius is calculated from two of the fields on the form
+    that you have to provide. First, the <strong>number of teeth</strong> that
+    you must provide, and second the <strong>module</strong>. The product
+    of these two values gives you the pitch diameter (twice the pitch radius),
+    or expressed in a different way, the module is the number of millimetres
+    per tooth of the pitch circle diameter.</p>
+<p>
+    You will notice that at the same point, the diagonal line running from
+    one base circle to the other also passes through this pitch circle
+    contact point (or should do - thi diagram is a bit wonky). The angle
+    this line forms with the horizontal contact point is known as the
+    <strong>pressure angle</strong>, and indicates at what angle the
+    teeth are in contact with each other. Common industry standard values
+    for this angle are 14.5 degrees or 20 degrees, but you are not
+    constrained to use these values if you don't want to.
+</p>
+@code {
+
+}
