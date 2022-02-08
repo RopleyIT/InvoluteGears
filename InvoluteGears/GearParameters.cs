@@ -719,4 +719,33 @@ public class GearParameters : IGearProfile
                         result += $"{c + d - b}/{b} * {c}/{d}, {c + d}\r\n";
         return result;
     }
+
+    /// <summary>
+    /// Calculate the contact ratio for two gears. The gears must be
+    /// compatible from a meshing point of view (same module, same
+    /// pressure angle). The contact ratio is the average number of teeth
+    /// in contact with each other on the pressure-bearing faces as
+    /// the gears are rotating. Ideally this should be > 1.1, but the
+    /// absolute minimum is 1 for the gears to not 'click' as they turn.
+    /// Note that this is the ideal figure, valid for no backlash, no
+    /// profile offset, and no undercut. It is the theoretical maximum
+    /// value that is never achieved!
+    /// </summary>
+    /// <param name="g1">The first gear being meshed</param>
+    /// <param name="g2">The second gear being meshed</param>
+    /// <returns>The contact ratio</returns>
+
+    public static double IdealContactRatio(GearParameters g1, GearParameters g2)
+    {
+        if (g1 == null || !g1.CanMeshWith(g2))
+            throw new ArgumentException("Gears have differing modules or pressure angles");
+
+        double gear1 = 0.5 * Involutes.RootDiffOfSquares
+            (g1.PitchCircleDiameter + 2 * g1.Module, g1.BaseCircleDiameter);
+        double gear2 = 0.5 * Involutes.RootDiffOfSquares
+            (g2.PitchCircleDiameter + 2 * g2.Module, g2.BaseCircleDiameter);
+        return (gear1 + gear2 - Math.Sin(g1.PressureAngle)
+            * (g1.PitchCircleDiameter + g2.PitchCircleDiameter) / 2)
+            / g1.BaseCirclePitch;
+    }
 }
