@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace InvoluteGears;
 
@@ -253,7 +253,7 @@ public class GearParameters : IGearProfile
     /// </summary>
 
     private double AddendumInvoluteAngle
-        => Math.Sqrt(Involutes.Square(AddendumCircleDiameter / BaseCircleDiameter) - 1);
+        => Math.Sqrt(Geometry.Square(AddendumCircleDiameter / BaseCircleDiameter) - 1);
 
     /// <summary>
     /// The angle occupied by one tooth and one gap
@@ -293,7 +293,7 @@ public class GearParameters : IGearProfile
     /// </summary>
 
     private double SquaredUndercutRadius
-        => Involutes.SumOfSquares(underCutPoint.X, underCutPoint.Y);
+        => Coordinate.SumOfSquares(underCutPoint.X, underCutPoint.Y);
 
     /// <summary>
     /// Obtain the radius of the point at which the gear's
@@ -341,11 +341,11 @@ public class GearParameters : IGearProfile
             * BaseCircleDiameter / (BaseCircleDiameter + meshedGear.BaseCircleDiameter);
         double meshedDistToPitchPoint = distanceBetweenCentres - distToPitchPoint;
         double contactLength
-            = Math.Sqrt(Involutes.DiffOfSquares(distToPitchPoint, BaseCircleDiameter / 2))
-            - Math.Sqrt(SquaredUndercutRadius - Involutes.Square(BaseCircleDiameter / 2));
+            = Math.Sqrt(Coordinate.DiffOfSquares(distToPitchPoint, BaseCircleDiameter / 2))
+            - Math.Sqrt(SquaredUndercutRadius - Geometry.Square(BaseCircleDiameter / 2));
         double meshedContactLength
-            = Math.Sqrt(Involutes.DiffOfSquares(meshedDistToPitchPoint, meshedGear.BaseCircleDiameter / 2))
-            - Math.Sqrt(meshedGear.SquaredUndercutRadius - Involutes.Square(meshedGear.BaseCircleDiameter / 2));
+            = Math.Sqrt(Coordinate.DiffOfSquares(meshedDistToPitchPoint, meshedGear.BaseCircleDiameter / 2))
+            - Math.Sqrt(meshedGear.SquaredUndercutRadius - Geometry.Square(meshedGear.BaseCircleDiameter / 2));
         return contactLength + meshedContactLength;
     }
 
@@ -367,32 +367,32 @@ public class GearParameters : IGearProfile
     public double ContactRatioWith(GearParameters meshedGear)
         => ContactDistanceWithGear(meshedGear) / BaseCirclePitch;
 
-    private List<PointF> UndercutPoints;
-    private List<PointF> InvolutePoints;
-    private List<PointF> DedendumPoints;
-    private List<PointF> AddendumPoints;
+    private IList<Coordinate> UndercutPoints;
+    private IList<Coordinate> InvolutePoints;
+    private IList<Coordinate> DedendumPoints;
+    private IList<Coordinate> AddendumPoints;
 
-    private IEnumerable<PointF> ComputeInvolutePoints()
+    private IEnumerable<Coordinate> ComputeInvolutePoints()
     {
         double involuteBaseAngle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
 
         int limit = AngleIndexFloor(AddendumInvoluteAngle);
         for (int i = limit; i >= 0; i--)
         {
-            double angle = (i % Involutes.PointsPerRotation) * Involutes.AngleStep;
-            yield return Involutes.InvolutePlusOffset
+            double angle = (i % Geometry.PointsPerRotation) * Geometry.AngleStep;
+            yield return Geometry.InvolutePlusOffset
                 (BaseCircleDiameter / 2, 0, 0, angle, involuteBaseAngle);
         }
     }
 
-    private IEnumerable<PointF> ComputeUndercutPoints()
+    private IEnumerable<Coordinate> ComputeUndercutPoints()
     {
         int lowerLimit = AngleIndexFloor(-UndercutAngleAtPitchCircle);
         int upperLimit = AngleIndexFloor(DedendumArcAngle / 2);
         for (int i = lowerLimit; i <= upperLimit; i++)
         {
-            double angle = (i % Involutes.PointsPerRotation) * Involutes.AngleStep;
-            yield return Involutes.InvolutePlusOffset(PitchCircleDiameter / 2,
+            double angle = (i % Geometry.PointsPerRotation) * Geometry.AngleStep;
+            yield return Geometry.InvolutePlusOffset(PitchCircleDiameter / 2,
                 -Module * (1 - ProfileShift),
                 Module * (Math.PI / 4 - Math.Tan(PressureAngle)), angle, 0);
         }
@@ -418,15 +418,15 @@ public class GearParameters : IGearProfile
 
         int i = 0;
         bool cornerFound = false;
-        PointF cutterCentre = PointF.Empty;
+        Coordinate cutterCentre = Coordinate.Empty;
         while (!cornerFound && i < UndercutPoints.Count - 2)
         {
-            PointF[] centres = Involutes.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutDiameter / 2);
+            Coordinate[] centres = Geometry.CircleCentres(UndercutPoints[i], UndercutPoints[i + 1], CutDiameter / 2);
             if (centres[0].Y < centres[1].Y)
                 cutterCentre = centres[0];
             else
                 cutterCentre = centres[1];
-            cornerFound = Involutes.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutDiameter / 2);
+            cornerFound = Geometry.PointInCircle(UndercutPoints[i + 2], cutterCentre, CutDiameter / 2);
             i++; // i indexes the last point from the undercut point list that we can cut to
         }
 
@@ -438,7 +438,7 @@ public class GearParameters : IGearProfile
         // Copy across the curve that we are able to follow before
         // deviating from it according to cutter radius
 
-        UndercutPoints = new List<PointF>(UndercutPoints.Take(i + 1));
+        UndercutPoints = new List<Coordinate>(UndercutPoints.Take(i + 1));
 
         // Calculate the angle for the last point in the undercut curve
 
@@ -448,7 +448,7 @@ public class GearParameters : IGearProfile
         // Find the point on the cutter circle that intersects a line from
         // its centre to the centre of the gear profile (origin 0,0)
 
-        double cutterCentreRadius = Math.Sqrt(Involutes.SumOfSquares(cutterCentre.X, cutterCentre.Y));
+        double cutterCentreRadius = Math.Sqrt(Coordinate.SumOfSquares(cutterCentre.X, cutterCentre.Y));
 
         // Find the end angle for the cutter radius curve. This is the same as
         // the angle at the origin to the cutter centre, reflected by 180 degrees.
@@ -458,15 +458,16 @@ public class GearParameters : IGearProfile
         // Add points around the cutter diameter from the last point
         // of adjustedUndercut, to the point at which it crosses yDedendum (y value).
 
-        UndercutPoints.AddRange(Involutes.CirclePoints
-            (startAngle, endAngle, Math.PI / 180, CutDiameter / 2, cutterCentre));
+        foreach (var c in Geometry.CirclePoints
+            (startAngle, endAngle, Math.PI / 180, CutDiameter / 2, cutterCentre))
+            UndercutPoints.Add(c);
 
         // Then add new dedendum circle points round to the y=0 axis, based on
         // the tangent to the cutter circle at yDedendum.
 
-        DedendumPoints = new List<PointF>(Involutes.CirclePoints
+        DedendumPoints = new List<Coordinate>(Geometry.CirclePoints
             (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI,
-            Involutes.AngleStep, cutterCentreRadius - CutDiameter / 2));
+            Geometry.AngleStep, cutterCentreRadius - CutDiameter / 2));
 
         // Record the new dedendum diameter since the cutter has reduced it
 
@@ -478,30 +479,28 @@ public class GearParameters : IGearProfile
         return true;
     }
 
-    private IEnumerable<PointF> ComputeDedendumCirclePoints()
-        => Involutes.CirclePoints
+    private IEnumerable<Coordinate> ComputeDedendumCirclePoints()
+        => Geometry.CirclePoints
             (-(BacklashAngle + DedendumArcAngle / 2), DedendumArcAngle / 2,
-            Involutes.AngleStep, DedendumCircleDiameter / 2);
+            Geometry.AngleStep, DedendumCircleDiameter / 2);
 
-    private IEnumerable<PointF> ComputeAddendumCirclePoints()
-        => Involutes.CirclePoints
+    private IEnumerable<Coordinate> ComputeAddendumCirclePoints()
+        => Geometry.CirclePoints
                 (GapWidthAngleAtPitchCircle / 2 + ToothTipOffset,
                 ToothAngle - GapWidthAngleAtPitchCircle / 2 - ToothTipOffset - BacklashAngle,
-                Involutes.AngleStep, AddendumCircleDiameter / 2);
+                Geometry.AngleStep, AddendumCircleDiameter / 2);
 
-    private PointF underCutPoint = PointF.Empty;
+    private Coordinate underCutPoint = Coordinate.Empty;
 
     private void InitPointLists()
     {
-        InvolutePoints = new List<PointF>(ComputeInvolutePoints());
-        UndercutPoints = new List<PointF>(ComputeUndercutPoints());
-        DedendumPoints = new List<PointF>(ComputeDedendumCirclePoints());
-        PointF? intersection = null;
-        if (intersection == null || !intersection.HasValue)
-            intersection = Involutes.ClosestPoint(InvolutePoints, UndercutPoints);
-        underCutPoint = intersection.Value;
-        int involuteIdx = Involutes.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
-        int undercutIdx = Involutes.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
+        InvolutePoints = new List<Coordinate>(ComputeInvolutePoints());
+        UndercutPoints = new List<Coordinate>(ComputeUndercutPoints());
+        DedendumPoints = new List<Coordinate>(ComputeDedendumCirclePoints());
+
+        underCutPoint = Geometry.ClosestPoint(InvolutePoints, UndercutPoints);
+        int involuteIdx = Geometry.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
+        int undercutIdx = Geometry.IndexOfLastPointWithGreaterXVal(UndercutPoints, underCutPoint.X);
         InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
         UndercutPoints.RemoveRange(0, undercutIdx + 1);
         if (CutDiameter > 0 && AdjustPointsForCircularCutter())
@@ -516,11 +515,11 @@ public class GearParameters : IGearProfile
         // the undercut has increased the dedendum depth to accommodate
         // the diameter of cutter.
 
-        AddendumPoints = new List<PointF>(ComputeAddendumCirclePoints());
-        InvolutePoints = Involutes.LinearReduction(InvolutePoints, (float)MaxError);
-        UndercutPoints = Involutes.LinearReduction(UndercutPoints, (float)MaxError);
-        DedendumPoints = Involutes.LinearReduction(DedendumPoints, (float)MaxError);
-        AddendumPoints = Involutes.LinearReduction(AddendumPoints, (float)MaxError);
+        AddendumPoints = new List<Coordinate>(ComputeAddendumCirclePoints());
+        InvolutePoints = Geometry.LinearReduction(InvolutePoints, (float)MaxError);
+        UndercutPoints = Geometry.LinearReduction(UndercutPoints, (float)MaxError);
+        DedendumPoints = Geometry.LinearReduction(DedendumPoints, (float)MaxError);
+        AddendumPoints = Geometry.LinearReduction(AddendumPoints, (float)MaxError);
     }
 
     /// <summary>
@@ -531,13 +530,13 @@ public class GearParameters : IGearProfile
     /// the gear. The last point should be joined back
     /// onto the first point to close the outline.</returns>
 
-    public IEnumerable<PointF> GenerateCompleteGearPath() => Enumerable
+    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => GeneratePointsForOnePitch(i))
             .SelectMany(ep => ep)
             .SelectMany(p => p);
 
-    public IEnumerable<IEnumerable<PointF>> GeneratePointsForOnePitch(int i)
+    public IEnumerable<IEnumerable<Coordinate>> GeneratePointsForOnePitch(int i)
     {
         yield return ClockwiseInvolute(i);
         yield return ClockwiseUndercut(i);
@@ -553,8 +552,8 @@ public class GearParameters : IGearProfile
     /// <param name="points">The points to be reflected</param>
     /// <returns>The reflected points</returns>
 
-    public static IEnumerable<PointF> ReflectY(IEnumerable<PointF> points)
-        => points.Select(p => Involutes.CreatePt(p.X, -p.Y));
+    public static IEnumerable<Coordinate> ReflectY(IEnumerable<Coordinate> points)
+        => points.Select(p => p.Conjugate);
 
     /// <summary>
     /// The angle around the gear subtended by the Backlash
@@ -577,8 +576,8 @@ public class GearParameters : IGearProfile
     /// range 0 to ToothCount - 1</param>
     /// <returns>The rotated set of points</returns>
 
-    private IEnumerable<PointF> RotateByTeeth(IEnumerable<PointF> points, int gap)
-        => Involutes.RotateAboutOrigin((gap % ToothCount) * ToothAngle, points);
+    private IEnumerable<Coordinate> RotateByTeeth(IEnumerable<Coordinate> points, int gap)
+        => points.Rotated((gap % ToothCount) * ToothAngle);
 
     /// <summary>
     /// Given the selected tooth number, compute the list of points that
@@ -592,7 +591,7 @@ public class GearParameters : IGearProfile
     /// <returns>The list of points making up the involute from the
     /// base circle up to the edge of the addendum</returns>
 
-    public IEnumerable<PointF> AnticlockwiseInvolute(int gap)
+    public IEnumerable<Coordinate> AnticlockwiseInvolute(int gap)
         => RotateByTeeth(InvolutePoints, gap).Reverse();
 
     /// <summary>
@@ -607,22 +606,22 @@ public class GearParameters : IGearProfile
     /// <returns>The list of points making up the involute from the
     /// base circle up to the edge of the addendum</returns>
 
-    public IEnumerable<PointF> ClockwiseInvolute(int gap)
+    public IEnumerable<Coordinate> ClockwiseInvolute(int gap)
         => ReflectAndAddBacklash(InvolutePoints, gap);
 
-    public IEnumerable<PointF> Dedendum(int gap)
+    public IEnumerable<Coordinate> Dedendum(int gap)
         => RotateByTeeth(DedendumPoints, gap);
 
-    public IEnumerable<PointF> Addendum(int gap)
+    public IEnumerable<Coordinate> Addendum(int gap)
         => RotateByTeeth(AddendumPoints, gap);
 
-    private IEnumerable<PointF> ReflectAndAddBacklash(IEnumerable<PointF> points, int gap)
+    private IEnumerable<Coordinate> ReflectAndAddBacklash(IEnumerable<Coordinate> points, int gap)
     {
         // The angles between the middles of adjacent
         // teeth in radians is 2*PI / ToothCount
 
         double gapCentreAngle = (gap % ToothCount) * ToothAngle - BacklashAngle;
-        return ReflectY(points).Select(p => Involutes.RotateAboutOrigin(gapCentreAngle, p));
+        return ReflectY(points).Rotated(gapCentreAngle);
     }
 
     /// <summary>
@@ -639,11 +638,11 @@ public class GearParameters : IGearProfile
     /// <returns>The list of points making up the trochoid from the
     /// dedendum circle up to the pitch circle</returns>
 
-    public IEnumerable<PointF> AnticlockwiseUndercut(int gap)
+    public IEnumerable<Coordinate> AnticlockwiseUndercut(int gap)
     {
         double gapCentreAngle = (gap % ToothCount) * ToothAngle;
         return UndercutPoints
-            .Select(p => Involutes.RotateAboutOrigin(gapCentreAngle, p))
+            .Rotated(gapCentreAngle)
             .Reverse();
     }
 
@@ -661,7 +660,7 @@ public class GearParameters : IGearProfile
     /// <returns>The list of points making up the trochoid from the
     /// dedendum circle up to the pitch circle</returns>
 
-    public IEnumerable<PointF> ClockwiseUndercut(int gap)
+    public IEnumerable<Coordinate> ClockwiseUndercut(int gap)
         => ReflectAndAddBacklash(UndercutPoints, gap);
 
     /// <summary>
@@ -685,14 +684,14 @@ public class GearParameters : IGearProfile
         get
         {
             double shiftedModule = Module * (1 - ProfileShift);
-            double k = Math.Sqrt(shiftedModule * PitchCircleDiameter - Involutes.Square(shiftedModule));
+            double k = Math.Sqrt(shiftedModule * PitchCircleDiameter - Geometry.Square(shiftedModule));
             double j = k - Module * (Math.PI / 4 - Math.Tan(PressureAngle));
             return 2 * j / PitchCircleDiameter;
         }
     }
 
     private static int AngleIndexFloor(double angle)
-        => (int)(angle / Involutes.AngleStep);
+        => (int)(angle / Geometry.AngleStep);
 
     /// <summary>
     /// Given an overall gear ratio (numerator/denominator) and the minimum
@@ -740,9 +739,9 @@ public class GearParameters : IGearProfile
         if (g1 == null || !g1.CanMeshWith(g2))
             throw new ArgumentException("Gears have differing modules or pressure angles");
 
-        double gear1 = 0.5 * Involutes.RootDiffOfSquares
+        double gear1 = 0.5 * Geometry.RootDiffOfSquares
             (g1.PitchCircleDiameter + 2 * g1.Module, g1.BaseCircleDiameter);
-        double gear2 = 0.5 * Involutes.RootDiffOfSquares
+        double gear2 = 0.5 * Geometry.RootDiffOfSquares
             (g2.PitchCircleDiameter + 2 * g2.Module, g2.BaseCircleDiameter);
         return (gear1 + gear2 - Math.Sin(g1.PressureAngle)
             * (g1.PitchCircleDiameter + g2.PitchCircleDiameter) / 2)

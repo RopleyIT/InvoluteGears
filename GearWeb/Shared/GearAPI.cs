@@ -47,7 +47,7 @@ namespace GearWeb.Shared
 
             List<IEnumerable<PointF>> gearPoints = new()
             {
-                cutoutCalculator.Gear.GenerateCompleteGearPath()
+                cutoutCalculator.Gear.GenerateCompleteGearPath().FromCoords()
             };
             GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 

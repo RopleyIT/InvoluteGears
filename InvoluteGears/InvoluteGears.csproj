@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Plotter\Plotter.csproj" />
+    <ProjectReference Include="..\TwoDimensionLib\TwoDimensionLib.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,11 +2,22 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using TwoDimensionLib;
 
 namespace InvoluteGears;
 
 public static class GearGenerator
 {
+    public static PointF FromCoord(Coordinate c)
+        => new((float)c.X, (float)c.Y);
+
+    public static IEnumerable<PointF> FromCoords(this IEnumerable<Coordinate> coords)
+        => coords.Select(c => FromCoord(c));
+
+    public static IEnumerable<IEnumerable<PointF>> FromCoordLists(this IEnumerable<IEnumerable<Coordinate>> coordLists)
+        => coordLists.Select(cl => FromCoords(cl));
+
     public static void GenerateSVGFile(Cutouts cutoutCalculator, float docDimension, string file)
     {
         using StreamWriter sw = new($"{file}.svg");
@@ -20,15 +31,18 @@ public static class GearGenerator
         {
             InfoComment = cutoutCalculator.Gear.Information + cutoutCalculator.Information
         };
-        svgCreator.AddClosedPath(cutoutCalculator.Gear.GenerateCompleteGearPath(), string.Empty, 0, "black");
-        foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
-            svgCreator.AddClosedPath(cutout, string.Empty, 0, "white");
+        var gearPath = cutoutCalculator.Gear
+            .GenerateCompleteGearPath()
+            .FromCoords();
+        svgCreator.AddClosedPath(gearPath, string.Empty, 0, "black");
+        foreach (List<Coordinate> cutout in cutoutCalculator.CutoutPlots)
+            svgCreator.AddClosedPath(cutout.FromCoords(), string.Empty, 0, "white");
         if (cutoutCalculator.HexKeyPlot != null)
-            svgCreator.AddClosedPath(cutoutCalculator.HexKeyPlot, string.Empty, 0, "lightgray");
+            svgCreator.AddClosedPath(cutoutCalculator.HexKeyPlot.FromCoords(), string.Empty, 0, "lightgray");
         if (cutoutCalculator.InlayPlot != null)
-            svgCreator.AddClosedPath(cutoutCalculator.InlayPlot, string.Empty, 0, "gray");
+            svgCreator.AddClosedPath(cutoutCalculator.InlayPlot.FromCoords(), string.Empty, 0, "gray");
         if (cutoutCalculator.SpindlePlot != null)
-            svgCreator.AddClosedPath(cutoutCalculator.SpindlePlot, string.Empty, 0, "white");
+            svgCreator.AddClosedPath(cutoutCalculator.SpindlePlot.FromCoords(), string.Empty, 0, "white");
 
         svgCreator.DocumentDimensions = new SizeF(docDimension, docDimension);
         svgCreator.DocumentDimensionUnits = "mm";
@@ -42,14 +56,14 @@ public static class GearGenerator
 
     public static void GenerateCutoutPlot(Cutouts cutoutCalculator, List<IEnumerable<PointF>> gearPoints)
     {
-        foreach (List<PointF> cutout in cutoutCalculator.CutoutPlots)
-            gearPoints.Add(cutout);
+        foreach (var cutout in cutoutCalculator.CutoutPlots)
+            gearPoints.Add(cutout.FromCoords());
         if (cutoutCalculator.HexKeyPlot != null)
-            gearPoints.Add(cutoutCalculator.HexKeyPlot);
+            gearPoints.Add(cutoutCalculator.HexKeyPlot.FromCoords());
         if (cutoutCalculator.InlayPlot != null)
-            gearPoints.Add(cutoutCalculator.InlayPlot);
+            gearPoints.Add(cutoutCalculator.InlayPlot.FromCoords());
         if (cutoutCalculator.SpindlePlot != null)
-            gearPoints.Add(cutoutCalculator.SpindlePlot);
+            gearPoints.Add(cutoutCalculator.SpindlePlot.FromCoords());
 
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace InvoluteGears;
 
@@ -144,35 +144,35 @@ public class EscapeGearParameters : IGearProfile
 
     public double GapAngle => ToothAngle - TipAngle;
 
-    private PointF ToothTip;
-    private PointF UnderCutCentre;
-    private PointF FaceEnd;
-    private PointF BackTip;
+    private Coordinate ToothTip;
+    private Coordinate UnderCutCentre;
+    private Coordinate FaceEnd;
+    private Coordinate BackTip;
     private double BackAngle;
-    private List<PointF> OneToothProfile;
+    private IList<Coordinate> OneToothProfile;
 
     private void CalculatePoints()
     {
         // Unrotated tooth tip is on the X axis
 
-        ToothTip = Involutes.CreatePt(PitchCircleDiameter / 2, 0);
+        ToothTip = new(PitchCircleDiameter / 2, 0);
 
         // Navigate down the slope of the tooth face
 
-        FaceEnd = Involutes.CreatePt(
+        FaceEnd = new(
             PitchCircleDiameter / 2 - ToothFaceLength * Math.Cos(UndercutAngle),
             -ToothFaceLength * Math.Sin(UndercutAngle));
 
         // Now find the centre of the undercut circle
 
-        UnderCutCentre = Involutes.CreatePt
+        UnderCutCentre = new
             (FaceEnd.X - CutDiameter * Math.Sin(UndercutAngle) / 2,
             FaceEnd.Y + CutDiameter * Math.Cos(UndercutAngle) / 2);
 
         // Find the coordinates of the back tip corner of
         // the next tooth in an anticlockwise direction
 
-        BackTip = Involutes.CreatePt(ToothTip.X * Math.Cos(GapAngle),
+        BackTip = new(ToothTip.X * Math.Cos(GapAngle),
             ToothTip.X * Math.Sin(GapAngle));
 
         // Find the coordinates of the tangent to the
@@ -180,7 +180,7 @@ public class EscapeGearParameters : IGearProfile
         // back of the tooth tip
 
         double tipToEndAngle =
-            Math.Asin(CutDiameter / (2 * Involutes.DistanceBetween(BackTip, UnderCutCentre)));
+            Math.Asin(CutDiameter / (2 * (BackTip - UnderCutCentre).Magnitude));
         double tiptoCtrAngle =
             Math.Atan2(BackTip.Y - UnderCutCentre.Y, BackTip.X - UnderCutCentre.X);
         BackAngle =
@@ -188,25 +188,25 @@ public class EscapeGearParameters : IGearProfile
         OneToothProfile = ComputeOnePitch();
     }
 
-    private List<PointF> ComputeOnePitch()
+    private IList<Coordinate> ComputeOnePitch()
     {
-        List<PointF> points = new()
+        List<Coordinate> points = new()
         {
             ToothTip,
             FaceEnd
         };
         double startAngle = -Math.PI / 2 + UndercutAngle;
         points.AddRange(
-            Involutes.CirclePoints(
-                BackAngle, 2 * Math.PI + startAngle, Involutes.AngleStep,
+            Geometry.CirclePoints(
+                BackAngle, 2 * Math.PI + startAngle, Geometry.AngleStep,
                 CutDiameter / 2, UnderCutCentre)
             .Reverse());
         points.Add(BackTip);
         points.AddRange(
-            Involutes.CirclePoints(
-                GapAngle, ToothAngle, Involutes.AngleStep,
+            Geometry.CirclePoints(
+                GapAngle, ToothAngle, Geometry.AngleStep,
                 PitchCircleDiameter / 2));
-        return Involutes.LinearReduction(points, (float)MaxError);
+        return Geometry.LinearReduction(points, MaxError);
     }
 
     /// <summary>
@@ -221,9 +221,8 @@ public class EscapeGearParameters : IGearProfile
     /// <returns>The set of points describing the
     /// profile of the selected tooth.</returns>
 
-    public IEnumerable<PointF> ToothProfile(int gap)
-        => Involutes.RotateAboutOrigin
-            ((gap % ToothCount) * ToothAngle, OneToothProfile);
+    public IEnumerable<Coordinate> ToothProfile(int gap)
+        => OneToothProfile.Rotated((gap % ToothCount) * ToothAngle);
 
     /// <summary>
     /// Generate the complete path of
@@ -232,7 +231,7 @@ public class EscapeGearParameters : IGearProfile
     /// <returns>The set of points describing the escape wheel
     /// </returns>
 
-    public IEnumerable<PointF> GenerateCompleteGearPath() => Enumerable
+    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i))
             .SelectMany(p => p);
@@ -244,5 +243,5 @@ public class EscapeGearParameters : IGearProfile
     /// </summary>
 
     public double InnerDiameter
-        => 2 * Involutes.DistanceBetween(UnderCutCentre, PointF.Empty) - CutDiameter;
+        => 2 * UnderCutCentre.Magnitude - CutDiameter;
 }

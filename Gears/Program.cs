@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using TwoDimensionLib;
 
 namespace InvoluteConsole;
 
@@ -145,15 +146,15 @@ internal class Program
 
                 List<IEnumerable<PointF>> gearPoints = new()
                 {
-                    Involutes.CirclePoints(-angle, angle, Involutes.AngleStep, gear.PitchCircleDiameter / 2),
-                    Involutes.CirclePoints(-angle, angle, Involutes.AngleStep, gear.BaseCircleDiameter / 2)
+                    Geometry.CirclePoints(-angle, angle, Geometry.AngleStep, gear.PitchCircleDiameter / 2).FromCoords(),
+                    Geometry.CirclePoints(-angle, angle, Geometry.AngleStep, gear.BaseCircleDiameter / 2).FromCoords()
                 };
 
                 //IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.AddendumCircleDiameter / 2);
                 //IEnumerable<PointF> dedendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.DedendumCircleDiameter / 2);
 
                 for (int i = 0; i < limit; i++)
-                    gearPoints.AddRange(gear.GeneratePointsForOnePitch(i));
+                    gearPoints.AddRange(gear.GeneratePointsForOnePitch(i).FromCoordLists());
 
                 if (args[0] == "-p")
                     GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
@@ -207,14 +208,16 @@ internal class Program
                     limit = 1;
                     angle = gear.ToothAngle;
 
-                    gearPoints.Add(Involutes
-                        .CirclePoints(0, angle, Involutes.AngleStep, gear.PitchCircleDiameter / 2));
-                    gearPoints.Add(Involutes
-                        .CirclePoints(0, angle, Involutes.AngleStep, gear.InnerDiameter / 2));
+                    gearPoints.Add(Geometry
+                        .CirclePoints(0, angle, Geometry.AngleStep, gear.PitchCircleDiameter / 2)
+                        .FromCoords());
+                    gearPoints.Add(Geometry
+                        .CirclePoints(0, angle, Geometry.AngleStep, gear.InnerDiameter / 2)
+                        .FromCoords());
                 }
 
                 for (int i = 0; i < limit; i++)
-                    gearPoints.Add(gear.ToothProfile(i));
+                    gearPoints.Add(gear.ToothProfile(i).FromCoords());
 
                 if (args[0] == "-e")
                     GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
@@ -258,7 +261,7 @@ internal class Program
 
                 List<IEnumerable<PointF>> gearPoints = new();
                 for (int i = 0; i < gear.ToothCount; i++)
-                    gearPoints.Add(gear.ToothProfile(i));
+                    gearPoints.Add(gear.ToothProfile(i).FromCoords());
 
                 GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 

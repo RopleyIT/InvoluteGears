@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace InvoluteGears;
 
@@ -100,7 +100,7 @@ public class Cutouts
     /// </summary>
     /// <param name="points">The contour to add to the plot</param>
 
-    public void AddPlot(List<PointF> points)
+    public void AddPlot(List<Coordinate> points)
     {
         CutoutPlots.Add(points);
     }
@@ -109,10 +109,10 @@ public class Cutouts
     /// The cutout shapes to be added to the gear point sets
     /// </summary>
 
-    public List<List<PointF>> CutoutPlots { get; private set; }
-    public List<PointF> SpindlePlot { get; private set; }
-    public List<PointF> InlayPlot { get; private set; }
-    public List<PointF> HexKeyPlot { get; private set; }
+    public IList<IList<Coordinate>> CutoutPlots { get; private set; }
+    public IList<Coordinate> SpindlePlot { get; private set; }
+    public IList<Coordinate> InlayPlot { get; private set; }
+    public IList<Coordinate> HexKeyPlot { get; private set; }
 
     /// <summary>
     /// Calculate the points that form the spindle circle
@@ -120,9 +120,9 @@ public class Cutouts
     /// <returns>Sequence of points that make up the hole
     /// in the middle of the gear</returns>
 
-    private List<PointF> CalculateSpindle()
-        => Involutes.LinearReduction(Involutes.CirclePoints
-            (-Math.PI, Math.PI, Involutes.AngleStep, SpindleDiameter / 2).ToList(),
+    private IList<Coordinate> CalculateSpindle()
+        => Geometry.LinearReduction(Geometry.CirclePoints
+            (-Math.PI, Math.PI, Geometry.AngleStep, SpindleDiameter / 2).ToList(),
             (float)Gear.MaxError);
 
 
@@ -132,9 +132,9 @@ public class Cutouts
     /// <returns>Sequence of points that make up the bearing 
     /// inlay in the middle of the gear</returns>
 
-    private List<PointF> CalculateInlay()
-        => Involutes.LinearReduction(Involutes.CirclePoints
-            (-Math.PI, Math.PI, Involutes.AngleStep, InlayDiameter / 2).ToList(),
+    private IList<Coordinate> CalculateInlay()
+        => Geometry.LinearReduction(Geometry.CirclePoints
+            (-Math.PI, Math.PI, Geometry.AngleStep, InlayDiameter / 2).ToList(),
             (float)Gear.MaxError);
 
     /// <summary>
@@ -147,7 +147,7 @@ public class Cutouts
     /// <returns>The point lists that each make up the
     /// outline of the cutouts</returns>
 
-    private List<List<PointF>> CalculateCutouts()
+    private IList<IList<Coordinate>> CalculateCutouts()
         => CalculateCutouts(1 + (Gear.ToothCount - 1) / 8);
 
     /// <summary>
@@ -160,9 +160,9 @@ public class Cutouts
     /// <returns>The point lists that each make up the
     /// outline of the cutouts</returns>
 
-    private List<List<PointF>> CalculateCutouts(int spokes)
+    private IList<IList<Coordinate>> CalculateCutouts(int spokes)
     {
-        List<List<PointF>> cutouts = new();
+        List<IList<Coordinate>> cutouts = new();
         if (spokes < 3)
             return cutouts;
 
@@ -190,56 +190,56 @@ public class Cutouts
 
         double cornerCentreY = spokeThickness / 2 + cornerRadius;
         double rimCornerCentreX = Math.Sqrt
-            (Involutes.DiffOfSquares(rimDiameter / 2 - cornerRadius, cornerCentreY));
-        PointF rimCornerCentre = Involutes.CreatePt(rimCornerCentreX, cornerCentreY);
+            (Coordinate.DiffOfSquares(rimDiameter / 2 - cornerRadius, cornerCentreY));
+        Coordinate rimCornerCentre = new(rimCornerCentreX, cornerCentreY);
         double angleAtRim = Math.Atan2(cornerCentreY, rimCornerCentreX);
-        IEnumerable<PointF> outerCorner = Involutes.CirclePoints
-            (-Math.PI / 2, angleAtRim, Involutes.AngleStep, cornerRadius, rimCornerCentre);
+        IEnumerable<Coordinate> outerCorner = Geometry.CirclePoints
+            (-Math.PI / 2, angleAtRim, Geometry.AngleStep, cornerRadius, rimCornerCentre);
 
         // Calculate the corner at the inner end of a spoke.
 
         //double hubCornerCentreX = Math.Sqrt(Square(hubDiameter / 2 + cornerRadius)
         //    - Square(cornerCentreY));
         double hubCornerCentreX = Math.Sqrt
-            (Involutes.DiffOfSquares(hubDiameter / 2 + cornerRadius, cornerCentreY));
-        PointF hubCornerCentre = Involutes.CreatePt(hubCornerCentreX, cornerCentreY);
+            (Coordinate.DiffOfSquares(hubDiameter / 2 + cornerRadius, cornerCentreY));
+        Coordinate hubCornerCentre = new(hubCornerCentreX, cornerCentreY);
         double angleAtHub = Math.Atan2(cornerCentreY, hubCornerCentreX);
 
-        IEnumerable<PointF> innerCorner = Involutes.CirclePoints
-            (Math.PI + angleAtHub, 3.0 * Math.PI / 2, Involutes.AngleStep, cornerRadius, hubCornerCentre);
+        IEnumerable<Coordinate> innerCorner = Geometry.CirclePoints
+            (Math.PI + angleAtHub, 3.0 * Math.PI / 2, Geometry.AngleStep, cornerRadius, hubCornerCentre);
 
         // Calculate the outer rim circle segment
 
-        IEnumerable<PointF> outerRimSegment = Involutes.CirclePoints
-            (angleAtRim, 2 * Math.PI / spokes - angleAtRim, Involutes.AngleStep, rimDiameter / 2);
+        IEnumerable<Coordinate> outerRimSegment = Geometry.CirclePoints
+            (angleAtRim, 2 * Math.PI / spokes - angleAtRim, Geometry.AngleStep, rimDiameter / 2);
 
         // Calculate the hub circle segment
 
-        IEnumerable<PointF> hubSegment = Involutes.CirclePoints
-            (angleAtHub, 2 * Math.PI / spokes - angleAtHub, Involutes.AngleStep, hubDiameter / 2);
+        IEnumerable<Coordinate> hubSegment = Geometry.CirclePoints
+            (angleAtHub, 2 * Math.PI / spokes - angleAtHub, Geometry.AngleStep, hubDiameter / 2);
 
         // Calculate the far side of the cutout. Reflect the inner spoke
         // across the X axis, and reverse its points. Then rotate it round the gear
         // by the angle between adjacent spokes. This gives us the correct
         // list of points.
 
-        IEnumerable<PointF> nearSide = innerCorner.Concat(outerCorner);
-        IEnumerable<PointF> farSide = GearParameters.ReflectY(nearSide)
-            .Select(p => Involutes.RotateAboutOrigin(2 * Math.PI / spokes, p))
+        IEnumerable<Coordinate> nearSide = innerCorner.Concat(outerCorner);
+        IEnumerable<Coordinate> farSide = GearParameters
+            .ReflectY(nearSide)
+            .Rotated(2 * Math.PI / spokes)
             .Reverse();
 
         // Now create the lists of points for each of the cut outs
 
-        List<PointF> cutout = new();
+        IList<Coordinate> cutout = new List<Coordinate>();
         cutout.AddRange(nearSide);
         cutout.AddRange(outerRimSegment);
         cutout.AddRange(farSide);
         cutout.AddRange(hubSegment.Reverse());
-        cutout = Involutes.LinearReduction(cutout, (float)Gear.MaxError);
+        cutout = Geometry.LinearReduction(cutout, (float)Gear.MaxError);
         cutouts.Add(cutout);
         for (int i = 1; i < spokes; i++)
-            cutouts.Add(new List<PointF>(cutout.Select
-                (p => Involutes.RotateAboutOrigin(2 * Math.PI * i / spokes, p))));
+            cutouts.Add(new List<Coordinate>(cutout.Rotated(2 * Math.PI * i / spokes)));
         return cutouts;
     }
 
@@ -252,27 +252,28 @@ public class Cutouts
     /// <returns>The list of points 
     /// corresponding to the hex key</returns>
 
-    private List<PointF> CalculateHexKey()
+    private List<Coordinate> CalculateHexKey()
     {
         // Generate the points for one sixth of the key
         double ctrToFace = KeyWidth / 2;
-        PointF cornerCtr = Involutes.CreatePt(
+        Coordinate cornerCtr = new(
             ctrToFace - Gear.CutDiameter / 2,
             (ctrToFace - Gear.CutDiameter / 2) / Math.Sqrt(3.0));
-        List<PointF> firstSegment = new()
+        IList<Coordinate> firstSegment = new List<Coordinate>()
         {
-            Involutes.CreatePt(ctrToFace, 0),
-            Involutes.CreatePt(ctrToFace, cornerCtr.Y)
+            new Coordinate(ctrToFace, 0),
+            new Coordinate(ctrToFace, cornerCtr.Y)
         };
         firstSegment.AddRange(
-            Involutes.CirclePoints(0, Math.PI / 3, Involutes.AngleStep,
+            Geometry.CirclePoints(0, Math.PI / 3, Geometry.AngleStep,
                 Gear.CutDiameter / 2, cornerCtr));
-        firstSegment.Add(Involutes.CreatePt(ctrToFace / 2, Math.Sin(Math.PI / 3) * ctrToFace));
-        firstSegment = Involutes.LinearReduction(firstSegment, (float)Gear.MaxError);
+        firstSegment.Add(new Coordinate(ctrToFace / 2, Math.Sin(Math.PI / 3) * ctrToFace));
+        firstSegment = Geometry.LinearReduction(firstSegment, (float)Gear.MaxError);
         return Enumerable
             .Range(0, 6)
-            .Select(i => Involutes.RotateAboutOrigin(i * Math.PI / 3.0, firstSegment))
-            .SelectMany(ep => ep).ToList();
+            .Select(i => firstSegment.Rotated(i * Math.PI / 3.0))
+            .SelectMany(ep => ep)
+            .ToList();
     }
 }
 

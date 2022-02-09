@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace InvoluteGears;
 
@@ -18,10 +18,10 @@ public class ChainSprocket : IGearProfile
         CutDiameter = cutDiameter;
         SetInformation();
         var curves = CalculatePoints();
-        OuterToothProfile = Involutes.LinearReduction
-            (curves.outer, (float)MaxError);
-        InnerToothProfile = Involutes.LinearReduction
-            (curves.inner, (float)MaxError);
+        OuterToothProfile = Geometry.LinearReduction
+            (curves.outer, MaxError);
+        InnerToothProfile = Geometry.LinearReduction
+            (curves.inner, MaxError);
     }
 
     private void SetInformation()
@@ -111,9 +111,9 @@ public class ChainSprocket : IGearProfile
 
     public double InnerDiameter { get; private set; }
 
-    private static double Sqr(double x) => Involutes.Square(x);
+    private static double Sqr(double x) => x * x;
 
-    private (List<PointF> outer, List<PointF> inner) CalculatePoints()
+    private (List<Coordinate> outer, List<Coordinate> inner) CalculatePoints()
     {
         // Calculate the inside radius of one end of a link,
         // the two distances for the unequal faces of the
@@ -152,8 +152,8 @@ public class ChainSprocket : IGearProfile
         // parallel to the Y axis. T is the centre of the semicircle
         // formed by one end of the link
 
-        PointF t = Involutes.CreatePt(
-            Involutes.RootDiffOfSquares(radius, b / 2), b / 2);
+        Coordinate t = new(
+            Geometry.RootDiffOfSquares(radius, b / 2), b / 2);
 
         // C is the centre of the wire for the next link, lying on a
         // line from T in the direction of the 3rd link
@@ -161,7 +161,7 @@ public class ChainSprocket : IGearProfile
         double sinTooth = Math.Sin(Math.PI / ToothCount);
         double cosTooth = Math.Cos(Math.PI / ToothCount);
 
-        PointF c = Involutes.CreatePt(
+        Coordinate c = new(
             t.X - (r - WireThickness / 2) * sinTooth,
             t.Y + (r - WireThickness / 2) * cosTooth);
 
@@ -172,17 +172,17 @@ public class ChainSprocket : IGearProfile
         // becomes parallel to the diagonal face of the sprocket
         // beyond the first link.
 
-        PointF u = Involutes.CreatePt(c.X, c.Y - WireThickness / 2);
+        Coordinate u = new(c.X, c.Y - WireThickness / 2);
         double arcAngle;
         double arcRadius = CutDiameter / 2; // Assume cutter bigger than wire
-        PointF convexCtr;
+        Coordinate convexCtr;
 
         // Find length to mid point of face on which
         // perpendicular link lies
 
-        double oz = Involutes
+        double oz = Geometry
             .RootDiffOfSquares(radius, a / 2) - WireThickness / 2;
-        PointF z = Involutes.CreatePt(oz * cosTooth, oz * sinTooth);
+        Coordinate z = new(oz * cosTooth, oz * sinTooth);
 
         if (WireThickness >= CutDiameter)
         {
@@ -198,8 +198,7 @@ public class ChainSprocket : IGearProfile
             // Coordinate of cutter centre when cutting corner
             // between parallel and perpendicular links
 
-            convexCtr = Involutes
-                .CreatePt(u.X, u.Y + arcRadius);
+            convexCtr = new(u.X, u.Y + arcRadius);
 
             // Find the distance from the cutter centre to the sloping face
 
@@ -213,14 +212,14 @@ public class ChainSprocket : IGearProfile
 
         // Now plot one chain link worth of profile
 
-        List<PointF> points = new()
+        List<Coordinate> points = new()
         {
-            Involutes.CreatePt(t.X + OuterLinkWidth / 2, 0)
+            new Coordinate(t.X + OuterLinkWidth / 2, 0)
         };
-        PointF cUpper = Involutes.CreatePt(t.X, u.Y - OuterLinkWidth / 2);
-        points.AddRange(Involutes.CirclePoints(
+        Coordinate cUpper = new(t.X, u.Y - OuterLinkWidth / 2);
+        points.AddRange(Geometry.CirclePoints(
             0, Math.PI / 2, Math.PI / 180, OuterLinkWidth / 2, cUpper));
-        points.AddRange(Involutes.CirclePoints(
+        points.AddRange(Geometry.CirclePoints(
             1.5 * Math.PI - arcAngle, 1.5 * Math.PI, Math.PI / 180, arcRadius, convexCtr)
             .Reverse());
         points.Add(z);
@@ -231,20 +230,20 @@ public class ChainSprocket : IGearProfile
         grooveStartAngle = Math.PI * (1.0 + ToothCount) / ToothCount
             - grooveStartAngle;
 
-        PointF bt = Involutes.CreatePt(t.X - Backlash * sinTooth, t.Y + Backlash * cosTooth);
-        List<PointF> groovePoints = new();
+        Coordinate bt = new(t.X - Backlash * sinTooth, t.Y + Backlash * cosTooth);
+        List<Coordinate> groovePoints = new();
         InnerDiameter = 2 * t.X - OuterLinkWidth;
         Module = InnerDiameter / ToothCount;
-        groovePoints.Add(Involutes.CreatePt(InnerDiameter / 2 - Backlash * sinTooth, 0));
-        groovePoints.AddRange(Involutes.CirclePoints(
+        groovePoints.Add(new Coordinate(InnerDiameter / 2 - Backlash * sinTooth, 0));
+        groovePoints.AddRange(Geometry.CirclePoints(
             grooveStartAngle, Math.PI, Math.PI / 180, OuterLinkWidth / 2, bt)
             .Reverse());
         groovePoints.Add(z);
         return (points, groovePoints);
     }
 
-    private readonly List<PointF> OuterToothProfile = null;
-    private readonly List<PointF> InnerToothProfile = null;
+    private readonly IList<Coordinate> OuterToothProfile = null;
+    private readonly IList<Coordinate> InnerToothProfile = null;
 
 
     /// <summary>
@@ -259,18 +258,18 @@ public class ChainSprocket : IGearProfile
     /// <returns>The set of points describing the
     /// profile of the selected tooth.</returns>
 
-    private IEnumerable<PointF> ToothProfile(int gap, bool outer)
+    private IEnumerable<Coordinate> ToothProfile(int gap, bool outer)
     {
-        List<PointF> profile = outer ? OuterToothProfile : InnerToothProfile;
+        IList<Coordinate> profile = outer ? OuterToothProfile : InnerToothProfile;
         double angle = 2 * Math.PI * (gap % ToothCount) / (double)ToothCount;
         return
             profile
             .Skip(1)
             .Reverse()
             //.Skip(1)
-            .Select(p => Involutes.Conjugate(p))
+            .Select(p => p.Conjugate)
             .Concat(profile)
-            .Select(p => Involutes.RotateAboutOrigin(angle, p));
+            .Select(p => p.Rotate(angle));
     }
 
     /// <summary>
@@ -280,7 +279,7 @@ public class ChainSprocket : IGearProfile
     /// <returns>The set of points describing the sprocket outer edge
     /// </returns>
 
-    public IEnumerable<PointF> GenerateCompleteGearPath() => Enumerable
+    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i, true))
             .SelectMany(p => p);
@@ -292,7 +291,7 @@ public class ChainSprocket : IGearProfile
     /// <returns>The set of points describing the sprocket groove
     /// </returns>
 
-    public IEnumerable<PointF> GenerateInnerGearPath() => Enumerable
+    public IEnumerable<Coordinate> GenerateInnerGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i, false))
             .SelectMany(p => p);

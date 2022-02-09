@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
-
+using TwoDimensionLib;
 namespace InvoluteGears;
 
 /// <summary>
@@ -17,5 +16,5 @@ public interface IGearProfile
     double MaxError { get; }
     double InnerDiameter { get; }
     double CutDiameter { get; }
-    IEnumerable<PointF> GenerateCompleteGearPath();
+    IEnumerable<Coordinate> GenerateCompleteGearPath();
 }

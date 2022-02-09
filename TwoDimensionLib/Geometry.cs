@@ -3,6 +3,40 @@
 public static class Geometry
 {
     /// <summary>
+    /// Provide an implementation of the range adding methind to an IList
+    /// </summary>
+    /// <typeparam name="T">The type of things in the list</typeparam>
+    /// <param name="ilist">The list to add to</param>
+    /// <param name="src">The source enumerable of items to be added</param>
+    /// <exception cref="ArgumentException">Both arguments shold be non-null</exception>
+
+    public static void AddRange<T>(this IList<T> ilist, IEnumerable<T> src)
+    {
+        if (ilist is null || src is null)
+            throw new ArgumentException("AddRange passed a null list or null range");
+        if (ilist is List<T> list)
+            list.AddRange(src);
+        else
+            foreach (T t in ilist)
+                ilist.Add(t);
+    }
+
+    public static void RemoveRange<T>(this IList<T> ilist, int first, int count)
+    {
+        if (ilist is null)
+            throw new ArgumentException("AddRange passed a null list or null range");
+        if (first >= 0 && first < ilist.Count
+            && first + count >= 0 && first + count <= ilist.Count)
+        {
+            if (ilist is List<T> list)
+                list.RemoveRange(first, count);
+            else
+                for (int i = 0; i < count; i++)
+                    ilist.RemoveAt(first);
+        }
+    }
+
+    /// <summary>
     /// Rotate a sequence of points about the origin in the anticlockwise
     /// direction by the angle phi
     /// </summary>
@@ -32,15 +66,63 @@ public static class Geometry
     /// by this amount. Note that the trochoid is rotated by the same amount.</param>
     /// <returns>The computed X, Y coordinate for the parameters supplied.</returns>
 
-    public static Coordinate InvolutePlusOffset(double radius, double offX, double offY, double phi, double phiOffset)
+    public static Coordinate InvolutePlusOffset
+        (double radius, double offX, double offY, double phi, double phiOffset)
     {
 
         double cosPhiTotal = Math.Cos(phi + phiOffset);
         double sinPhiTotal = Math.Sin(phi + phiOffset);
 
-        double x = radius * (cosPhiTotal + phi * sinPhiTotal) + offX * cosPhiTotal - offY * sinPhiTotal;
-        double y = radius * (sinPhiTotal - phi * cosPhiTotal) + offX * sinPhiTotal + offY * cosPhiTotal;
+        double x = radius * (cosPhiTotal + phi * sinPhiTotal) 
+            + offX * cosPhiTotal - offY * sinPhiTotal;
+        double y = radius * (sinPhiTotal - phi * cosPhiTotal) 
+            + offX * sinPhiTotal + offY * cosPhiTotal;
         return new Coordinate(x, y);
+    }
+
+    /// <summary>
+    /// Find point on epicycloid. A pitch circle of radius 'radius' has a locus
+    /// wheel of radius 'locusRadius' rolloing anticlockwise around it. At the
+    /// point (radius, 0) the locus lies on the pitch circle, hence the -PI in
+    /// the function below.
+    /// </summary>
+    /// <param name="radius">Radius of the pitch circle</param>
+    /// <param name="locusRadius">Radius of the rolling wheel a point on the
+    /// circumference of which traces out the epicycloid</param>
+    /// <param name="phi">The angle around the pitch circle of the contact
+    /// point between the two circles, also the angle relative to the X
+    /// axis of the line of centres between the two circles</param>
+    /// <returns>The point on the locus corresponding to the selected
+    /// angle around the pitch circle</returns>
+
+    public static Coordinate Epicycloid(double radius, double locusRadius, double phi)
+    {
+        Coordinate locusCentre = Coordinate.FromPolar(radius + locusRadius, phi);
+        double locusAngle = -Math.PI + phi * (1 + radius / locusRadius);
+        Coordinate locus = Coordinate.FromPolar(locusRadius, locusAngle);
+        return locusCentre + locus;
+    }
+
+    /// <summary>
+    /// Find point on hypocycloid. A pitch circle of radius 'radius' has a locus
+    /// wheel of radius 'locusRadius' rolloing anticlockwise inside it. At the
+    /// point (radius, 0) the locus lies on the pitch circle.
+    /// </summary>
+    /// <param name="radius">Radius of the pitch circle</param>
+    /// <param name="locusRadius">Radius of the rolling wheel a point on the
+    /// circumference of which traces out the hypocycloid</param>
+    /// <param name="phi">The angle around the pitch circle of the contact
+    /// point between the two circles, also the angle relative to the X
+    /// axis of the line of centres between the two circles</param>
+    /// <returns>The point on the locus corresponding to the selected
+    /// angle around the pitch circle</returns>
+
+    public static Coordinate Hypocycloid(double radius, double locusRadius, double phi)
+    {
+        Coordinate locusCentre = Coordinate.FromPolar(radius - locusRadius, phi);
+        double locusAngle = phi * (1 - radius / locusRadius);
+        Coordinate locus = Coordinate.FromPolar(locusRadius, locusAngle);
+        return locusCentre + locus;
     }
 
     /// <summary>
@@ -87,7 +169,7 @@ public static class Geometry
     }
 
     public static double Square(double v) => v * v;
-    
+
     public static double RootDiffOfSquares(double a, double b)
         => Math.Sqrt((a + b) * (a - b));
 
@@ -292,9 +374,9 @@ public static class Geometry
         // Populate list1 with extra points having same X values as list 2,
         // then list2 with extra points having same X values as list 1
 
-        foreach (Coordinate p in list2)
+        foreach (Coordinate p in ptList2)
             InjectPointWithSameXVal(list1, p.X);
-        foreach (Coordinate p in list1)
+        foreach (Coordinate p in ptList1)
             InjectPointWithSameXVal(list2, p.X);
 
         // Search for the closest points between the lines in the two lists
@@ -323,7 +405,7 @@ public static class Geometry
     /// <param name="maxErr">The perpendicular error margin</param>
     /// <returns>A new reduced list of points</returns>
 
-    public static IList<Coordinate> LinearReduction(IList<Coordinate> source, float maxErr)
+    public static IList<Coordinate> LinearReduction(IList<Coordinate> source, double maxErr)
     {
         List<Coordinate> result = new();
         int startIndex = 0;
@@ -349,7 +431,7 @@ public static class Geometry
     /// tolerance criteria for points in between</returns>
 
     private static int IndexOfFarthestPointWithinMargin
-        (IList<Coordinate> source, int startIndex, float maxErr)
+        (IList<Coordinate> source, int startIndex, double maxErr)
     {
         Coordinate earlier = source[startIndex];
         for (int i = startIndex + 2; i < source.Count; i++)
