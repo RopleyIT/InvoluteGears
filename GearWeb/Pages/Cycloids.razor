@@ -1,0 +1,144 @@
+﻿@page "/cycloids"
+@inject IJSRuntime JSRuntime
+@inject StringCache Cache
+@using GearWeb.Shared;
+
+<h3>Generate Cycloidal Gear Vector Profiles</h3>
+<EditForm Model=@GearData OnSubmit="@Generate">
+    <DataAnnotationsValidator />
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="Teeth">Number of teeth</label>
+            <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
+            <small class="form-text text-muted">The number of teeth on the gear. Minimum value is 6.</small>
+            <ValidationMessage For="() => GearData.Teeth" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="OpposingTeeth">Number of teeth in opposite gear</label>
+            <InputNumber @bind-Value="GearData.OpposingTeeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="OpposingTeeth" />
+            <small class="form-text text-muted">The number of teeth on the opposing gear. Minimum value is 6</small>
+            <ValidationMessage For="() => GearData.OpposingTeeth" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Tolerance">Precision</label>
+            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
+            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
+            <ValidationMessage For="() => GearData.Tolerance" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="PressureAngle">Contact Ratio</label>
+            <InputText @bind-Value="GearData.ContactRatio" class="form-control form-control-lg" ParsingErrorMessage="Value >= 1.0" id="ContactRatio" />
+            <small class="form-text text-muted">Minimum contact ratio for teeth. >= 1.0 means one tooth is in contact with opposite gear at all times.</small>
+            <ValidationMessage For="() => GearData.ContactRatio" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Module">Module</label>
+            <InputText @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="Module" />
+            <small class="form-text text-muted">Module for gear to nearest 100th of a mm. Diameter at pitch circle will be number of teeth times the module.</small>
+            <ValidationMessage For="() => GearData.Module" />
+        </div>
+        <div class="form-group col-md-4">
+            <label for="Backlash">Backlash</label>
+            <InputText @bind-Value="GearData.Backlash" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 0.25" id="Backlash" />
+            <small class="form-text text-muted">Backlash between gear teeth to nearest 100th of a mm. Set zero for a perfectly tight fitting gear.</small>
+            <ValidationMessage For="() => GearData.Backlash" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="CutterDiameter">Cutter diameter</label>
+            <InputText @bind-Value="GearData.CutterDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="CutterDiameter" />
+            <small class="form-text text-muted">Diameter of end mill bit used to cut the gear to nearest 100th of a mm. Set zero for ideal gear shape.</small>
+            <ValidationMessage For="() => GearData.CutterDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="SpindleDiameter">Spindle diameter</label>
+            <InputText @bind-Value="GearData.SpindleDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="SpindleDiameter" />
+            <small class="form-text text-muted">Diameter of central bore through gear to nearest 100th of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.SpindleDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="InlayDiameter">Inlay diameter</label>
+            <InputText @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="InlayDiameter" />
+            <small class="form-text text-muted">Diameter to nearest 100th of a mm of central inlay for inserting a bearing. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.InlayDiameter" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="KeyWidth">Key width</label>
+            <InputText @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="KeyWidth" />
+            <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
+            <ValidationMessage For="() => GearData.KeyFlatWidth" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Generate</button>
+        </div>
+        <div class="col-md-9">
+            <a class="btn btn-primary" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+        </div>
+    </div>
+</EditForm>
+@if(!string.IsNullOrWhiteSpace(Errors.Value))
+{
+    <div class="card m-md-4">
+        <div class="card-body">
+            <h5 class="card-title">Error generating gear</h5>
+            <p class="card-text">@Errors</p>
+        </div>
+    </div>
+}
+
+@if (!IsDisabled)
+{
+    <div class="card m-md-4">
+        <div class="card-body">
+            <h5 class="card-title">Cycloidal spur gear</h5>
+            <p class="card-text">@ImageDescription</p>
+        </div>
+        <img src="@InvImage" class="card-img-bottom" alt="Image of gear will appear here" />
+    </div>
+}
+
+@code {
+    bool IsDisabled = true;
+    CycloidParams GearData = new ();
+    string InvImage = string.Empty;
+    MarkupString ImageDescription = new MarkupString(string.Empty);
+    MarkupString Errors = new MarkupString(string.Empty);
+    string SVG = string.Empty;
+    string SvgUrl = "/";
+
+    void Generate(EditContext ctx)
+    {
+        IsDisabled = true;
+        if (ctx.Validate())
+        {
+            try
+            {
+                var gearProfile = GearAPI.CalcCycloidImage(GearData);
+                ImageDescription = Program.ToHtmlText(gearProfile.Description);
+                Errors = Program.ToHtmlText(gearProfile.Errors);
+                InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
+                SVG = gearProfile.SvgData;
+                SvgUrl = "/api/download?id=" 
+                    + Cache.Insert(gearProfile.ShortName, SVG);
+                IsDisabled = false;
+            }
+            catch (Exception x)
+            {
+                Errors = Program.ToHtmlText
+                    ($"Gear generator threw an exception.\r\nReason: {x.Message}\r\nStack: {x.StackTrace}");
+                InvImage = "";
+                SVG = string.Empty;
+            }
+        }
+    }
+
+    async Task SvgToClipboard()
+    {
+        await JSRuntime.InvokeVoidAsync("clipboardCopy.copyText", SVG);
+    }
+}

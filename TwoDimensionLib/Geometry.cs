@@ -544,4 +544,65 @@ public static class Geometry
     /// </summary>
 
     public static double AngleStep => 2 * Math.PI / PointsPerRotation;
+
+    /// <summary>
+    /// Implement the Newton Raphson iterative root finding algorithm
+    /// </summary>
+    /// <param name="func">The function whose value and gradient are computed
+    /// as part of the process of finding the function's roots</param>
+    /// <param name="xCurr">The starting value for the iterative
+    /// root finder</param>
+    /// <param name="xResolution">The accuracy at which we shall terminate
+    /// the iteration</param>
+    /// <returns>The value of the nearest root to the starting value</returns>
+    
+    public static double NewtonRaphson(Func<double, (double, double)> func, double xCurr, double xResolution)
+    {
+        double xPrev;
+        do
+        {
+            xPrev = xCurr;
+            (double fOfX, double dfByDx) = func(xCurr);
+            xCurr -= fOfX / dfByDx;
+        } while (Math.Abs(xCurr - xPrev) > xResolution);
+        return xCurr;
+    }
+
+    /// <summary>
+    /// Search between two values of X for the root of the
+    /// equation func(X) = 0 using a binary search algorithm.
+    /// The equation is assumed to have no inflexions between
+    /// the lower and upper value of X
+    /// </summary>
+    /// <param name="func">The function we are finding
+    /// roots for</param>
+    /// <param name="lower">The lower bound on X</param>
+    /// <param name="upper">The upper bound on X</param>
+    /// <param name="delta">The resolution of the
+    /// root finder</param>
+    /// <returns>An approximation to the root with an
+    /// allowed error margin of delta</returns>
+
+    public static double RootBinarySearch
+        (Func<double, double> func, double lower, double upper, double delta)
+    {
+        // Find the value of the function at the upper and lower bounds
+
+        double fLower = func(lower);
+        double fUpper = func(upper);
+        if (Math.Sign(fLower) == Math.Sign(fUpper))
+            throw new ArgumentException
+                ("Root gradient search must have values either side of zero");
+        int direction = fUpper >= 0 ? 1 : -1;
+        double x = lower;
+        for(double dx = (upper - lower) / 2; dx > delta/2; dx /= 2)
+        {
+            double fx = direction * func(x);
+            if (fx < 0)
+                x += dx;
+            else
+                x -= dx;
+        }
+        return x;
+    }
 }

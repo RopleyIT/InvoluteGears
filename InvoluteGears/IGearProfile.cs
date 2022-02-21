@@ -10,11 +10,20 @@ namespace InvoluteGears;
 public interface IGearProfile
 {
     string Information { get; }
+
+    string Errors { get; }
+
     string ShortName { get; }
+
     int ToothCount { get; }
+
     double Module { get; }
+
     double MaxError { get; }
+
     double InnerDiameter { get; }
+
     double CutDiameter { get; }
+
     IEnumerable<Coordinate> GenerateCompleteGearPath();
 }

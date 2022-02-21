@@ -34,6 +34,29 @@ namespace GearWeb.Shared
             return CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
         }
 
+        public static GearProfiles CalcCycloidImage(CycloidParams gParams)
+        {
+            if (gParams == null)
+                throw new ArgumentNullException(nameof(gParams));
+
+            CycloidalGear gear = new (
+                gParams.Teeth,
+                gParams.OpposingTeeth,
+                double.Parse(gParams.Module),
+                double.Parse(gParams.Tolerance),
+                double.Parse(gParams.ContactRatio),
+                double.Parse(gParams.Backlash) / double.Parse(gParams.Module),
+                double.Parse(gParams.CutterDiameter));
+
+            Cutouts cutoutCalculator = new(
+                gear,
+                double.Parse(gParams.SpindleDiameter),
+                double.Parse(gParams.InlayDiameter),
+                double.Parse(gParams.KeyFlatWidth));
+
+            return CreateGearPlot(cutoutCalculator, gear.AddendumDiameter);
+        }
+
         public static Stream CalcInvoluteSvgZip(GearParams gParams)
         {
             GearProfiles profiles = CalcInvoluteImage(gParams);
@@ -64,7 +87,8 @@ namespace GearWeb.Shared
                 Description = cutoutCalculator.Gear.Information + cutoutCalculator.Information,
                 ShortName = cutoutCalculator.Gear.ShortName,
                 JpegBase64 = Convert.ToBase64String(bytes),
-                SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size)
+                SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size),
+                Errors = cutoutCalculator.Gear.Errors + cutoutCalculator.Errors
             };
         }
 

@@ -20,7 +20,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GearWeb", "GearWeb\GearWeb.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwoDimensionLib", "TwoDimensionLib\TwoDimensionLib.csproj", "{A9755B42-81A2-43C0-8E17-18F4CC7ED8C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwoDLibTests", "TwoDLibTests\TwoDLibTests.csproj", "{731E8527-C974-4AE2-8AC2-EED2C9876757}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwoDLibTests", "TwoDLibTests\TwoDLibTests.csproj", "{731E8527-C974-4AE2-8AC2-EED2C9876757}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GearTests", "GearTests\GearTests.csproj", "{360635B0-095B-45B6-9114-05A58B490F24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{731E8527-C974-4AE2-8AC2-EED2C9876757}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{731E8527-C974-4AE2-8AC2-EED2C9876757}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{731E8527-C974-4AE2-8AC2-EED2C9876757}.Release|Any CPU.Build.0 = Release|Any CPU
+		{360635B0-095B-45B6-9114-05A58B490F24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{360635B0-095B-45B6-9114-05A58B490F24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{360635B0-095B-45B6-9114-05A58B490F24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{360635B0-095B-45B6-9114-05A58B490F24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

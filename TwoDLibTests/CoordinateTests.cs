@@ -120,8 +120,8 @@ namespace TwoDLibTests
         {
             Coordinate c = new (1, 1);
             c = c.Rotate(Math.PI / 4);
-            Assert.AreEqual(Math.Sqrt(2), c.Y);
-            Assert.AreEqual(0, c.X);
+            Assert.AreEqual(Math.Sqrt(2), c.Y, 1e-6);
+            Assert.AreEqual(0, c.X, 1E-6);
         }
 
         [TestMethod]
