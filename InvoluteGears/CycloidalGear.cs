@@ -14,7 +14,7 @@ namespace InvoluteGears
             Module = module;
             MaxError = maxErr;
             Backlash = backlash;
-            MinContactRatio = contactRatio;
+            ContactRatio = contactRatio;
             OpposingToothCount = oppositeToothCount;
             CutDiameter = cutterDiam;
             Errors = InitPointLists();
@@ -173,7 +173,7 @@ namespace InvoluteGears
         /// exceed unity for the gear to work correctly.
         /// </summary>
 
-        public double MinContactRatio { get; private set; }
+        public double ContactRatio { get; private set; }
 
         /// <summary>
         /// The angle in radians taken up by one tooth and one dedendum
@@ -181,19 +181,27 @@ namespace InvoluteGears
         
         public double ToothAngle => 2 * Math.PI / ToothCount;
 
+        private double PinionContactRatio => 
+            (pinionAddendumAngle + pinionDedendumAngle) / ToothAngle;
+
+        private double WheelContactRatio =>
+            (wheelAddendumAngle + wheelDedendumAngle) / (2 * Math.PI) * OpposingToothCount;
         private string InitPointLists()
         {
             // Assume clock toothing with locii radius half of wheel radius
 
-            //TuneGearCriteria(ToothCount * Module / 4, OpposingToothCount * Module / 4, MinContactRatio);
             CalcMaximumCriteria(ToothCount * Module / 4, OpposingToothCount * Module / 4);
+            if (ContactRatio > 0 && ContactRatio < PinionContactRatio) // TODO: Calc from contact ratio
+                CalcMinimumCriteria
+                    (ToothCount * Module / 4, OpposingToothCount * Module / 4, Math.PI / 10);
+            
             // Validate that the angles can support the number of teeth suggested
 
             var wheelToothAngle = 2 * Math.PI / OpposingToothCount;
-            if (pinionDedendumAngle + pinionAddendumAngle < ToothAngle)
-                return "Gear needs more teeth to support the requested pressure angle";
-            if(wheelAddendumAngle + wheelDedendumAngle < wheelToothAngle)
-                return "Opposite gear needs more teeth to support the requested pressure angle";
+            if (PinionContactRatio < 1)
+                return "Gear needs more teeth for contact ratio >= 1.0";
+            if(WheelContactRatio < 1)
+                return "Opposite gear needs more teeth for contact ratio >= 1.0";
             oneToothProfile = OneToothProfile();
             if (oneToothProfile == null)
                 return "Unable to form the profile for each tooth of this gear";

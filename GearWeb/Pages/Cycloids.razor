@@ -28,9 +28,9 @@
     </div>
     <div class="form-row">
         <div class="form-group col-md-4">
-            <label for="PressureAngle">Contact Ratio</label>
+            <label for="ContactRatio">Contact Ratio</label>
             <InputText @bind-Value="GearData.ContactRatio" class="form-control form-control-lg" ParsingErrorMessage="Value >= 1.0" id="ContactRatio" />
-            <small class="form-text text-muted">Minimum contact ratio for teeth. >= 1.0 means one tooth is in contact with opposite gear at all times.</small>
+            <small class="form-text text-muted">Minimum contact ratio for teeth. >= 1.0 means one tooth is in contact with opposite gear at all times. Set zero to ignore.</small>
             <ValidationMessage For="() => GearData.ContactRatio" />
         </div>
         <div class="form-group col-md-4">

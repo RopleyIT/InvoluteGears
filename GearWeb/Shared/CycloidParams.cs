@@ -18,7 +18,7 @@ namespace GearWeb.Shared
         public string Tolerance { get; set; }
 
         [Required]
-        [RegularExpression(@"[1-9]\d*(\.\d+)?", ErrorMessage = "Value >= 1")]
+        [RegularExpression(@"0|([1-9]\d*(\.\d+)?)", ErrorMessage = "Value zero or >= 1")]
         public string ContactRatio { get; set; }
 
         [Required]
