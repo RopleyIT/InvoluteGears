@@ -20,7 +20,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void TestNewtonRaphson()
         {
-            (double, double) quadratic(double x)
+            static (double, double) quadratic(double x)
             {
                 return (x * x - 6 * x - 55, 2 * x - 6);
             }
@@ -35,11 +35,6 @@ namespace TwoDLibTests
         [TestMethod]
         public void TestRootBinarySearch()
         {
-            (double, double) quadratic(double x)
-            {
-                return (x * x - 6 * x - 55, 2 * x - 6);
-            }
-
             double root1 = Geometry.RootBinarySearch(x => x * x - 6 * x - 55, -7, -2, 0.00001);
             
             double root2 = Geometry.RootBinarySearch(x => x * x - 6 * x - 55, 3.1, 18, 0.00001);

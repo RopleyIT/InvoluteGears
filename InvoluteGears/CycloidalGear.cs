@@ -117,14 +117,14 @@ namespace InvoluteGears
         private double pinionAddendumRadius;
         private double wheelAddendumRadius;
         private double pinionDedendumRadius;
-        private double wheelDedendumRadius;
+        //private double wheelDedendumRadius;
         private double maxPinionPressureAngle;
         private double maxWheelPressureAngle;
         private IList<Coordinate> oneToothProfile;
 
         public double AddendumDiameter => pinionAddendumRadius * 2;
 
-        private double MaxAngleFunc(double rp, double rk, double phi, double t)
+        private static double MaxAngleFunc(double rp, double rk, double phi, double t)
         {
             // First calculate the position on the epicycloid after the locus
             // wheel has rolled round the pinion by phi radians
@@ -136,61 +136,13 @@ namespace InvoluteGears
             return rk * sindt - c * sinpt;
         }
 
-        private double CalcMaxAddendumAngle(double radius, double otherLocusRadius, int toothCount, double blunting)
+        private static double CalcMaxAddendumAngle(double radius, double otherLocusRadius, int toothCount, double blunting)
         {
             double maxTipAngle = Math.Min(Math.PI * otherLocusRadius / radius, Math.PI);
-            Func<double, double> func = 
-                phi => MaxAngleFunc(radius, otherLocusRadius, phi, -0.5 * (1 - blunting) * Math.PI / toothCount);
+            double func(double phi) 
+                => MaxAngleFunc(radius, otherLocusRadius, phi, 
+                    -0.5 * (1 - blunting) * Math.PI / toothCount);
             return Geometry.RootBinarySearch(func, 0, maxTipAngle, Math.PI / 2048); // Approx 0.1 degree resolution
-        }
-
-        /// <summary>
-        /// For a given maximum pressure angle, find the angles subtended at the wheel
-        /// and pinion centres between the contact point of the two pitch circles and
-        /// the upper and lower points at which the contact loci angles begin to exceed
-        /// the requested pressure angle. Also compute the minimum addendum radius
-        /// for each gear to reach this pressure angle.
-        /// </summary>
-        /// <param name="maxPressureAngle">The desired maximum pressure angle between
-        /// teeth. Note that for cycloidal gears, the pressure angle varies between
-        /// zero when contact between gears is on the line of centres, and higher
-        /// values the further either side of that point the wheels turn. These
-        /// loci are arcs of circles that lie on the circles used to create the
-        /// epicycloids and hypocycloids that make up the gear teeth shapes.</param>
-        /// <param name="locusRadius">The radius of the pinion locus circle. The
-        /// pinion is the gear with ToothCount teeth</param>
-        /// <param name="wheelLocusRadius">The radius of the wheel locus circle.
-        /// The wheel is the opposite gear our gear will be engaging with.</param>
-        /// <param name="pressureAngle">The trial maximum pressure angle
-        /// we shall calculate for</param>
-        
-        private void CalcMinimumCriteria
-            (double locusRadius, double wheelLocusRadius, double pressureAngle)
-        {
-            // First calculate the minimum criteria based on maximum
-            // pressure angle between contact points on the two gears
-
-            var sinPA = Math.Sin(pressureAngle);
-            var cosPA = Math.Cos(pressureAngle);
-            var tls = 2 * locusRadius * sinPA;
-            double pinionRadius = PitchRadius;
-            double wheelRadius = OpposingToothCount * Module / 2;
-            double centres = pinionRadius + wheelRadius;
-            double contactY= tls * cosPA;
-            double contactX = tls * sinPA;
-            pinionDedendumAngle = Math.Atan2(contactY, pinionRadius - contactX);
-            wheelAddendumAngle = Math.Atan2(contactY,  wheelRadius + contactX);
-            wheelAddendumRadius = Math.Sqrt
-                (Coordinate.SumOfSquares(contactY, wheelRadius + contactX));
-            pinionDedendumRadius = centres - wheelAddendumRadius;
-            tls = 2 * wheelLocusRadius * sinPA;
-            contactY = tls * cosPA;
-            contactX = tls * sinPA;
-            wheelDedendumAngle = Math.Atan2(contactY, wheelRadius - contactX);
-            pinionAddendumAngle = Math.Atan2(contactY, pinionRadius + contactX);
-            pinionAddendumRadius = Math.Sqrt
-                (Coordinate.SumOfSquares(contactY, pinionRadius + contactX));
-            wheelDedendumRadius = centres - pinionAddendumRadius;
         }
 
         private void CalcMaximumCriteria(double locusRadius, 
@@ -207,7 +159,7 @@ namespace InvoluteGears
             wheelAddendumRadius = Geometry.Epicycloid
                 (wheelRadius, locusRadius, wheelAddendumAngle).Magnitude;
             pinionDedendumRadius = centres - wheelAddendumRadius;
-            wheelDedendumRadius = centres - pinionAddendumRadius;
+            //wheelDedendumRadius = centres - pinionAddendumRadius;
             pinionDedendumAngle = wheelRadius / PitchRadius * wheelAddendumAngle;
             wheelDedendumAngle = PitchRadius / wheelRadius * pinionAddendumAngle;
             maxPinionPressureAngle = 0.5 * pinionAddendumAngle * PitchRadius / wheelLocusRadius;
@@ -231,10 +183,6 @@ namespace InvoluteGears
 
             CalcMaximumCriteria(ToothCount * Module / 4, 
                 OpposingToothCount * Module / 4, ToothBlunting, OpposingToothBlunting);
-            
-            // Validate that the angles can support the number of teeth suggested
-
-            var wheelToothAngle = 2 * Math.PI / OpposingToothCount;
             if (PinionContactRatio < 1)
                 return "Gear needs more teeth for contact ratio >= 1.0";
             if(WheelContactRatio < 1)
