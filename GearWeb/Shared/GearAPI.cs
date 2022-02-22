@@ -42,9 +42,10 @@ namespace GearWeb.Shared
             CycloidalGear gear = new (
                 gParams.Teeth,
                 gParams.OpposingTeeth,
+                gParams.ToothBlunting/100.0,
+                gParams.OpposingToothBlunting/100.0,  
                 double.Parse(gParams.Module),
                 double.Parse(gParams.Tolerance),
-                double.Parse(gParams.ContactRatio),
                 double.Parse(gParams.Backlash) / double.Parse(gParams.Module),
                 double.Parse(gParams.CutterDiameter));
 

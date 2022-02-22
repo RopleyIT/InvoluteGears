@@ -12,14 +12,18 @@ namespace GearWeb.Shared
         [Required]
         [Range(6, 1000, ErrorMessage = "Must be 6 or more")]
         public int OpposingTeeth { get; set; }
+        
+        [Required]
+        [Range(0, 100, ErrorMessage = "Percentage, 0 ... 100")]
+        public int ToothBlunting { get; set; }
+
+        [Required]
+        [Range(0, 100, ErrorMessage = "Percentage, 0 ... 100")]
+        public int OpposingToothBlunting { get; set; }
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string Tolerance { get; set; }
-
-        [Required]
-        [RegularExpression(@"0|([1-9]\d*(\.\d+)?)", ErrorMessage = "Value zero or >= 1")]
-        public string ContactRatio { get; set; }
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Number > 0 to nearest 100th of a mm")]

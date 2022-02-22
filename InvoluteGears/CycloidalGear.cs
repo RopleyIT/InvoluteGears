@@ -7,15 +7,17 @@ namespace InvoluteGears
 {
     public class CycloidalGear : IGearProfile
     {
-        public CycloidalGear(int toothCount, int oppositeToothCount, double module, 
-            double maxErr, double contactRatio, double backlash, double cutterDiam)
+        public CycloidalGear(int toothCount, int oppositeToothCount, double toothBlunting,
+            double oppositeToothBlunting, double module, 
+            double maxErr, double backlash, double cutterDiam)
         {
             ToothCount = toothCount;
+            ToothBlunting = toothBlunting;
             Module = module;
             MaxError = maxErr;
             Backlash = backlash;
-            ContactRatio = contactRatio;
             OpposingToothCount = oppositeToothCount;
+            OpposingToothBlunting = oppositeToothBlunting;
             CutDiameter = cutterDiam;
             Errors = InitPointLists();
             SetInformation();
@@ -26,6 +28,7 @@ namespace InvoluteGears
             Information += $"pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0, precision = {MaxError}mm\r\n";
             Information += $"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n";
             Information += $"contact ratio = {(pinionAddendumAngle + pinionDedendumAngle) / ToothAngle:N3}\r\n";
+            Information += $"max pressure angles: {180 / Math.PI * maxPinionPressureAngle:N2}/{180 / Math.PI * maxWheelPressureAngle:N2}\r\n";
         }
 
         public string ShortName
@@ -45,6 +48,22 @@ namespace InvoluteGears
 
         public int ToothCount { get; private set; }
 
+        /// <summary>
+        /// The fraction of the tooth's angle that is unused
+        /// for the epicycloid in contact with the opposite
+        /// tooth hypocycloid. This unused fraction appears
+        /// as a piece of addendum circle at the tooth tip. It
+        /// can range from 1.0 where the tooth is effectively
+        /// sawn off at the pitch circle, to 0.0 where the
+        /// epicycloid runs right up to a point at half the
+        /// tooth width. The latter gives the maximum contact
+        /// ratio, but steeper maximum pressure angles. The
+        /// former gives very low pressure angles but reduces
+        /// the contact ratio possibly below the minimum of 1.0.
+        /// </summary>
+        
+        public double ToothBlunting { get; private set; }
+
         public double Module { get; private set; }  
 
         public double MaxError { get; private set; }
@@ -56,6 +75,23 @@ namespace InvoluteGears
         public double Backlash { get; private set; }
 
         public int OpposingToothCount { get; private set; }
+
+
+        /// <summary>
+        /// The fraction of the opposite tooth's angle that
+        /// is unused for the epicycloid in contact with the 
+        /// tooth hypocycloid. This unused fraction appears
+        /// as a piece of addendum circle at the tooth tip. It
+        /// can range from 1.0 where the tooth is effectively
+        /// sawn off at the pitch circle, to 0.0 where the
+        /// epicycloid runs right up to a point at half the
+        /// tooth width. The latter gives the maximum contact
+        /// ratio, but steeper maximum pressure angles. The
+        /// former gives very low pressure angles but reduces
+        /// the contact ratio possibly below the minimum of 1.0.
+        /// </summary>
+
+        public double OpposingToothBlunting { get; private set; }
 
         public double PressureAngle { get; private set; }
 
@@ -82,6 +118,8 @@ namespace InvoluteGears
         private double wheelAddendumRadius;
         private double pinionDedendumRadius;
         private double wheelDedendumRadius;
+        private double maxPinionPressureAngle;
+        private double maxWheelPressureAngle;
         private IList<Coordinate> oneToothProfile;
 
         public double AddendumDiameter => pinionAddendumRadius * 2;
@@ -98,11 +136,11 @@ namespace InvoluteGears
             return rk * sindt - c * sinpt;
         }
 
-        private double CalcMaxAddendumAngle(double radius, double otherLocusRadius, int toothCount)
+        private double CalcMaxAddendumAngle(double radius, double otherLocusRadius, int toothCount, double blunting)
         {
             double maxTipAngle = Math.Min(Math.PI * otherLocusRadius / radius, Math.PI);
             Func<double, double> func = 
-                phi => MaxAngleFunc(radius, otherLocusRadius, phi, -0.5 * Math.PI / toothCount);
+                phi => MaxAngleFunc(radius, otherLocusRadius, phi, -0.5 * (1 - blunting) * Math.PI / toothCount);
             return Geometry.RootBinarySearch(func, 0, maxTipAngle, Math.PI / 2048); // Approx 0.1 degree resolution
         }
 
@@ -137,27 +175,33 @@ namespace InvoluteGears
             var tls = 2 * locusRadius * sinPA;
             double pinionRadius = PitchRadius;
             double wheelRadius = OpposingToothCount * Module / 2;
-            pinionDedendumAngle = Math.Atan2(tls * cosPA, pinionRadius - tls * sinPA);
-            wheelAddendumAngle = Math.Atan2(tls * cosPA,  wheelRadius + tls * sinPA);
+            double centres = pinionRadius + wheelRadius;
+            double contactY= tls * cosPA;
+            double contactX = tls * sinPA;
+            pinionDedendumAngle = Math.Atan2(contactY, pinionRadius - contactX);
+            wheelAddendumAngle = Math.Atan2(contactY,  wheelRadius + contactX);
             wheelAddendumRadius = Math.Sqrt
-                (Coordinate.SumOfSquares(tls * cosPA, wheelRadius + tls * sinPA));
-            pinionDedendumRadius = wheelRadius + pinionRadius - wheelAddendumRadius;
+                (Coordinate.SumOfSquares(contactY, wheelRadius + contactX));
+            pinionDedendumRadius = centres - wheelAddendumRadius;
             tls = 2 * wheelLocusRadius * sinPA;
-            wheelDedendumAngle = Math.Atan2(tls * cosPA, wheelRadius - tls * sinPA);
-            pinionAddendumAngle = Math.Atan2(tls * cosPA, pinionRadius + tls * sinPA);
+            contactY = tls * cosPA;
+            contactX = tls * sinPA;
+            wheelDedendumAngle = Math.Atan2(contactY, wheelRadius - contactX);
+            pinionAddendumAngle = Math.Atan2(contactY, pinionRadius + contactX);
             pinionAddendumRadius = Math.Sqrt
-                (Coordinate.SumOfSquares(tls * cosPA, pinionRadius + tls * sinPA));
-            wheelDedendumRadius = wheelRadius + pinionRadius - pinionAddendumRadius;
+                (Coordinate.SumOfSquares(contactY, pinionRadius + contactX));
+            wheelDedendumRadius = centres - pinionAddendumRadius;
         }
 
-        private void CalcMaximumCriteria(double locusRadius, double wheelLocusRadius)
+        private void CalcMaximumCriteria(double locusRadius, 
+            double wheelLocusRadius, double pinionBlunting, double wheelBlunting)
         {
             double wheelRadius = OpposingToothCount * Module / 2;
             double centres = PitchRadius + wheelRadius;
             pinionAddendumAngle = CalcMaxAddendumAngle
-                (PitchRadius, wheelLocusRadius, ToothCount);
+                (PitchRadius, wheelLocusRadius, ToothCount, pinionBlunting);
             wheelAddendumAngle = CalcMaxAddendumAngle
-                (wheelRadius, locusRadius, OpposingToothCount);
+                (wheelRadius, locusRadius, OpposingToothCount, wheelBlunting);
             pinionAddendumRadius = Geometry.Epicycloid
                 (PitchRadius, wheelLocusRadius, pinionAddendumAngle).Magnitude;
             wheelAddendumRadius = Geometry.Epicycloid
@@ -166,14 +210,9 @@ namespace InvoluteGears
             wheelDedendumRadius = centres - pinionAddendumRadius;
             pinionDedendumAngle = wheelRadius / PitchRadius * wheelAddendumAngle;
             wheelDedendumAngle = PitchRadius / wheelRadius * pinionAddendumAngle;
+            maxPinionPressureAngle = 0.5 * pinionAddendumAngle * PitchRadius / wheelLocusRadius;
+            maxWheelPressureAngle = 0.5 * wheelAddendumAngle * wheelRadius / locusRadius;
         }
-
-        /// <summary>
-        /// The average number of teeth engaged at any one time. Should
-        /// exceed unity for the gear to work correctly.
-        /// </summary>
-
-        public double ContactRatio { get; private set; }
 
         /// <summary>
         /// The angle in radians taken up by one tooth and one dedendum
@@ -190,10 +229,8 @@ namespace InvoluteGears
         {
             // Assume clock toothing with locii radius half of wheel radius
 
-            CalcMaximumCriteria(ToothCount * Module / 4, OpposingToothCount * Module / 4);
-            if (ContactRatio > 0 && ContactRatio < PinionContactRatio) // TODO: Calc from contact ratio
-                CalcMinimumCriteria
-                    (ToothCount * Module / 4, OpposingToothCount * Module / 4, Math.PI / 10);
+            CalcMaximumCriteria(ToothCount * Module / 4, 
+                OpposingToothCount * Module / 4, ToothBlunting, OpposingToothBlunting);
             
             // Validate that the angles can support the number of teeth suggested
 

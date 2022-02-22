@@ -7,31 +7,37 @@
 <EditForm Model=@GearData OnSubmit="@Generate">
     <DataAnnotationsValidator />
     <div class="form-row">
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="Teeth">Number of teeth</label>
             <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
             <small class="form-text text-muted">The number of teeth on the gear. Minimum value is 6.</small>
             <ValidationMessage For="() => GearData.Teeth" />
         </div>
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="OpposingTeeth">Number of teeth in opposite gear</label>
             <InputNumber @bind-Value="GearData.OpposingTeeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="OpposingTeeth" />
             <small class="form-text text-muted">The number of teeth on the opposing gear. Minimum value is 6</small>
             <ValidationMessage For="() => GearData.OpposingTeeth" />
         </div>
+        <div class="form-group col-md-3">
+            <label for="ToothBlunting">Addendum blunting</label>
+            <InputNumber @bind-Value="GearData.ToothBlunting" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer, 0..100" id="ToothBlunting" />
+            <small class="form-text text-muted">Percentage of width of raised tooth flattened at top of tooth</small>
+            <ValidationMessage For="() => GearData.ToothBlunting" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="OpposingToothBlunting">Opposite tooth addendum blunting</label>
+            <InputNumber @bind-Value="GearData.OpposingToothBlunting" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer, 0..100" id="OpposingToothBlunting" />
+            <small class="form-text text-muted">Percentage of width of opposite tooth flattened at top of tooth</small>
+            <ValidationMessage For="() => GearData.OpposingToothBlunting" />
+        </div>
+    </div>
+    <div class="form-row">
         <div class="form-group col-md-4">
             <label for="Tolerance">Precision</label>
             <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
             <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
             <ValidationMessage For="() => GearData.Tolerance" />
-        </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-4">
-            <label for="ContactRatio">Contact Ratio</label>
-            <InputText @bind-Value="GearData.ContactRatio" class="form-control form-control-lg" ParsingErrorMessage="Value >= 1.0" id="ContactRatio" />
-            <small class="form-text text-muted">Minimum contact ratio for teeth. >= 1.0 means one tooth is in contact with opposite gear at all times. Set zero to ignore.</small>
-            <ValidationMessage For="() => GearData.ContactRatio" />
         </div>
         <div class="form-group col-md-4">
             <label for="Module">Module</label>
