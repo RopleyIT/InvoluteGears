@@ -5,9 +5,9 @@ using TwoDimensionLib;
 
 namespace InvoluteGears;
 
-public class GearParameters : IGearProfile
+public class InvoluteGearParameters : IGearProfile
 {
-    public GearParameters(int toothCount, double module = 1.0,
+    public InvoluteGearParameters(int toothCount, double module = 1.0,
         double pressureAngle = Math.PI / 9, double profileShift = 0.0,
         double maxErr = 0.0, double backlash = 0.0, double cutterDiam = 0.0)
     {
@@ -321,7 +321,7 @@ public class GearParameters : IGearProfile
     /// we are trying to mesh</param>
     /// <returns>True if the gears are compatible</returns>
 
-    public bool CanMeshWith(GearParameters meshedGear)
+    public bool CanMeshWith(InvoluteGearParameters meshedGear)
         => meshedGear != null
         && PressureAngle == meshedGear.PressureAngle
         && Module == meshedGear.Module;
@@ -336,7 +336,7 @@ public class GearParameters : IGearProfile
     /// <returns>The length of the path along which the two
     /// gears are in contact before breaking apart</returns>
 
-    public double ContactDistanceWithGear(GearParameters meshedGear)
+    public double ContactDistanceWithGear(InvoluteGearParameters meshedGear)
     {
         if (!CanMeshWith(meshedGear))
         {
@@ -374,7 +374,7 @@ public class GearParameters : IGearProfile
     /// <returns>The contact ratio. Must be greater
     /// than one for gears to mesh correctly.</returns>
 
-    public double ContactRatioWith(GearParameters meshedGear)
+    public double ContactRatioWith(InvoluteGearParameters meshedGear)
         => ContactDistanceWithGear(meshedGear) / BaseCirclePitch;
 
     private IList<Coordinate> UndercutPoints;
@@ -744,7 +744,7 @@ public class GearParameters : IGearProfile
     /// <param name="g2">The second gear being meshed</param>
     /// <returns>The contact ratio</returns>
 
-    public static double IdealContactRatio(GearParameters g1, GearParameters g2)
+    public static double IdealContactRatio(InvoluteGearParameters g1, InvoluteGearParameters g2)
     {
         if (g1 == null || !g1.CanMeshWith(g2))
             throw new ArgumentException("Gears have differing modules or pressure angles");

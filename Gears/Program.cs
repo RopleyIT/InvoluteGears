@@ -42,7 +42,7 @@ internal class Program
                     Usage("-m option needs 4 arguments");
                     return;
                 }
-                Console.WriteLine(GearParameters.MatchedPairs(numerator, denominator, minTeeth, maxTeeth));
+                Console.WriteLine(InvoluteGearParameters.MatchedPairs(numerator, denominator, minTeeth, maxTeeth));
                 return;
             }
             if (args[0] == "-C")
@@ -118,7 +118,7 @@ internal class Program
                     Usage("-p and -P options need seven arguments, plus an optional following -s argument list");
                     return;
                 }
-                GearParameters gear = new(
+                InvoluteGearParameters gear = new(
                     teeth,
                     module / 100.0,
                     Math.PI * pressureAngle / 1800.0,
@@ -361,42 +361,42 @@ internal class Program
                 sw.WriteLine();
 
                 sw.Write("GAP ");
-                List<GearParameters> gears = new();
+                List<InvoluteGearParameters> gears = new();
                 foreach (int i in teeth)
                 {
-                    GearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, s, 0, 0, cutterDiameter / 100.0);
+                    InvoluteGearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, s, 0, 0, cutterDiameter / 100.0);
                     sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
                     gears.Add(gear);
                 }
                 sw.WriteLine();
 
                 sw.Write("Db  ");
-                foreach (GearParameters gear in gears)
+                foreach (InvoluteGearParameters gear in gears)
                     sw.Write($"{gear.BaseCircleDiameter,7:F3} ");
                 sw.WriteLine();
 
                 sw.Write("Dd  ");
-                foreach (GearParameters gear in gears)
+                foreach (InvoluteGearParameters gear in gears)
                     sw.Write($"{gear.DedendumCircleDiameter,7:F3} ");
                 sw.WriteLine();
 
                 sw.Write("Dc  ");
-                foreach (GearParameters gear in gears)
+                foreach (InvoluteGearParameters gear in gears)
                     sw.Write($"{gear.InnerDiameter,7:F3} ");
                 sw.WriteLine();
 
                 sw.Write("Du  ");
-                foreach (GearParameters gear in gears)
+                foreach (InvoluteGearParameters gear in gears)
                     sw.Write($"{gear.UndercutRadius * 2,7:F3} ");
                 sw.WriteLine();
 
                 sw.Write("Dp  ");
-                foreach (GearParameters gear in gears)
+                foreach (InvoluteGearParameters gear in gears)
                     sw.Write($"{gear.PitchCircleDiameter,7:F3} ");
                 sw.WriteLine();
 
                 sw.Write("Da  ");
-                foreach (GearParameters gear in gears)
+                foreach (InvoluteGearParameters gear in gears)
                     sw.Write($"{gear.AddendumCircleDiameter,7:F3} ");
                 sw.WriteLine();
 

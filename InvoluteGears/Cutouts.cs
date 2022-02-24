@@ -234,7 +234,7 @@ public class Cutouts
         // list of points.
 
         IEnumerable<Coordinate> nearSide = innerCorner.Concat(outerCorner);
-        IEnumerable<Coordinate> farSide = GearParameters
+        IEnumerable<Coordinate> farSide = InvoluteGearParameters
             .ReflectY(nearSide)
             .Rotated(2 * Math.PI / spokes)
             .Reverse();

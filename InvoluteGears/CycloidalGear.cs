@@ -75,6 +75,18 @@ namespace InvoluteGears
 
         public double CutDiameter { get; private set; }
 
+        /// <summary>
+        /// Backlash introduced to prevent rubbing of leading and 
+        /// trailing tooth surfaces in poorly machined gears.
+        /// Backlash is measured in fractions of the module around
+        /// the pitch circle. Hence a backlash of 0.2 with a module
+        /// of 5mm would lead to a distance of 1mm around the
+        /// pitch circle. This backlash is introduced into one gear,
+        /// meaning that two gears interleaving will have the sum
+        /// of their backlashes as the total backlash between the
+        /// gears.
+        /// </summary>
+        
         public double Backlash { get; private set; }
 
         public int OpposingToothCount { get; private set; }
@@ -145,6 +157,9 @@ namespace InvoluteGears
                     -0.5 * (1 - blunting) * Math.PI / toothCount);
             return Geometry.RootBinarySearch(func, 0, maxTipAngle, Math.PI / 2048); // Approx 0.1 degree resolution
         }
+
+        private double BacklashAngle =>
+            Backlash * Module / PitchRadius;
 
         private void CalcMaximumCriteria(double locusRadius, 
             double wheelLocusRadius, double pinionBlunting, double wheelBlunting)
@@ -253,14 +268,14 @@ namespace InvoluteGears
             List<Coordinate> toothProfile;
             if (CutDiameter <= 0)
                 toothProfile = new(Geometry.CirclePoints
-                    (-ToothAngle / 2 - boundaryAngle, boundaryAngle,
+                    (-ToothAngle / 2 - boundaryAngle - BacklashAngle, boundaryAngle,
                     Geometry.AngleStep, pinionDedendumRadius));
             else
                 toothProfile = CutterAdjustedDedendum();
 
-
-            if ((toothProfile[0] - toothProfile[^1]).Magnitude < CutDiameter)
-                Errors += "Dedendum too narrow for cutter\r\n";
+            double dedendumWidth = (toothProfile[0] - toothProfile[^1]).Magnitude;
+            if (dedendumWidth < CutDiameter)
+                Errors += $"Dedendum width {dedendumWidth:N2} too narrow for cutter\r\n";
 
             // Now add the rising face of the dedendum then addendum cycloids
 
@@ -272,14 +287,14 @@ namespace InvoluteGears
             List<Coordinate> addendumCircle;
             if (CutDiameter <= 0)
                 addendumCircle = new(Geometry.CirclePoints
-                    (boundaryAngle, ToothAngle / 2 - boundaryAngle,
+                    (boundaryAngle, ToothAngle / 2 - boundaryAngle - BacklashAngle,
                     Geometry.AngleStep, pinionAddendumRadius));
             else
                 addendumCircle = RoundedAddendum
                     (cycloids[^2], cycloids[^1], CutDiameter / 4);
             toothProfile.AddRange(addendumCircle);
             toothProfile.AddRange(cycloids
-                .Select(p => p.Conjugate.Rotate(ToothAngle/2))
+                .Select(p => p.Conjugate.Rotate(ToothAngle/2 - BacklashAngle))
                 .Reverse());
             return Geometry.LinearReduction(toothProfile, MaxError);
         }
@@ -289,7 +304,7 @@ namespace InvoluteGears
             double slope = (ult - penult).Phase;
             Coordinate centre = ult + new Coordinate(roundingRadius, 0)
                 .Rotate(slope + Math.PI / 2);
-            if (centre.Phase > ToothAngle / 4)
+            if (centre.Phase > ToothAngle / 4 - BacklashAngle / 2)
             {
                 // Rounding radius too great for width of addendum tip. We
                 // need to draw a single arc from the end of one epicycloid
@@ -302,12 +317,13 @@ namespace InvoluteGears
                 double m0 = (ult - centre).Gradient;
                 double c0 = ult.Y - m0 * ult.X;
                 Coordinate crossingPt = Geometry
-                    .LineIntersection(m0, c0, Math.Tan(ToothAngle / 4), 0);
+                    .LineIntersection(m0, c0, 
+                    Math.Tan(ToothAngle / 4 - BacklashAngle / 2), 0);
 
                 // Now draw the arc joining the ends of the epicycloid segments
 
                 double startAngle = Math.Atan(m0);
-                double endAngle = -startAngle + ToothAngle / 2;
+                double endAngle = -startAngle + ToothAngle / 2 - BacklashAngle;
                 double radius = (ult - crossingPt).Magnitude;
                 return new List<Coordinate>(
                     Geometry.CirclePoints(startAngle, endAngle,
@@ -315,21 +331,21 @@ namespace InvoluteGears
             }
             else
             {
-                // Rounding radius small enough to draw arc, line arc for
+                // Rounding radius small enough to draw arc, line, arc for
                 // the addendum shape. The arcs are set to be tangential
                 // to the epicycloid at the start and end of the addendum.
 
                 Coordinate upperCentre = centre
-                    .Rotate( ToothAngle / 2 - 2 * centre.Phase);
+                    .Rotate( ToothAngle / 2 - BacklashAngle - 2 * centre.Phase);
 
                 List<Coordinate> addendumPoints = new ();
                 addendumPoints.AddRange(Geometry
                     .CirclePoints(slope - Math.PI / 2,
-                        ToothAngle / 4, Geometry.AngleStep, 
+                        ToothAngle / 4 - BacklashAngle / 2, Geometry.AngleStep, 
                         roundingRadius, centre));
                 addendumPoints.AddRange(Geometry
-                    .CirclePoints(ToothAngle / 4,
-                    ToothAngle / 2 - slope + Math.PI / 2,
+                    .CirclePoints(ToothAngle / 4 - BacklashAngle / 2,
+                    ToothAngle / 2 - BacklashAngle - slope + Math.PI / 2,
                     Geometry.AngleStep, roundingRadius,
                     upperCentre));
                 return addendumPoints;
@@ -343,13 +359,13 @@ namespace InvoluteGears
             Coordinate upperCentre = new (pinionDedendumRadius, -CutDiameter / 2);
             Coordinate lowerCentre = 
                 new Coordinate(pinionDedendumRadius, CutDiameter / 2)
-                    .Rotate(-ToothAngle / 2);
+                    .Rotate(-ToothAngle / 2 - BacklashAngle);
 
             // Find the starting and ending angles for each curve
 
             double upperEndAngle = Math.PI / 2;
-            double dedendumAngle = Math.PI - ToothAngle / 4;
-            double lowerStartAngle = 3 * Math.PI / 2 - ToothAngle / 2;
+            double dedendumAngle = Math.PI - ToothAngle / 4 - BacklashAngle / 2;
+            double lowerStartAngle = 3 * Math.PI / 2 - ToothAngle / 2 - BacklashAngle;
             var points = new List<Coordinate>();
             points.AddRange(Geometry.CirclePoints(dedendumAngle, 
                 lowerStartAngle, Geometry.AngleStep, 

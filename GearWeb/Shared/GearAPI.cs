@@ -16,7 +16,7 @@ namespace GearWeb.Shared
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
 
-            GearParameters gear = new(
+            InvoluteGearParameters gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
                 Math.PI * double.Parse(gParams.PressureAngle) / 180.0,
