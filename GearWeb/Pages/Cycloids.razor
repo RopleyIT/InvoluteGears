@@ -33,19 +33,24 @@
         </div>
     </div>
     <div class="form-row">
-        <div class="form-group col-md-4">
+        <div class="col-md-3">
+            <label for="SwapGears">Switch the two gears</label><br/>
+            <button class="btn btn-primary" id="SwapGears" @onclick="SwapGears">Switch gears</button>
+            <small class="form-text text-muted">Swap the details of the two gears to plot the opposing gear</small>
+        </div>
+        <div class="form-group col-md-3">
             <label for="Tolerance">Precision</label>
             <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
             <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
             <ValidationMessage For="() => GearData.Tolerance" />
         </div>
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="Module">Module</label>
             <InputText @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="Module" />
             <small class="form-text text-muted">Module for gear to nearest 100th of a mm. Diameter at pitch circle will be number of teeth times the module.</small>
             <ValidationMessage For="() => GearData.Module" />
         </div>
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="Backlash">Backlash</label>
             <InputText @bind-Value="GearData.Backlash" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 0.25" id="Backlash" />
             <small class="form-text text-muted">Backlash between gear teeth to nearest 100th of a mm. Set zero for a perfectly tight fitting gear.</small>
@@ -116,6 +121,16 @@
     MarkupString Errors = new MarkupString(string.Empty);
     string SVG = string.Empty;
     string SvgUrl = "/";
+
+    void SwapGears()
+    {
+        int teeth = GearData.Teeth;
+        GearData.Teeth = GearData.OpposingTeeth;
+        GearData.OpposingTeeth = teeth;
+        int blunting = GearData.ToothBlunting;
+        GearData.ToothBlunting = GearData.OpposingToothBlunting;
+        GearData.OpposingToothBlunting = blunting;
+    }
 
     void Generate(EditContext ctx)
     {

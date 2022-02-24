@@ -26,7 +26,7 @@ namespace InvoluteGears
         private void SetInformation()
         {
             Information = $"Cycloid: {ToothCount}/{OpposingToothCount} teeth, module = {Module}mm,\r\n";
-            Information += $"blunting = {ToothBlunting * 100}%/{OpposingToothBlunting * 100}%\r\n";
+            Information += $"blunting = {ToothBlunting * 100:N0}%/{OpposingToothBlunting * 100:N0}%\r\n";
             Information += $"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n";
             Information += $"precision = {MaxError}mm, contact ratio = {(pinionAddendumAngle + pinionDedendumAngle) / ToothAngle:N3}\r\n";
             Information += $"max pressure angles: {180 / Math.PI * maxPinionPressureAngle:N2}\u00b0/{180 / Math.PI * maxWheelPressureAngle:N2}\u00b0\r\n";
