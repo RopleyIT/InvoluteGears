@@ -34,7 +34,8 @@ public static class GearGenerator
         var gearPath = cutoutCalculator.Gear
             .GenerateCompleteGearPath()
             .FromCoords();
-        svgCreator.AddClosedPath(gearPath, string.Empty, 0, "black");
+        if(gearPath.Any())
+            svgCreator.AddClosedPath(gearPath, string.Empty, 0, "black");
         foreach (List<Coordinate> cutout in cutoutCalculator.CutoutPlots)
             svgCreator.AddClosedPath(cutout.FromCoords(), string.Empty, 0, "white");
         if (cutoutCalculator.HexKeyPlot != null)

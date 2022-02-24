@@ -225,6 +225,66 @@ public static class Geometry
     }
 
     /// <summary>
+    /// Given two straight lines, find their point of intersection
+    /// </summary>
+    /// <param name="m0">Gradient of first line</param>
+    /// <param name="c0">Y axis intersection value of first line</param>
+    /// <param name="m1">Gradient of second line</param>
+    /// <param name="c1">Y axis intersection value of second line</param>
+    /// <returns>The point of intersection</returns>
+    
+    public static Coordinate LineIntersection(double m0, double c0, double m1, double c1)
+    {
+        if (m0 == m1)
+            throw new ArgumentException("Lines are parallel");
+        double x = (c0 - c1) / (m1 - m0);
+        return new Coordinate(x, m0 * x + c0);
+    }
+
+    /// <summary>
+    /// Find the 0, 1 or 2 points of intersection
+    /// between a straight line and a circle
+    /// </summary>
+    /// <param name="centre">Coordinate of the circle's centre</param>
+    /// <param name="radius">The radius of the circle</param>
+    /// <param name="lineGradient">The gradient of the straight line</param>
+    /// <param name="yOffset">The value of the straight line equation
+    /// when the x value is zero</param>
+    /// <returns>An enumeration of the coordinates of intersection. The
+    /// coordinates are delivered in order of increasing x value.</returns>
+    
+    public static IEnumerable<Coordinate> CircleLineIntersection
+        (Coordinate centre, double radius, double lineGradient, double yOffset)
+    {
+        double a = 1 + Square(lineGradient);
+        double b = 2 * lineGradient * (yOffset - centre.Y) - 2 * centre.X;
+        double c = Square(centre.X) + Square(yOffset - centre.Y) - Square(radius);
+        return SolveQuadratic(a, b, c)
+            .Select(x => new Coordinate(x, lineGradient * x + yOffset));
+    }
+
+    /// <summary>
+    /// Compute the roots of a quadratic function, using the well-known
+    /// formula: "Minus B plus or minus the square root of B squared minus 4AC
+    /// all over 2A"
+    /// </summary>
+    /// <param name="a">Coefficient of x squared</param>
+    /// <param name="b">Coefficient of x</param>
+    /// <param name="c">Constant coefficient</param>
+    /// <returns>An enumeration of the roots found. Zero length
+    /// if no roots, length one or two to match the number
+    /// of roots found</returns>
+    
+    public static IEnumerable<double> SolveQuadratic(double a, double b, double c)
+    {
+        double rootTerm = Square(b) - 4 * a * c;
+        if (rootTerm >= 0)
+            yield return 0.5 * (-b - Math.Sqrt(rootTerm)) / a;
+        if(rootTerm > 0)
+            yield return 0.5 * (-b + Math.Sqrt(rootTerm)) / a;
+    }
+
+    /// <summary>
     /// Find if a value lies within a determined range
     /// </summary>
     /// <param name="v">The value under test</param>
