@@ -6,47 +6,218 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using TwoDimensionLib;
+using CmdArgs;
+using System.Linq;
 
-namespace InvoluteConsole;
+namespace Gears;
 
 internal class Program
 {
+    private static void Usage(string info)
+    {
+        if (!string.IsNullOrWhiteSpace(info))
+            Console.WriteLine(info);
+        Console.Write(Arguments.Describe(new CommonArgs(), new CutOutArgs(),
+            new InvoluteArgs(), new ChainArgs(), new CycloidArgs(),
+            new EscapeArgs(), new RatchetArgs(), new RollerSprocketArgs()));
+        Console.WriteLine("Utility options");
+        Console.WriteLine("  -c | --customratios comma-sep-pressure-angles comma-sep-tooth-counts module cutter-diameter");
+        Console.WriteLine("    Creates a table of contact ratios for teeth of various pressure angles and tooth counts.");
+        Console.WriteLine("    Cutter diameter and module are measured in 100ths of a millimeter.");
+        Console.WriteLine("  -C filename");
+        Console.WriteLine("    Same as -c option, but predefined standard pressure angles and tooth counts");
+        Console.WriteLine("  -m numerator denominator minteeth maxteeth");
+        Console.WriteLine("    Identifies gear pairs that would achieve the desired gear ratio numerator/denominator with");
+        Console.WriteLine("    wheels having tooth counts in the range minteeth to maxteeth.");
+    }
+
+    private static void CreateGearPlot(Cutouts cutoutCalculator, double size)
+    {
+        // Create the output plot file of the gear
+
+        List<IEnumerable<PointF>> gearPoints = new()
+        {
+            cutoutCalculator.Gear.GenerateCompleteGearPath().FromCoords()
+        };
+        GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
+
+        // Now convert to image bytes to return from Web API
+
+        using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048, Color.Black);
+        using FileStream ms = new(cutoutCalculator.Gear.ShortName + ".jpg", 
+            FileMode.Create, FileAccess.Write, FileShare.None);
+        img.Save(ms, ImageFormat.Jpeg);
+
+        GearGenerator.GenerateSVGFile(cutoutCalculator, (float)size, cutoutCalculator.Gear.ShortName + ".svg");
+    }
+
+    private static void PlotInvolute(CommonArgs common, CutOutArgs cutOut, InvoluteArgs involute)
+    {
+        InvoluteGearParameters gear = new(
+            common.Teeth,
+            common.Module,
+            Math.PI * involute.PressureAngle / 180.0,
+            involute.ProfileShift / 100.0,
+            common.Tolerance,
+            common.Backlash / common.Module,
+            common.CutterDiameter);
+
+        Cutouts cutoutCalculator = new (gear, 
+            cutOut.SpindleDiameter, cutOut.InlayDiameter, 
+            cutOut.KeyFlatWidth);
+
+        CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
+    }
+
+    private static void PlotCycloid(CommonArgs common, CutOutArgs cutOut, CycloidArgs cycloid)
+    {
+        CycloidalGear gear = new(
+            common.Teeth,
+            cycloid.OpposingTeeth,
+            cycloid.ToothBlunting/100.0,
+            cycloid.OpposingToothBlunting/100.0,
+            common.Module,
+            common.Tolerance,
+            common.Backlash / common.Module,
+            common.CutterDiameter);
+
+        Cutouts cutoutCalculator = new (gear,
+            cutOut.SpindleDiameter, cutOut.InlayDiameter,
+            cutOut.KeyFlatWidth);
+
+        CreateGearPlot(cutoutCalculator, gear.AddendumDiameter);
+    }
+
+    private static void PlotChain(CommonArgs common, CutOutArgs cutOut, ChainArgs chain)
+    {
+        ChainSprocket gear = new(
+            common.Teeth,
+            chain.WireThickness,
+            common.Tolerance,
+            chain.InnerLinkLength,
+            chain.OuterLinkWidth,
+            common.CutterDiameter,
+            common.Backlash);
+
+        Cutouts cutoutCalculator = new (gear,
+            cutOut.SpindleDiameter, cutOut.InlayDiameter,
+            cutOut.KeyFlatWidth);
+        cutoutCalculator.AddPlot
+            (gear.GenerateInnerGearPath().ToList());
+
+        CreateGearPlot(cutoutCalculator,
+            gear.InnerDiameter + 2 * gear.OuterLinkWidth);
+    }
+
+    private static void PlotEscape(CommonArgs common, CutOutArgs cutOut, EscapeArgs escape)
+    {
+        EscapeGearParameters gear = new(
+            common.Teeth,
+            common.Module,
+            Math.PI * escape.UndercutAngle / 180.0,
+            escape.FaceLength,
+            escape.TipPitch,
+            common.CutterDiameter,
+            common.Tolerance);
+
+        Cutouts cutoutCalculator = new (gear,
+            cutOut.SpindleDiameter, cutOut.InlayDiameter,
+            cutOut.KeyFlatWidth);
+
+        CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+    }
+
+    private static void PlotRatchet(CommonArgs common, CutOutArgs cutOut, RatchetArgs ratchet)
+    {
+        Ratchet gear = new(
+            common.Teeth,
+            common.Module,
+            common.Tolerance,
+            ratchet.InnerDiameter,
+            common.CutterDiameter);
+
+        Cutouts cutoutCalculator = new (gear,
+            cutOut.SpindleDiameter, cutOut.InlayDiameter,
+            cutOut.KeyFlatWidth);
+
+        CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+    }
+
+    private static void PlotRoller(CommonArgs common, CutOutArgs cutOut, RollerSprocketArgs roller)
+    {
+        RollerSprocket gear = new(
+            common.Teeth,
+            roller.Pitch,
+            common.Tolerance,
+            roller.RollerDiameter,
+            common.Backlash,
+            roller.ChainWidth,
+            common.CutterDiameter);
+
+        Cutouts cutoutCalculator = new (gear,
+            cutOut.SpindleDiameter, cutOut.InlayDiameter,
+            cutOut.KeyFlatWidth);
+
+        CreateGearPlot(cutoutCalculator, gear.OuterDiameter);
+    }
+
     private static void Main(string[] args)
     {
-        // First chop the spindle description off the end of the arg list
-
-        string[] spindleArgs = null;
-        int idx = Array.FindIndex(args, a => string.Compare(a, "-s", true) == 0);
-        if (idx >= 0)
+        if (args.Length < 2)
         {
-            spindleArgs = new string[args.Length - idx];
-            Array.Copy(args, idx, spindleArgs, 0, spindleArgs.Length);
-            string[] newArgs = new string[idx];
-            Array.Copy(args, 0, newArgs, 0, idx);
-            args = newArgs;
+            Usage("gears [cycloid|chain|escape|involute|ratchet|roller|-m|-C|-c] [arguments]");
+            return;
         }
 
-        if (args.Length > 0)
+        CommonArgs common = new ();
+        CutOutArgs cutOut = new ();
+        InvoluteArgs involute = new ();
+        ChainArgs chain = new ();
+        CycloidArgs cycloid = new ();
+        EscapeArgs escape = new ();
+        RatchetArgs ratchet = new ();
+        RollerSprocketArgs roller = new ();
+
+        Span<string> opts = new (args, 1, args.Length - 1);
+        switch(args[0])
         {
-            if (args[0] == "-h")
-            {
-                Usage(null);
-                return;
-            }
-            if (args[0] == "-m")
-            {
+            case "involute":
+                Arguments.Parse(opts, common, cutOut, involute);
+                PlotInvolute(common, cutOut, involute);
+                break;
+            case "cycloid":
+                Arguments.Parse(opts, common, cutOut, cycloid);
+                PlotCycloid(common, cutOut, cycloid);
+                break;
+            case "chain":
+                Arguments.Parse(opts, common, cutOut, chain);
+                PlotChain(common, cutOut, chain);
+                break;
+            case "escape":
+                Arguments.Parse(opts, common, cutOut, escape);
+                PlotEscape(common, cutOut, escape);
+                break;
+            case "ratchet":
+                Arguments.Parse(opts, common, cutOut, ratchet);
+                PlotRatchet(common, cutOut, ratchet);
+                break;
+            case "roller":
+                Arguments.Parse(opts, common, cutOut, roller);
+                PlotRoller(common, cutOut, roller);
+                break;
+            case "-m":
+            case "--matchedpairs":
                 if (args.Length != 5 ||
                     !int.TryParse(args[1], out int numerator) || !int.TryParse(args[2], out int denominator)
                     || !int.TryParse(args[3], out int minTeeth) | !int.TryParse(args[4], out int maxTeeth))
                 {
-                    Usage("-m option needs 4 arguments");
+                    Usage("gears -m numerator denominator minteeth maxteeth");
                     return;
                 }
                 Console.WriteLine(InvoluteGearParameters.MatchedPairs(numerator, denominator, minTeeth, maxTeeth));
                 return;
-            }
-            if (args[0] == "-C")
-            {
+            case "-C":
+            case "--contactratios":
                 if (args.Length != 2)
                 {
                     Usage("-C option needs just a filename as an argument");
@@ -54,10 +225,61 @@ internal class Program
                 }
                 int[] pressureAngles = new int[] { 145, 200, 250 };
                 int[] teeth = new int[] { 8, 10, 12, 14, 16, 18, 24, 30, 36, 48, 72, 144 };
-                using StreamWriter sw = new(args[1]);
-                sw.Write(GenerateGearTables(pressureAngles, teeth, 100, 0));
+                using (StreamWriter sw = new(args[1]))
+                    sw.Write(GenerateGearTables(pressureAngles, teeth, 100, 0));
                 return;
-            }
+            case "-c":
+            case "-customratios":
+                if (args.Length != 6)
+                {
+                    Usage("-c pressure,angles tooth,counts module cutterdiameter");
+                    return;
+                }
+                string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                List<int> angles = new();
+                foreach (string s in values)
+                    if (int.TryParse(s, out int result))
+                        angles.Add(result);
+                    else
+                    {
+                        Usage("Pressure angles should be a comma-separated list of integers, measured in tenths of a degree");
+                        return;
+                    }
+
+                values = args[3].Split(',', StringSplitOptions.RemoveEmptyEntries);
+                List<int> toothList = new();
+                foreach (string s in values)
+                    if (int.TryParse(s, out int result))
+                        toothList.Add(result);
+                    else
+                    {
+                        Usage("Tooth counts should be a comma-separated list of integers");
+                        return;
+                    }
+
+                if (!int.TryParse(args[4], out int module))
+                {
+                    Usage("Module should be an integer measured in 100ths of a mm");
+                    return;
+                }
+
+                if (!int.TryParse(args[5], out int cutterDiameter))
+                {
+                    Usage("Cutter diameter should be an integer measured in 100ths of a mm");
+                    return;
+                }
+
+                using (StreamWriter sw = new(args[1]))
+                    sw.Write(GenerateGearTables(angles, toothList, module, cutterDiameter));
+                return;
+            default:
+                Usage("gears [cycloid|chain|escape|involute|ratchet|roller|-m|-C|-c] [arguments]");
+                return;
+        }
+
+        if (args.Length > 0)
+        {
             if (args[0] == "-c")
             {
                 if (args.Length != 6)
@@ -104,245 +326,7 @@ internal class Program
                 sw.Write(GenerateGearTables(angles, toothList, module, cutterDiameter));
                 return;
             }
-            if (args[0].ToLower() == "-p")
-            {
-                if (args.Length != 8
-                    || !int.TryParse(args[1], out int teeth)
-                    || !int.TryParse(args[2], out int shift)
-                    || !int.TryParse(args[3], out int maxErr)
-                    || !int.TryParse(args[4], out int pressureAngle)
-                    || !int.TryParse(args[5], out int module)
-                    || !int.TryParse(args[6], out int backlash)
-                    || !int.TryParse(args[7], out int cutterDiameter))
-                {
-                    Usage("-p and -P options need seven arguments, plus an optional following -s argument list");
-                    return;
-                }
-                InvoluteGearParameters gear = new(
-                    teeth,
-                    module / 100.0,
-                    Math.PI * pressureAngle / 1800.0,
-                    shift / 1000.0,
-                    maxErr / 100.0,
-                    backlash / (double)module,
-                    cutterDiameter / 100.0);
-
-                Cutouts cutoutCalculator = CreateCutouts(gear, spindleArgs);
-
-                // Generate the SVG version of the gear path
-
-                GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.AddendumCircleDiameter,
-                    $"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}");
-
-                // Create the output plot file of the gear
-
-                int limit = gear.ToothCount;
-                double angle = Math.PI;
-                if (args[0] == "-P")
-                {
-                    limit = 1;
-                    angle = gear.ToothAngle / 2;
-                }
-
-                List<IEnumerable<PointF>> gearPoints = new()
-                {
-                    Geometry.CirclePoints(-angle, angle, Geometry.AngleStep, gear.PitchCircleDiameter / 2).FromCoords(),
-                    Geometry.CirclePoints(-angle, angle, Geometry.AngleStep, gear.BaseCircleDiameter / 2).FromCoords()
-                };
-
-                //IEnumerable<PointF> addendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.AddendumCircleDiameter / 2);
-                //IEnumerable<PointF> dedendCircle = Involutes.CirclePoints(-Math.PI / gear.ToothCount, Math.PI / gear.ToothCount, GearParameters.AngleStep, gear.DedendumCircleDiameter / 2);
-
-                for (int i = 0; i < limit; i++)
-                    gearPoints.AddRange(gear.GeneratePointsForOnePitch(i).FromCoordLists());
-
-                if (args[0] == "-p")
-                    GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
-
-                // Report what was created
-
-                Console.WriteLine(gear.Information);
-                Console.WriteLine(cutoutCalculator.Information);
-
-                using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
-                img.Save($"t{gear.ToothCount}p{shift}a{pressureAngle}m{module}b{backlash}c{cutterDiameter}.png", ImageFormat.Png);
-            }
-            if (args[0].ToLower() == "-e")
-            {
-                if (args.Length != 8
-                    || !int.TryParse(args[1], out int teeth)
-                    || !int.TryParse(args[2], out int maxErr)
-                    || !int.TryParse(args[3], out int undercutAngle)
-                    || !int.TryParse(args[4], out int module)
-                    || !int.TryParse(args[5], out int toothFaceLength)
-                    || !int.TryParse(args[6], out int tipPitch)
-                    || !int.TryParse(args[7], out int cutDiameter))
-                {
-                    Usage("-e and -E options require 7 arguments, plus an optional -s argument list");
-                    return;
-                }
-                EscapeGearParameters gear = new(
-                    teeth,
-                    module / 100.0,
-                    Math.PI * undercutAngle / 1800.0,
-                    toothFaceLength / 100.0,
-                    tipPitch / 100.0,
-                    cutDiameter / 100.0,
-                    maxErr / 100.0
-                    );
-
-                Cutouts cutoutCalculator = CreateCutouts(gear, spindleArgs);
-
-                // Generate the SVG version of the gear path
-
-                GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.PitchCircleDiameter,
-                    $"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}");
-
-                // Create the output plot file of the gear
-
-                List<IEnumerable<PointF>> gearPoints = new();
-                int limit = gear.ToothCount;
-                double angle = 2 * Math.PI;
-                if (args[0] == "-E")
-                {
-                    limit = 1;
-                    angle = gear.ToothAngle;
-
-                    gearPoints.Add(Geometry
-                        .CirclePoints(0, angle, Geometry.AngleStep, gear.PitchCircleDiameter / 2)
-                        .FromCoords());
-                    gearPoints.Add(Geometry
-                        .CirclePoints(0, angle, Geometry.AngleStep, gear.InnerDiameter / 2)
-                        .FromCoords());
-                }
-
-                for (int i = 0; i < limit; i++)
-                    gearPoints.Add(gear.ToothProfile(i).FromCoords());
-
-                if (args[0] == "-e")
-                    GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
-
-                // Report what was created
-
-                Console.WriteLine(gear.Information);
-                Console.WriteLine(cutoutCalculator.Information);
-
-                using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
-                img.Save($"e{gear.ToothCount}u{undercutAngle}m{module}f{toothFaceLength}p{tipPitch}d{cutDiameter}.png", ImageFormat.Png);
-            }
-            if (args[0].ToLower() == "-r")
-            {
-                if (args.Length != 6
-                    || !int.TryParse(args[1], out int teeth)
-                    || !int.TryParse(args[2], out int maxErr)
-                    || !int.TryParse(args[3], out int module)
-                    || !int.TryParse(args[4], out int innerDiameter)
-                    || !int.TryParse(args[5], out int cutterrDiameter))
-                {
-                    Usage("-r option requires 5 arguments, plus an optional -s argument list");
-                    return;
-                }
-                Ratchet gear = new(
-                    teeth,
-                    module / 100.0,
-                    maxErr / 100.0,
-                    innerDiameter / 100.0,
-                    cutterrDiameter / 100.0
-                    );
-
-                Cutouts cutoutCalculator = CreateCutouts(gear, spindleArgs);
-
-                // Generate the SVG version of the gear path
-
-                GearGenerator.GenerateSVGFile(cutoutCalculator, (float)gear.PitchCircleDiameter,
-                    $"t{gear.ToothCount}m{module}i{innerDiameter}");
-
-                // Create the output plot file of the gear
-
-                List<IEnumerable<PointF>> gearPoints = new();
-                for (int i = 0; i < gear.ToothCount; i++)
-                    gearPoints.Add(gear.ToothProfile(i).FromCoords());
-
-                GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
-
-                // Report what was created
-
-                Console.WriteLine(gear.Information);
-                Console.WriteLine(cutoutCalculator.Information);
-
-                using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048);
-                img.Save($"t{teeth}m{module}e{maxErr}i{innerDiameter}.png", ImageFormat.Png);
-            }
         }
-        else
-            Usage("Missing or unrecognised arguments");
-    }
-
-    private static Cutouts CreateCutouts(IGearProfile gear, string[] spindleArgs)
-    {
-        if (spindleArgs == null
-            || spindleArgs.Length != 4
-            || !int.TryParse(spindleArgs[1], out int spindleDia)
-            || !int.TryParse(spindleArgs[2], out int inlayDia)
-            || !int.TryParse(spindleArgs[3], out int keyFlats))
-        {
-            Usage("-s option needs three arguments");
-            return new Cutouts(gear, 0, 0, 0);
-        }
-        else return new Cutouts
-            (gear, spindleDia / 100.0, inlayDia / 100.0, keyFlats / 100.0);
-    }
-
-    private static void Usage(string errMsg)
-    {
-        if (!string.IsNullOrEmpty(errMsg))
-            Console.WriteLine($"ERROR: {errMsg}");
-        else
-            Console.WriteLine("Compute data or diagrams for involute gears and escape wheels.");
-        Console.WriteLine("USAGE: gears -p|P|e|E|c|C|m gear-options [-s spindle-options]\r\n");
-        Console.WriteLine(
-            "-p|-P [tooth count] [profile shift] [tolerance] [angle] [module] [backlash] [cutter diameter]\r\n"
-                + "\twhere -p generates whole gear image, -P one tooth image\r\n"
-                + "\twhere tooth count is digits\r\n"
-                + "\tprofile shift is in 10ths of a % of the module\r\n"
-                + "\ttolerance is in 100ths of mm\r\n"
-                + "\tangle is pressure angle in 10ths of a degree\r\n"
-                + "\tmodule is in 100ths of a mm\r\n"
-                + "\tbacklash is in 100ths of a mm\r\n"
-                + "\tcutter diameter is in 100ths of a mm\r\n");
-        Console.WriteLine("-e|-E [tooth count] [tolerance] [angle] [module] [tooth length] [tip pitch] [cut diameter]\r\n"
-                + "\twhere -e generates whole escape wheel image, -E one tooth image\r\n"
-                + "\twhere tooth count is digits\r\n"
-                + "\ttolerance is in 100ths of mm\r\n"
-                + "\tangle is undercut angle in 10ths of a degree\r\n"
-                + "\tmodule is in 100ths of a mm\r\n"
-                + "\ttooth length is in 100ths of a mm\r\n"
-                + "\ttip pitch is in 100ths of a mm\r\n"
-                + "\tcut diameter is in 100ths of a mm\r\n");
-        Console.WriteLine("-r [tooth count] [tolerance] [module] [inner diameter] [cut diameter]\r\n"
-                + "\twhere tooth count is digits\r\n"
-                + "\ttolerance is in 100ths of mm\r\n"
-                + "\tmodule is in 100ths of a mm\r\n"
-                + "\tinner diameter is in 100ths of a mm\r\n"
-                + "\tcut diameter is in 100ths of a mm\r\n");
-        Console.WriteLine("-s [spindle] [inlay] [hex key], units all in 100ths mm");
-        Console.WriteLine("\tOptionally -s can be used at the end of the -p, -P, -e or -E argument list");
-        Console.WriteLine("\tspindle is centre bore diameter");
-        Console.WriteLine("\tinlay is a larger diameter central bore for a bearing");
-        Console.WriteLine("\thex key is the distance across flats for a hex key for attaching pinions to gears\r\n");
-        Console.WriteLine("-m num denom teethMin teethMax -- find gear-pinion pairs with same separation");
-        Console.WriteLine("\tnum: numerator of the overall gear ratio");
-        Console.WriteLine("\tdenom: denominator of the overall gear ratio");
-        Console.WriteLine("\tteethMin, teethMax: ranges of tooth counts for search\r\n");
-        Console.WriteLine("-C output-file-path -- contact ratios for various profile shifts and angles");
-        Console.WriteLine("\toutput-file-path: Where to store the results\r\n");
-        Console.WriteLine("-c output-file-path comma-sep-angles comma-sep-teeth module cutter-diameter");
-        Console.WriteLine("\toutput-file-path: Where to store the results");
-        Console.WriteLine("\tcomma-sep-angles: pressure angles in 10ths of a degree");
-        Console.WriteLine("\tcomma-sep-teeth: list of tooth counts");
-        Console.WriteLine("\tmodule: gear module in 100ths of a mm");
-        Console.WriteLine("\tcutter-diameter: diameter of end mill in 100ths of a mm\r\n");
-        Console.WriteLine("-h -- generate this help text\r\n");
     }
 
     public static string GenerateGearTables(IList<int> angles, IList<int> teeth, int module, int cutterDiameter)

@@ -18,9 +18,9 @@ public enum StrokeType
 
 public class SVGPath
 {
-    public string Stroke { get; private set; }
-    public string StrokeWidth { get; private set; }
-    public string Fill { get; private set; }
+    public string Stroke { get; private set; } = String.Empty;
+    public string StrokeWidth { get; private set; } = String.Empty;
+    public string Fill { get; private set; } = String.Empty;
 
     public IList<SVGPathElement> Elements { get; private set; }
         = new List<SVGPathElement>();

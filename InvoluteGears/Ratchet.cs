@@ -15,15 +15,13 @@ public class Ratchet : IGearProfile
         InnerDiameter = inner;
         CutDiameter = cutDiameter;
         Errors = String.Empty;
-        SetInformation();
+        Information = SetInformation();
         CalculatePoints();
     }
 
-    private void SetInformation()
-    {
-        Information = $"Ratchet: {ToothCount} teeth, module = {Module}mm\r\n";
-        Information += $"precision = {MaxError}mm, inner diameter = {InnerDiameter}mm\r\n";
-    }
+    private string SetInformation() 
+        => $"Ratchet: {ToothCount} teeth, module = {Module}mm\r\n"
+            + $"precision = {MaxError}mm, inner diameter = {InnerDiameter}mm\r\n";
 
     public string ShortName
         => $"Rt{ToothCount}m{Module:N2}e{MaxError:N2}i{InnerDiameter:N2}.svg";
@@ -64,7 +62,7 @@ public class Ratchet : IGearProfile
 
     private double ToothDepth => (PitchCircleDiameter - InnerDiameter) / 2;
 
-    private IList<Coordinate> OneToothProfile;
+    private IList<Coordinate>? OneToothProfile;
 
     private void CalculatePoints()
     {
@@ -116,14 +114,15 @@ public class Ratchet : IGearProfile
             OneToothProfile = new List<Coordinate>();
             return;
         }
+        else
+            Information += $"Actual inner diameter: {2 * actualInnerRadius:N2}, "
+                + $"actual outer diameter: {2 * actualOuterRadius:N2}\r\n";
 
         // Now add the slope
 
         for (double angle = 0; angle < ToothAngle - tangentAngle; angle += Geometry.AngleStep)
             points.Add(PointAtAngle(angle));
         OneToothProfile = Geometry.LinearReduction(points, (float)MaxError);
-        Information += $"Actual inner diameter: {2 * actualInnerRadius:N2}, "
-            + $"actual outer diameter: {2 * actualOuterRadius:N2}\r\n";
     }
 
     private Coordinate PointAtAngle(double angle)
@@ -147,7 +146,8 @@ public class Ratchet : IGearProfile
     /// profile of the selected tooth.</returns>
 
     public IEnumerable<Coordinate> ToothProfile(int gap)
-        => OneToothProfile.Rotated((gap % ToothCount) * ToothAngle);
+        => OneToothProfile?.Rotated((gap % ToothCount) * ToothAngle) 
+            ?? Enumerable.Empty<Coordinate>();
 
     /// <summary>
     /// Generate the complete path of

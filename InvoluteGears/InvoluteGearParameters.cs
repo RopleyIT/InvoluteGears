@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using TwoDimensionLib;
 
 namespace InvoluteGears;
@@ -19,15 +20,17 @@ public class InvoluteGearParameters : IGearProfile
         Backlash = backlash;
         CutDiameter = cutterDiam;
         Errors = String.Empty;
-        SetInformation();
+        Information = SetInformation();
         InitPointLists();
     }
 
-    private void SetInformation()
+    private string SetInformation()
     {
-        Information = $"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n";
-        Information += $"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n";
-        Information += $"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n";
+        StringBuilder info = new();
+        info.Append($"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n");
+        info.Append($"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n");
+        info.Append($"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n");
+        return info.ToString();
     }
 
     public string ShortName
@@ -377,10 +380,10 @@ public class InvoluteGearParameters : IGearProfile
     public double ContactRatioWith(InvoluteGearParameters meshedGear)
         => ContactDistanceWithGear(meshedGear) / BaseCirclePitch;
 
-    private IList<Coordinate> UndercutPoints;
-    private IList<Coordinate> InvolutePoints;
-    private IList<Coordinate> DedendumPoints;
-    private IList<Coordinate> AddendumPoints;
+    private IList<Coordinate>? UndercutPoints;
+    private IList<Coordinate>? InvolutePoints;
+    private IList<Coordinate>? DedendumPoints;
+    private IList<Coordinate>? AddendumPoints;
 
     private IEnumerable<Coordinate> ComputeInvolutePoints()
     {
@@ -423,6 +426,9 @@ public class InvoluteGearParameters : IGearProfile
 
     private bool AdjustPointsForCircularCutter()
     {
+        if (UndercutPoints == null)
+            return false;
+
         // First find the point at which and end-mill of the specified cutter
         // radius can no longer cut inside the concave profile of the undercut
 
@@ -448,12 +454,14 @@ public class InvoluteGearParameters : IGearProfile
         // Copy across the curve that we are able to follow before
         // deviating from it according to cutter radius
 
-        UndercutPoints = new List<Coordinate>(UndercutPoints.Take(i + 1));
+        if(UndercutPoints != null)
+            UndercutPoints = new List<Coordinate>(UndercutPoints.Take(i + 1));
+        var lastPt = UndercutPoints?.Last() ?? Coordinate.Empty;
 
         // Calculate the angle for the last point in the undercut curve
 
-        double startAngle = Math.Atan2(UndercutPoints.Last().Y - cutterCentre.Y,
-            UndercutPoints.Last().X - cutterCentre.X);
+        double startAngle = Math.Atan2(lastPt.Y - cutterCentre.Y,
+            lastPt.X - cutterCentre.X);
 
         // Find the point on the cutter circle that intersects a line from
         // its centre to the centre of the gear profile (origin 0,0)
@@ -468,9 +476,10 @@ public class InvoluteGearParameters : IGearProfile
         // Add points around the cutter diameter from the last point
         // of adjustedUndercut, to the point at which it crosses yDedendum (y value).
 
-        foreach (var c in Geometry.CirclePoints
-            (startAngle, endAngle, Math.PI / 180, CutDiameter / 2, cutterCentre))
-            UndercutPoints.Add(c);
+        if(UndercutPoints != null)
+            foreach (var c in Geometry.CirclePoints
+                (startAngle, endAngle, Math.PI / 180, CutDiameter / 2, cutterCentre))
+                    UndercutPoints.Add(c);
 
         // Then add new dedendum circle points round to the y=0 axis, based on
         // the tangent to the cutter circle at yDedendum.
@@ -586,8 +595,9 @@ public class InvoluteGearParameters : IGearProfile
     /// range 0 to ToothCount - 1</param>
     /// <returns>The rotated set of points</returns>
 
-    private IEnumerable<Coordinate> RotateByTeeth(IEnumerable<Coordinate> points, int gap)
-        => points.Rotated((gap % ToothCount) * ToothAngle);
+    private IEnumerable<Coordinate> RotateByTeeth(IEnumerable<Coordinate>? points, int gap)
+        => points?.Rotated((gap % ToothCount) * ToothAngle) 
+            ?? Enumerable.Empty<Coordinate>();
 
     /// <summary>
     /// Given the selected tooth number, compute the list of points that
@@ -625,8 +635,11 @@ public class InvoluteGearParameters : IGearProfile
     public IEnumerable<Coordinate> Addendum(int gap)
         => RotateByTeeth(AddendumPoints, gap);
 
-    private IEnumerable<Coordinate> ReflectAndAddBacklash(IEnumerable<Coordinate> points, int gap)
+    private IEnumerable<Coordinate> ReflectAndAddBacklash(IEnumerable<Coordinate>? points, int gap)
     {
+        if(points == null)
+            return Enumerable.Empty<Coordinate>();
+
         // The angles between the middles of adjacent
         // teeth in radians is 2*PI / ToothCount
 

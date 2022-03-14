@@ -45,8 +45,8 @@ public static class Geometry
     /// point sequence will be generated</param>
     /// <returns>The sequence of rotated points</returns>
     /// 
-    public static IEnumerable<Coordinate> Rotated(this IEnumerable<Coordinate> points, double phi)
-        => points.Select(p => p.Rotate(phi));
+    public static IEnumerable<Coordinate> Rotated(this IEnumerable<Coordinate>? points, double phi)
+        => points?.Select(p => p.Rotate(phi)) ?? Enumerable.Empty<Coordinate>();
 
     /// <summary>
     /// Obtain a point on an involute or a trochoidal curve

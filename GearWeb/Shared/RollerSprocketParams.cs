@@ -11,15 +11,7 @@ namespace GearWeb.Shared
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
-        public string Tolerance { get; set; }
-
-        [Required]
-        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string Pitch { get; set; }
-
-        [Required]
-        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
-        public string CutterDiameter { get; set; }
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
@@ -32,6 +24,14 @@ namespace GearWeb.Shared
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string Backlash { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string CutterDiameter { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string Tolerance { get; set; }
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]

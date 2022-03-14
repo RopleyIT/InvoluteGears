@@ -17,7 +17,7 @@ public class ChainSprocket : IGearProfile
         InnerLinkLength = inner;
         CutDiameter = cutDiameter;
         Errors = String.Empty;
-        SetInformation();
+        Information = SetInformation();
         var curves = CalculatePoints();
         OuterToothProfile = Geometry.LinearReduction
             (curves.outer, MaxError);
@@ -25,11 +25,12 @@ public class ChainSprocket : IGearProfile
             (curves.inner, MaxError);
     }
 
-    private void SetInformation()
+    private string SetInformation()
     {
-        Information = $"Sprocket: {ToothCount} teeth, link thickness = {WireThickness}mm\r\n";
-        Information += $"precision = {MaxError}mm, inner length = {InnerLinkLength}mm\r\n";
-        Information += $"outer width = {OuterLinkWidth}mm\r\n";
+        var info = $"Sprocket: {ToothCount} teeth, link thickness = {WireThickness}mm\r\n";
+        info += $"precision = {MaxError}mm, inner length = {InnerLinkLength}mm\r\n";
+        info += $"outer width = {OuterLinkWidth}mm\r\n";
+        return info;
     }
 
     public string ShortName
@@ -252,8 +253,8 @@ public class ChainSprocket : IGearProfile
         return (points, groovePoints);
     }
 
-    private readonly IList<Coordinate> OuterToothProfile = null;
-    private readonly IList<Coordinate> InnerToothProfile = null;
+    private readonly IList<Coordinate>? OuterToothProfile = null;
+    private readonly IList<Coordinate>? InnerToothProfile = null;
 
 
     /// <summary>
@@ -270,16 +271,19 @@ public class ChainSprocket : IGearProfile
 
     private IEnumerable<Coordinate> ToothProfile(int gap, bool outer)
     {
-        IList<Coordinate> profile = outer ? OuterToothProfile : InnerToothProfile;
+        IList<Coordinate>? profile = outer ? OuterToothProfile : InnerToothProfile;
         double angle = 2 * Math.PI * (gap % ToothCount) / (double)ToothCount;
-        return
-            profile
-            .Skip(1)
-            .Reverse()
-            //.Skip(1)
-            .Select(p => p.Conjugate)
-            .Concat(profile)
-            .Select(p => p.Rotate(angle));
+        if(profile == null)
+            return Enumerable.Empty<Coordinate>();
+        else
+            return
+                profile
+                .Skip(1)
+                .Reverse()
+                //.Skip(1)
+                .Select(p => p.Conjugate)
+                .Concat(profile)
+                .Select(p => p.Rotate(angle));
     }
 
     /// <summary>

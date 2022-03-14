@@ -14,7 +14,7 @@
             <ValidationMessage For="() => GearData.Teeth" />
         </div>
         <div class="form-group col-md-4">
-            <label for="WireThickness">Pitch</label>
+            <label for="Pitch">Pitch</label>
             <InputText @bind-Value="GearData.Pitch" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 1.27" id="Pitch" />
             <small class="form-text text-muted">Distance from one chain roller to next, to nearest 100th of a mm, e.g. 12.70</small>
             <ValidationMessage For="() => GearData.Pitch" />
@@ -28,13 +28,13 @@
     </div>
     <div class="form-row">
         <div class="form-group col-md-4">
-            <label for="InnerLinkLength">Max chain width</label>
+            <label for="ChainWidth">Max chain width</label>
             <InputText @bind-Value="GearData.ChainWidth" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 13.5" id="ChainWidth" />
             <small class="form-text text-muted">Side plate diameter of chain, to nearest 100th of a mm, e.g. 0.05</small>
             <ValidationMessage For="() => GearData.ChainWidth" />
         </div>
         <div class="form-group col-md-4">
-            <label for="OuterLinkWidth">Roller diameter</label>
+            <label for="RollerDiameter">Roller diameter</label>
             <InputText @bind-Value="GearData.RollerDiameter" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="RollerDiameter" />
             <small class="form-text text-muted">Diameter of roller on each chain link, to nearest 100th of a mm, e.g. 0.05</small>
             <ValidationMessage For="() => GearData.RollerDiameter" />

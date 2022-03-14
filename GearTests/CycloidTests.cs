@@ -11,13 +11,13 @@ namespace GearTests
     public class CycloidTests
     {
         [DataTestMethod]
-        [DataRow(8, 12, 5.0, 0.01, 0.1, 6.35)]
-        [DataRow(96, 12, 5.0, 0.01, 0.1, 6.35)]
-        [DataRow(12, 96, 5.0, 0.01, 0.1, 6.35)]
-        [DataRow(12, 10, 5.0, 0.01, 0.1, 6.35)]
-        [DataRow(14, 10, 5.0, 0.01, 0.1, 6.35)]
-        [DataRow(10, 12, 5.0, 0.01, 0.1, 6.35)]
-        [DataRow(10, 14, 5.0, 0.01, 0.1, 6.35)]
+        [DataRow(8, 12, 6.0, 0.01, 0.1, 6.35)]
+        [DataRow(96, 12, 6.0, 0.01, 0.1, 6.35)]
+        [DataRow(12, 96, 6.0, 0.01, 0.1, 6.35)]
+        [DataRow(12, 10, 6.0, 0.01, 0.1, 6.35)]
+        [DataRow(14, 10, 6.0, 0.01, 0.1, 6.35)]
+        [DataRow(10, 12, 6.0, 0.01, 0.1, 6.35)]
+        [DataRow(10, 14, 6.0, 0.01, 0.1, 6.35)]
         public void TestPairedTeeth(int teeth, int otherTeeth,
             double module, double tolerance,
             double backlash, double cutterDiameter)

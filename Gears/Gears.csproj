@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="RopleyIT.CmdArgs" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\InvoluteGears\InvoluteGears.csproj" />
     <ProjectReference Include="..\Plotter\Plotter.csproj" />
   </ItemGroup>

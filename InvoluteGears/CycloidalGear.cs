@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using TwoDimensionLib;
 
 namespace InvoluteGears
@@ -19,19 +20,22 @@ namespace InvoluteGears
             OpposingToothCount = oppositeToothCount;
             OpposingToothBlunting = oppositeToothBlunting;
             CutDiameter = cutterDiam;
+            Errors = String.Empty;
             InitPointLists();
-            SetInformation();
+            Information = SetInformation();
         }
 
-        private void SetInformation()
+        private string SetInformation()
         {
-            Information = $"Cycloid: {ToothCount}/{OpposingToothCount} teeth, module = {Module}mm,\r\n";
-            Information += $"blunting = {ToothBlunting * 100:N0}%/{OpposingToothBlunting * 100:N0}%\r\n";
-            Information += $"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n";
-            Information += $"precision = {MaxError}mm, contact ratio = {(pinionAddendumAngle + pinionDedendumAngle) / ToothAngle:N3}\r\n";
-            Information += $"max pressure angles: {180 / Math.PI * maxPinionPressureAngle:N2}\u00b0/{180 / Math.PI * maxWheelPressureAngle:N2}\u00b0\r\n";
+            StringBuilder info = new();
+            info.Append($"Cycloid: {ToothCount}/{OpposingToothCount} teeth, module = {Module}mm,\r\n");
+            info.Append($"blunting = {ToothBlunting * 100:N0}%/{OpposingToothBlunting * 100:N0}%\r\n");
+            info.Append($"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n");
+            info.Append($"precision = {MaxError}mm, contact ratio = {(pinionAddendumAngle + pinionDedendumAngle) / ToothAngle:N3}\r\n");
+            info.Append($"max pressure angles: {180 / Math.PI * maxPinionPressureAngle:N2}\u00b0/{180 / Math.PI * maxWheelPressureAngle:N2}\u00b0\r\n");
             if (!string.IsNullOrWhiteSpace(Errors))
-                Information += Errors;
+                info.Append(Errors);
+            return info.ToString();
         }
 
         public string ShortName
@@ -133,7 +137,7 @@ namespace InvoluteGears
         //private double wheelDedendumRadius;
         private double maxPinionPressureAngle;
         private double maxWheelPressureAngle;
-        private IList<Coordinate> oneToothProfile;
+        private IList<Coordinate>? oneToothProfile;
 
         public double AddendumDiameter => pinionAddendumRadius * 2;
 
@@ -196,8 +200,6 @@ namespace InvoluteGears
         
         private void InitPointLists()
         {
-            Errors = String.Empty;
-
             // Assume clock toothing with locii radius half of wheel radius
 
             CalcMaximumCriteria(ToothCount * Module / 4, 

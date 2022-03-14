@@ -34,15 +34,15 @@ public class SVGCreator
         AddPath(path);
     }
 
-    public SizeF DocumentDimensions { get; set; }
+    public SizeF DocumentDimensions { get; set; } = SizeF.Empty;
 
-    public string DocumentDimensionUnits { get; set; }
+    public string DocumentDimensionUnits { get; set; } = string.Empty;
 
-    public RectangleF ViewBoxDimensions { get; set; }
+    public RectangleF ViewBoxDimensions { get; set; } = RectangleF.Empty;
 
-    public string ViewBoxDimensionUnits { get; set; }
+    public string ViewBoxDimensionUnits { get; set; } = string.Empty;
 
-    public string InfoComment { get; set; }
+    public string InfoComment { get; set; } = string.Empty;
 
     private static string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 

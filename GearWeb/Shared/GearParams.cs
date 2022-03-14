@@ -14,10 +14,6 @@ namespace GearWeb.Shared
         public string ProfileShift { get; set; }
 
         [Required]
-        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
-        public string Tolerance { get; set; }
-
-        [Required]
         [RegularExpression(@"\d+(\.\d)?", ErrorMessage = "Positive angle to nearest 10th of a degree")]
         public string PressureAngle { get; set; }
 
@@ -32,6 +28,10 @@ namespace GearWeb.Shared
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string CutterDiameter { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string Tolerance { get; set; }
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]

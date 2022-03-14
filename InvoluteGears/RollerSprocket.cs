@@ -17,22 +17,23 @@ public class RollerSprocket : IGearProfile
         ChainWidth = inner;
         CutDiameter = cutDiameter;
         Errors = String.Empty;
-        SetInformation();
+        Information = SetInformation();
         var oneTooth = CalculateOneTooth();
         OuterToothProfile = Geometry.LinearReduction
             (oneTooth, (float)MaxError);
     }
 
-    private readonly IList<Coordinate> OuterToothProfile = null;
+    private readonly IList<Coordinate> OuterToothProfile;
 
     public string ShortName
         => $"RSt{ToothCount}p{Pitch:N2}e{MaxError:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}.svg";
 
-    private void SetInformation()
+    private string SetInformation()
     {
-        Information = $"Roller sprocket: {ToothCount} teeth, pitch = {Pitch}mm\r\n";
-        Information += $"precision = {MaxError}mm, roller dia = {RollerDiameter}mm\r\n";
-        Information += $"backlash = {Backlash}mm, side plate = {ChainWidth:N2}\r\n";
+        var info = $"Roller sprocket: {ToothCount} teeth, pitch = {Pitch}mm\r\n";
+        info += $"precision = {MaxError}mm, roller dia = {RollerDiameter}mm\r\n";
+        info += $"backlash = {Backlash}mm, side plate = {ChainWidth:N2}\r\n";
+        return info;
     }
 
     public string Information { get; private set; }

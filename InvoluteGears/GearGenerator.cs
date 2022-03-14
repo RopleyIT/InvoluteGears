@@ -36,8 +36,9 @@ public static class GearGenerator
             .FromCoords();
         if(gearPath.Any())
             svgCreator.AddClosedPath(gearPath, string.Empty, 0, "black");
-        foreach (List<Coordinate> cutout in cutoutCalculator.CutoutPlots)
-            svgCreator.AddClosedPath(cutout.FromCoords(), string.Empty, 0, "white");
+        if(cutoutCalculator.CutoutPlots != null)
+            foreach (List<Coordinate> cutout in cutoutCalculator.CutoutPlots)
+                svgCreator.AddClosedPath(cutout.FromCoords(), string.Empty, 0, "white");
         if (cutoutCalculator.HexKeyPlot != null)
             svgCreator.AddClosedPath(cutoutCalculator.HexKeyPlot.FromCoords(), string.Empty, 0, "lightgray");
         if (cutoutCalculator.InlayPlot != null)
@@ -57,8 +58,9 @@ public static class GearGenerator
 
     public static void GenerateCutoutPlot(Cutouts cutoutCalculator, List<IEnumerable<PointF>> gearPoints)
     {
-        foreach (var cutout in cutoutCalculator.CutoutPlots)
-            gearPoints.Add(cutout.FromCoords());
+        if(cutoutCalculator.CutoutPlots != null)
+            foreach (var cutout in cutoutCalculator.CutoutPlots)
+                gearPoints.Add(cutout.FromCoords());
         if (cutoutCalculator.HexKeyPlot != null)
             gearPoints.Add(cutoutCalculator.HexKeyPlot.FromCoords());
         if (cutoutCalculator.InlayPlot != null)

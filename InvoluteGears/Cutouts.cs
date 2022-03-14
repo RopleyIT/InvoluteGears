@@ -112,17 +112,17 @@ public class Cutouts
 
     public void AddPlot(List<Coordinate> points)
     {
-        CutoutPlots.Add(points);
+        CutoutPlots?.Add(points);
     }
 
     /// <summary>
     /// The cutout shapes to be added to the gear point sets
     /// </summary>
 
-    public IList<IList<Coordinate>> CutoutPlots { get; private set; }
-    public IList<Coordinate> SpindlePlot { get; private set; }
-    public IList<Coordinate> InlayPlot { get; private set; }
-    public IList<Coordinate> HexKeyPlot { get; private set; }
+    public IList<IList<Coordinate>>? CutoutPlots { get; private set; }
+    public IList<Coordinate>? SpindlePlot { get; private set; }
+    public IList<Coordinate>? InlayPlot { get; private set; }
+    public IList<Coordinate>? HexKeyPlot { get; private set; }
 
     /// <summary>
     /// Calculate the points that form the spindle circle

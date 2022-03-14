@@ -22,10 +22,6 @@ namespace GearWeb.Shared
         public int OpposingToothBlunting { get; set; }
 
         [Required]
-        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
-        public string Tolerance { get; set; }
-
-        [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Number > 0 to nearest 100th of a mm")]
         public string Module { get; set; }
 
@@ -36,6 +32,10 @@ namespace GearWeb.Shared
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string CutterDiameter { get; set; }
+
+        [Required]
+        [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
+        public string Tolerance { get; set; }
 
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
