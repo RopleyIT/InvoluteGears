@@ -98,7 +98,7 @@
                 InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id="
-                    + Cache.Insert(gearProfile.ShortName, SVG);
+                    + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
                 IsDisabled = false;
             }
             catch (Exception x)
