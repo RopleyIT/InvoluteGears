@@ -40,7 +40,7 @@ namespace InvoluteGears
 
         public string ShortName
             => $"Ct{ToothCount}_{OpposingToothCount}m{Module:N2}a{ToothBlunting*100}_{OpposingToothBlunting}"
-                + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}.svg";
+                + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}";
 
         public string Information { get; private set; }
 

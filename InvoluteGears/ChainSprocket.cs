@@ -34,7 +34,7 @@ public class ChainSprocket : IGearProfile
     }
 
     public string ShortName
-        => $"St{ToothCount}w{WireThickness:N2}e{MaxError:N2}i{InnerLinkLength:N2}o{OuterLinkWidth:N2}.svg";
+        => $"St{ToothCount}w{WireThickness:N2}e{MaxError:N2}i{InnerLinkLength:N2}o{OuterLinkWidth:N2}";
 
     public string Information { get; private set; }
 

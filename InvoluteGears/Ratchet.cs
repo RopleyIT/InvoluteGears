@@ -24,7 +24,7 @@ public class Ratchet : IGearProfile
             + $"precision = {MaxError}mm, inner diameter = {InnerDiameter}mm\r\n";
 
     public string ShortName
-        => $"Rt{ToothCount}m{Module:N2}e{MaxError:N2}i{InnerDiameter:N2}.svg";
+        => $"Rt{ToothCount}m{Module:N2}e{MaxError:N2}i{InnerDiameter:N2}";
 
     public string Information { get; private set; }
 

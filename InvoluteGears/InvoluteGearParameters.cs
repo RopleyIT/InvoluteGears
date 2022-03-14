@@ -35,7 +35,7 @@ public class InvoluteGearParameters : IGearProfile
 
     public string ShortName
         => $"It{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
-            + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}.svg";
+            + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}";
 
     /// <summary>
     /// Used for warning or information messages when methods invoked

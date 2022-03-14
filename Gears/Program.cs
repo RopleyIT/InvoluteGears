@@ -48,7 +48,7 @@ internal class Program
             FileMode.Create, FileAccess.Write, FileShare.None);
         img.Save(ms, ImageFormat.Jpeg);
 
-        GearGenerator.GenerateSVGFile(cutoutCalculator, (float)size, cutoutCalculator.Gear.ShortName + ".svg");
+        GearGenerator.GenerateSVGFile(cutoutCalculator, (float)size, cutoutCalculator.Gear.ShortName);
     }
 
     private static void PlotInvolute(CommonArgs common, CutOutArgs cutOut, InvoluteArgs involute)

@@ -40,7 +40,7 @@ public class EscapeGearParameters : IGearProfile
     }
     public string ShortName
         => $"Et{ToothCount}m{Module:N2}u{UndercutAngle * 180 / Math.PI:N1}f{ToothFaceLength:N2}"
-            + $"e{MaxError:N2}p{TipPitch:N2}c{CutDiameter:N2}.svg";
+            + $"e{MaxError:N2}p{TipPitch:N2}c{CutDiameter:N2}";
 
     /// <summary>
     /// Used for warning or information messages when methods invoked

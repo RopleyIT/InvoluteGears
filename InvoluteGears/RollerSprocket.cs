@@ -26,7 +26,7 @@ public class RollerSprocket : IGearProfile
     private readonly IList<Coordinate> OuterToothProfile;
 
     public string ShortName
-        => $"RSt{ToothCount}p{Pitch:N2}e{MaxError:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}.svg";
+        => $"RSt{ToothCount}p{Pitch:N2}e{MaxError:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}";
 
     private string SetInformation()
     {
