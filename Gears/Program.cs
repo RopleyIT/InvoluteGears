@@ -21,9 +21,11 @@ internal class Program
             new InvoluteArgs(), new ChainArgs(), new CycloidArgs(),
             new EscapeArgs(), new RatchetArgs(), new RollerSprocketArgs()));
         Console.WriteLine("Utility options");
-        Console.WriteLine("  -c | --customratios comma-sep-pressure-angles comma-sep-tooth-counts module cutter-diameter");
-        Console.WriteLine("    Creates a table of contact ratios for teeth of various pressure angles and tooth counts.");
-        Console.WriteLine("    Cutter diameter and module are measured in 100ths of a millimeter.");
+        Console.WriteLine("  -c | --customratios pressure-angle tooth,counts module shift1 shift2 cutterdiameter filename");
+        Console.WriteLine("    Creates a table of contact ratios for the selected pressure angle and tooth counts.");
+        Console.WriteLine("    The two profile shifts shift1 and shift2 are applied to each pair of tooth counts.");
+        Console.WriteLine("    Cutter diameter, profile shifts and module are measured in 100ths of a millimeter.");
+        Console.WriteLine("    The pressure angle is specified in tenths of a degree.");
         Console.WriteLine("  -C filename");
         Console.WriteLine("    Same as -c option, but predefined standard pressure angles and tooth counts");
         Console.WriteLine("  -m numerator denominator minteeth maxteeth");
@@ -229,25 +231,20 @@ internal class Program
                     sw.Write(GenerateGearTables(pressureAngles, teeth, 100, 0));
                 return;
             case "-c":
-            case "-customratios":
-                if (args.Length != 6)
+            case "--customratios":
+                if (args.Length != 8)
                 {
-                    Usage("-c pressure,angles tooth,counts module cutterdiameter");
+                    Usage("-c pressure-angle tooth,counts module shift1 shift2 cutterdiameter filename");
                     return;
                 }
+
+                if(!int.TryParse(args[1], out int angle))
+                {
+                    Usage("Pressure angle should be an integer, measured in tenths of a degree");
+                    return;
+                }
+                
                 string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-                List<int> angles = new();
-                foreach (string s in values)
-                    if (int.TryParse(s, out int result))
-                        angles.Add(result);
-                    else
-                    {
-                        Usage("Pressure angles should be a comma-separated list of integers, measured in tenths of a degree");
-                        return;
-                    }
-
-                values = args[3].Split(',', StringSplitOptions.RemoveEmptyEntries);
                 List<int> toothList = new();
                 foreach (string s in values)
                     if (int.TryParse(s, out int result))
@@ -258,78 +255,35 @@ internal class Program
                         return;
                     }
 
-                if (!int.TryParse(args[4], out int module))
+                if (!int.TryParse(args[3], out int module))
                 {
                     Usage("Module should be an integer measured in 100ths of a mm");
                     return;
                 }
 
-                if (!int.TryParse(args[5], out int cutterDiameter))
+                if (!int.TryParse(args[4], out int shift1) 
+                    || !int.TryParse(args[5], out int shift2))
+                {
+                    Usage("Profile shifts should be a percentage of the module");
+                    return;
+                }
+
+                if (!int.TryParse(args[6], out int cutterDiameter))
                 {
                     Usage("Cutter diameter should be an integer measured in 100ths of a mm");
                     return;
                 }
 
-                using (StreamWriter sw = new(args[1]))
-                    sw.Write(GenerateGearTables(angles, toothList, module, cutterDiameter));
+                using (StreamWriter sw = new(args[7]))
+                    GenerateGearTable(sw, angle, toothList, module, cutterDiameter, shift1/100.0, shift2/100.0);
                 return;
             default:
                 Usage("gears [cycloid|chain|escape|involute|ratchet|roller|-m|-C|-c] [arguments]");
                 return;
         }
-
-        if (args.Length > 0)
-        {
-            if (args[0] == "-c")
-            {
-                if (args.Length != 6)
-                {
-                    Usage("-c option needs 5 arguments");
-                    return;
-                }
-                string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-                List<int> angles = new();
-                foreach (string s in values)
-                    if (int.TryParse(s, out int result))
-                        angles.Add(result);
-                    else
-                    {
-                        Usage("Pressure angles should be a comma-separated list of integers, measured in tenths of a degree");
-                        return;
-                    }
-
-                values = args[3].Split(',', StringSplitOptions.RemoveEmptyEntries);
-                List<int> toothList = new();
-                foreach (string s in values)
-                    if (int.TryParse(s, out int result))
-                        toothList.Add(result);
-                    else
-                    {
-                        Usage("Tooth counts should be a comma-separated list of integers");
-                        return;
-                    }
-
-                if (!int.TryParse(args[4], out int module))
-                {
-                    Usage("Module should be an integer measured in 100ths of a mm");
-                    return;
-                }
-
-                if (!int.TryParse(args[5], out int cutterDiameter))
-                {
-                    Usage("Cutter diameter should be an integer measured in 100ths of a mm");
-                    return;
-                }
-
-                using StreamWriter sw = new(args[1]);
-                sw.Write(GenerateGearTables(angles, toothList, module, cutterDiameter));
-                return;
-            }
-        }
     }
 
-    private static void RenderLine(StringWriter sw, string header, 
+    private static void RenderLine(TextWriter sw, string header, 
         IEnumerable<InvoluteGearParameters> gears,
         Func<InvoluteGearParameters, string> selector)
     {
@@ -339,9 +293,8 @@ internal class Program
         sw.WriteLine();
     }
 
-    public static void GenerateGearTable(StringWriter sw, int pa, IList<int> teeth,
-        int module, int cutterDiameter, double shift1, double shift2,
-        bool renderGearTable)
+    public static void GenerateGearTable(TextWriter sw, int pa, IList<int> teeth,
+        int module, int cutterDiameter, double shift1, double shift2)
     {
         // Build the two tables of involute gears, one for each profile shift percentage
 
@@ -391,7 +344,7 @@ internal class Program
         using StringWriter sw = new();
         foreach (int pa in angles)
             for (double s = 0; s <= 0.211; s += 0.03)
-                GenerateGearTable(sw, pa, teeth, module, cutterDiameter, s, -s, true);
+                GenerateGearTable(sw, pa, teeth, module, cutterDiameter, s, -s);
         return sw.ToString();
     }
 }

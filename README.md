@@ -240,18 +240,19 @@ for smooth handover between teeth.
 
 #### Option -c
 
-`gears -c [output-file-path] [angle1,angle2 ... angleN] [teeth1,teeth2 ... teethM] [module] [cutter-diameter]`
+`gears -c [pressure-angle] [teeth1,teeth2 ... teethM] [module] [profile-shift1] [profile-shift2] [cutter-diameter] [output-filename]`
 
 Creates a table of data for the gears whose 
-pressure angles and tooth counts have been specified
-in the comma-separated arguments after the output 
-filename. The comma-separated arguments must not 
+pressure angle and comma-separated list of tooth counts have been specified
+in the arguments. The comma-separated arguments must not 
 have any embedded spaces.
 
 Table data is as for the `-C` option
-described above, but with selected pressure 
-angles, tooth counts, module, and cutter diameter. The pressure
-angles are specified in tenths of a degree, 
+described above, but with a single selected pressure 
+angle, a seleted list of tooth counts,  a module, and cutter diameter. 
+Two profile shifts are provided so that the contact ratios between
+pairs of gears each with a different profile shift can be listed. The pressure
+angle is specified in tenths of a degree, the profile shifts are percentages of the module,
 and the module and cutter diameter in 100ths of a mm.
 
 For the `-C` option, we assume a sufficiently small
@@ -259,12 +260,14 @@ diameter cutter so that the undercut and dedendum do not need
 to be adjusted from the ideal curve. Also for the
 `-C` option, we assume the module is 1.0mm as a working default.
 
-Example: `gears -c geardata.txt 145,200 10,12,15,45,48,50 500 635`
+Example: `gears -c geardata.txt 145 10,12,15,45,48,50 500 21 -21 635 output.txt`
 
-Computes the tables for the 14.5 and 20 degree pressure angles, for all gear tooth counts in the
+Computes the tables for the 14.5 degree pressure angle, for all gear tooth counts in the
 list of values supplied as the second parameter. The gears have a module of 5mm, and
-are cut using an end mill of diameter 1/4 inch (6.35mm). Contact ratios are between the gears specified in 
-the list of tooth counts.
+are cut using an end mill of diameter 1/4 inch (6.35mm). Given a profile shift of 21%
+and -21%, all contact ratios between every pair of gears specified in 
+the list of tooth counts for profile shifts either way round are listed. The results are
+written to the file `output.txt`.
 
 ### Licensing
 

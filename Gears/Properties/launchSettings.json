@@ -1,7 +1,8 @@
 {
   "profiles": {
     "InvoluteConsole": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-c 145 12,15,18,24,48 500 210 -210 635 output.txt"
     }
   }
 }
