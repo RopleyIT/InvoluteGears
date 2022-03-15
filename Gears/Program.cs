@@ -329,74 +329,69 @@ internal class Program
         }
     }
 
+    private static void RenderLine(StringWriter sw, string header, 
+        IEnumerable<InvoluteGearParameters> gears,
+        Func<InvoluteGearParameters, string> selector)
+    {
+        sw.Write(header);
+        foreach(var g in gears)
+            sw.Write(selector(g));
+        sw.WriteLine();
+    }
+
+    public static void GenerateGearTable(StringWriter sw, int pa, IList<int> teeth,
+        int module, int cutterDiameter, double shift1, double shift2,
+        bool renderGearTable)
+    {
+        // Build the two tables of involute gears, one for each profile shift percentage
+
+        List<InvoluteGearParameters> gShift1 = new();
+        List<InvoluteGearParameters> gShift2 = new();
+        foreach (int i in teeth)
+        {
+            InvoluteGearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, shift1, 0, 0, cutterDiameter / 100.0);
+            gShift1.Add(gear);
+            gear = new(i, module / 100.0, Math.PI * pa / 1800.0, shift2, 0, 0, cutterDiameter / 100.0);
+            gShift2.Add(gear);
+        }
+
+        sw.Write($"PRESSURE ANGLE {pa / 10.0:F1}°");
+        sw.WriteLine($" MODULE {module / 100.0:F2}mm, CUTTER DIAMETER {cutterDiameter / 100.0:F2}mm");
+        sw.WriteLine($"GEAR DATA & CONTACT RATIOS FOR PROFILE SHIFTS {shift1 * 100}% (ROWS) + {shift2 * 100}% (COLUMNS)");
+        sw.Write("TEETH   ");
+        foreach (int t in teeth)
+            sw.Write($"     {t,3}");
+        sw.WriteLine();
+
+        RenderLine(sw, $"G  {shift1 * 100,3}% ", gShift1, g => $" {g.ToothGapAtUndercut,7:F3}");
+        RenderLine(sw, $"G  {shift2 * 100,3}% ", gShift2, g => $" {g.ToothGapAtUndercut,7:F3}");
+        RenderLine(sw, $"Db      ", gShift1, g => $" {g.BaseCircleDiameter,7:F3}");
+        RenderLine(sw, $"Dd {shift1 * 100,3}% ", gShift1, g => $" {g.DedendumCircleDiameter,7:F3}");
+        RenderLine(sw, $"Dd {shift2 * 100,3}% ", gShift2, g => $" {g.DedendumCircleDiameter,7:F3}");
+        RenderLine(sw, $"Dc {shift1 * 100,3}% ", gShift1, g => $" {g.InnerDiameter,7:F3}");
+        RenderLine(sw, $"Dc {shift2 * 100,3}% ", gShift2, g => $" {g.InnerDiameter,7:F3}");
+        RenderLine(sw, $"Du {shift1 * 100,3}% ", gShift1, g => $" {g.UndercutRadius,7:F3}");
+        RenderLine(sw, $"Du {shift2 * 100,3}% ", gShift2, g => $" {g.UndercutRadius,7:F3}");
+        RenderLine(sw, $"Dp      ", gShift1, g => $" {g.PitchCircleDiameter,7:F3}");
+        RenderLine(sw, $"Da {shift1 * 100,3}% ", gShift1, g => $" {g.AddendumCircleDiameter,7:F3}");
+        RenderLine(sw, $"Da {shift2 * 100,3}% ", gShift2, g => $" {g.AddendumCircleDiameter,7:F3}");
+
+        for (int i = 0; i < teeth.Count; i++)
+        {
+            sw.Write($"{teeth[i],3}     ");
+            for (int j = 0; j < teeth.Count; j++)
+                sw.Write($" {gShift1[i].ContactRatioWith(gShift2[j]),7:F3}");
+            sw.WriteLine();
+        }
+        sw.WriteLine();
+    }
+
     public static string GenerateGearTables(IList<int> angles, IList<int> teeth, int module, int cutterDiameter)
     {
         using StringWriter sw = new();
         foreach (int pa in angles)
-        {
-            sw.WriteLine($"PRESSURE ANGLE {pa / 10.0:F1} DEGREES");
-            sw.WriteLine($"MODULE {module / 100.0:F2}mm, CUTTER DIAMETER {cutterDiameter / 100.0:F2}mm");
             for (double s = 0; s <= 0.211; s += 0.03)
-            {
-                sw.WriteLine($"CONTACT RATIO FOR PROFILE SHIFTS {s * 100}% + {s * 100}%");
-                sw.Write("TEETH");
-                foreach (int t in teeth)
-                    sw.Write($"{t,3}     ");
-                sw.WriteLine();
-
-                sw.Write("GAP ");
-                List<InvoluteGearParameters> gears = new();
-                foreach (int i in teeth)
-                {
-                    InvoluteGearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, s, 0, 0, cutterDiameter / 100.0);
-                    sw.Write($"{gear.ToothGapAtUndercut,7:F3} ");
-                    gears.Add(gear);
-                }
-                sw.WriteLine();
-
-                sw.Write("Db  ");
-                foreach (InvoluteGearParameters gear in gears)
-                    sw.Write($"{gear.BaseCircleDiameter,7:F3} ");
-                sw.WriteLine();
-
-                sw.Write("Dd  ");
-                foreach (InvoluteGearParameters gear in gears)
-                    sw.Write($"{gear.DedendumCircleDiameter,7:F3} ");
-                sw.WriteLine();
-
-                sw.Write("Dc  ");
-                foreach (InvoluteGearParameters gear in gears)
-                    sw.Write($"{gear.InnerDiameter,7:F3} ");
-                sw.WriteLine();
-
-                sw.Write("Du  ");
-                foreach (InvoluteGearParameters gear in gears)
-                    sw.Write($"{gear.UndercutRadius * 2,7:F3} ");
-                sw.WriteLine();
-
-                sw.Write("Dp  ");
-                foreach (InvoluteGearParameters gear in gears)
-                    sw.Write($"{gear.PitchCircleDiameter,7:F3} ");
-                sw.WriteLine();
-
-                sw.Write("Da  ");
-                foreach (InvoluteGearParameters gear in gears)
-                    sw.Write($"{gear.AddendumCircleDiameter,7:F3} ");
-                sw.WriteLine();
-
-                for (int i = 0; i < teeth.Count; i++)
-                {
-                    sw.Write($"{teeth[i],3} ");
-                    for (int j = 0; j < teeth.Count; j++)
-                        if (j < i)
-                            sw.Write(".       ");
-                        else
-                            sw.Write($"{gears[i].ContactRatioWith(gears[j]),7:F3} ");
-                    sw.WriteLine();
-                }
-                sw.WriteLine();
-            }
-        }
+                GenerateGearTable(sw, pa, teeth, module, cutterDiameter, s, -s, true);
         return sw.ToString();
     }
 }
