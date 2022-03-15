@@ -215,7 +215,7 @@ in the output file path. For each tooth it tabulates the following data:
 
 | Item | Description |
 | ---- | ----------- |
-| GAP | The linear distance between the two undercut points on adjacent teeth of the gear. Used to tell you the maximum diameter of the end-mill cutter to use. |
+| G  | The linear distance between the two undercut points on adjacent teeth of the gear. Used to tell you the maximum diameter of the end-mill cutter to use. |
 | Db | The base circle diameter from which the involute tooth curve starts. |
 | Dd | The dedendum circle diameter. This is the innermost depth the tooth is cut to, if we were able to use a small end-mill. |
 | Dc | The reduced dedendum diameter caused by using a cutter of diameter too great to follow the ideal undercut curve. |
