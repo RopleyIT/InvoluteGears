@@ -3,7 +3,7 @@
 public static class Geometry
 {
     /// <summary>
-    /// Provide an implementation of the range adding methind to an IList
+    /// Provide an implementation of the range adding method to an IList
     /// </summary>
     /// <typeparam name="T">The type of things in the list</typeparam>
     /// <param name="ilist">The list to add to</param>
@@ -21,6 +21,18 @@ public static class Geometry
                 ilist.Add(t);
     }
 
+    /// <summary>
+    /// Remove a range of elements from a list, given the indexes for the range
+    /// </summary>
+    /// <typeparam name="T">The type of each element in the list</typeparam>
+    /// <param name="ilist">The list of elements from which elements will be removed
+    /// </param>
+    /// <param name="first">The index of the first removed item</param>
+    /// <param name="count">The number of elements to be removed</param>
+    /// <exception cref="ArgumentException">Thrown if the list is null, or if the
+    /// forst index or count take the removal outside the valid indices for
+    /// the list</exception>
+    
     public static void RemoveRange<T>(this IList<T> ilist, int first, int count)
     {
         if (ilist is null)
@@ -34,6 +46,8 @@ public static class Geometry
                 for (int i = 0; i < count; i++)
                     ilist.RemoveAt(first);
         }
+        else
+            throw new ArgumentException("AddRange passed invalid indexes");
     }
 
     /// <summary>
@@ -43,8 +57,9 @@ public static class Geometry
     /// <param name="points">The points from which a rotated
     /// <param name="phi">The angle to rotate by in radians</param>
     /// point sequence will be generated</param>
-    /// <returns>The sequence of rotated points</returns>
-    /// 
+    /// <returns>The sequence of rotated points, or Enumerable.Empty if the
+    /// points argument is null</returns>
+     
     public static IEnumerable<Coordinate> Rotated(this IEnumerable<Coordinate>? points, double phi)
         => points?.Select(p => p.Rotate(phi)) ?? Enumerable.Empty<Coordinate>();
 
@@ -168,10 +183,69 @@ public static class Geometry
         yield return Coordinate.FromPolar(radius, endAngle);
     }
 
+    /// <summary>
+    /// Compute the suware of a number
+    /// </summary>
+    /// <param name="v">The expression to be squared</param>
+    /// <returns>The square of the value</returns>
+    
     public static double Square(double v) => v * v;
 
+    /// <summary>
+    /// Divide two numbers, saturating at double.MaxValue or
+    /// double.MinValue if the denominator is zero. Note that
+    /// if the numerator and denominator are both 0, the value
+    /// returned is double.MaxValue, not undefined
+    /// </summary>
+    /// <param name="y">The numerator</param>
+    /// <param name="x">The denominator</param>
+    /// <returns>The safe division result for the two numbers</returns>
+
+    public static double SafeDiv(double y, double x)
+        => x == 0 ? y >= 0 ? double.MaxValue : double.MinValue : y / x;
+    
+    /// <summary>
+    /// Given two values, compute the sum of the squares of each
+    /// value. Used in geometry for determining magnitudes and
+    /// gradients
+    /// </summary>
+    /// <param name="x">First value to be squared</param>
+    /// <param name="y">Second value to be squared</param>
+    /// <returns>The sum of squares of the two arguments</returns>
+    
+    public static double SumOfSquares(double x, double y) => x * x + y * y;
+
+    /// <summary>
+    /// Calculate the root sum of squares of two values, as per
+    /// Pythagoras for finding the length of a hypotenuse
+    /// </summary>
+    /// <param name="x">First value to be squared</param>
+    /// <param name="y">Second value to be squared</param>
+    /// <returns>The root sum of squares</returns>
+    
+    public static double RootSumOfSquares(double x, double y)
+        => Math.Sqrt(SumOfSquares(x, y));
+
+    /// <summary>
+    /// Given two values, calculate the difference between their squares.
+    /// A positive result is returned if the first argument is greater in
+    /// magnitude than the second
+    /// </summary>
+    /// <param name="x">The first value to be squared</param>
+    /// <param name="y">The value to be squared and subtracted</param>
+    /// <returns>The difference in the squares of the two numbers</returns>
+    
+    public static double DiffOfSquares(double x, double y) => (x + y)*(x - y);
+
+    /// <summary>
+    /// Compute the value (a^2 - b^2)^0.5 if ^ is the power operator
+    /// </summary>
+    /// <param name="a">The first value to be squared</param>
+    /// <param name="b">The value to be squared and subtracted</param>
+    /// <returns>The value (a^2 - b^2)^0.5 if ^ is the power operator</returns>
+    
     public static double RootDiffOfSquares(double a, double b)
-        => Math.Sqrt((a + b) * (a - b));
+        => Math.Sqrt(DiffOfSquares(a, b));
 
     /// <summary>
     /// Determine if a point lies inside a rectangle formed by two other points
@@ -548,7 +622,7 @@ public static class Geometry
         // from one point to the midpoint
 
         double sqrDistToMidPoint =
-            Coordinate.SumOfSquares(p2.X - p1.X, p2.Y - p1.Y) / 4;
+            SumOfSquares(p2.X - p1.X, p2.Y - p1.Y) / 4;
 
         // Find the gradient of a line normal to 
         // the line between the two points
@@ -584,7 +658,7 @@ public static class Geometry
     /// <returns>True if the point is within the circle</returns>
 
     public static bool PointInCircle(Coordinate pt, Coordinate centre, double radius)
-        => Coordinate.SumOfSquares(pt.X - centre.X, pt.Y - centre.Y) < radius * radius;
+        => SumOfSquares(pt.X - centre.X, pt.Y - centre.Y) < Square(radius);
 
     /// <summary>
     /// The resolution of points on the various curves
@@ -616,7 +690,8 @@ public static class Geometry
     /// the iteration</param>
     /// <returns>The value of the nearest root to the starting value</returns>
     
-    public static double NewtonRaphson(Func<double, (double, double)> func, double xCurr, double xResolution)
+    public static double NewtonRaphson
+        (Func<double, (double, double)> func, double xCurr, double xResolution)
     {
         double xPrev;
         do

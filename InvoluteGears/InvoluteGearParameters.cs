@@ -306,7 +306,7 @@ public class InvoluteGearParameters : IGearProfile
     /// </summary>
 
     private double SquaredUndercutRadius
-        => Coordinate.SumOfSquares(underCutPoint.X, underCutPoint.Y);
+        => Geometry.SumOfSquares(underCutPoint.X, underCutPoint.Y);
 
     /// <summary>
     /// Obtain the radius of the point at which the gear's
@@ -354,10 +354,10 @@ public class InvoluteGearParameters : IGearProfile
             * BaseCircleDiameter / (BaseCircleDiameter + meshedGear.BaseCircleDiameter);
         double meshedDistToPitchPoint = distanceBetweenCentres - distToPitchPoint;
         double contactLength
-            = Math.Sqrt(Coordinate.DiffOfSquares(distToPitchPoint, BaseCircleDiameter / 2))
+            = Math.Sqrt(Geometry.DiffOfSquares(distToPitchPoint, BaseCircleDiameter / 2))
             - Math.Sqrt(SquaredUndercutRadius - Geometry.Square(BaseCircleDiameter / 2));
         double meshedContactLength
-            = Math.Sqrt(Coordinate.DiffOfSquares(meshedDistToPitchPoint, meshedGear.BaseCircleDiameter / 2))
+            = Math.Sqrt(Geometry.DiffOfSquares(meshedDistToPitchPoint, meshedGear.BaseCircleDiameter / 2))
             - Math.Sqrt(meshedGear.SquaredUndercutRadius - Geometry.Square(meshedGear.BaseCircleDiameter / 2));
         return contactLength + meshedContactLength;
     }
@@ -466,7 +466,7 @@ public class InvoluteGearParameters : IGearProfile
         // Find the point on the cutter circle that intersects a line from
         // its centre to the centre of the gear profile (origin 0,0)
 
-        double cutterCentreRadius = Math.Sqrt(Coordinate.SumOfSquares(cutterCentre.X, cutterCentre.Y));
+        double cutterCentreRadius = Math.Sqrt(Geometry.SumOfSquares(cutterCentre.X, cutterCentre.Y));
 
         // Find the end angle for the cutter radius curve. This is the same as
         // the angle at the origin to the cutter centre, reflected by 180 degrees.

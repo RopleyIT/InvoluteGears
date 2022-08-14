@@ -20,10 +20,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void TestNewtonRaphson()
         {
-            static (double, double) quadratic(double x)
-            {
-                return (x * x - 6 * x - 55, 2 * x - 6);
-            }
+            static (double, double) quadratic(double x) => (x * x - 6 * x - 55, 2 * x - 6);
 
             double root1 = Geometry.NewtonRaphson(quadratic, 2.99, 0.00001);
             double root2 = Geometry.NewtonRaphson(quadratic, 3.01, 0.00001);
@@ -42,7 +39,5 @@ namespace TwoDLibTests
             Assert.AreEqual(-5.0, root1, 0.00001);
             Assert.AreEqual(11.0, root2, 0.00001);
         }
-
-
     }
 }

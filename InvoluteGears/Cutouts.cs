@@ -200,7 +200,7 @@ public class Cutouts
 
         double cornerCentreY = spokeThickness / 2 + cornerRadius;
         double rimCornerCentreX = Math.Sqrt
-            (Coordinate.DiffOfSquares(rimDiameter / 2 - cornerRadius, cornerCentreY));
+            (Geometry.DiffOfSquares(rimDiameter / 2 - cornerRadius, cornerCentreY));
         Coordinate rimCornerCentre = new(rimCornerCentreX, cornerCentreY);
         double angleAtRim = Math.Atan2(cornerCentreY, rimCornerCentreX);
         IEnumerable<Coordinate> outerCorner = Geometry.CirclePoints
@@ -211,7 +211,7 @@ public class Cutouts
         //double hubCornerCentreX = Math.Sqrt(Square(hubDiameter / 2 + cornerRadius)
         //    - Square(cornerCentreY));
         double hubCornerCentreX = Math.Sqrt
-            (Coordinate.DiffOfSquares(hubDiameter / 2 + cornerRadius, cornerCentreY));
+            (Geometry.DiffOfSquares(hubDiameter / 2 + cornerRadius, cornerCentreY));
         Coordinate hubCornerCentre = new(hubCornerCentreX, cornerCentreY);
         double angleAtHub = Math.Atan2(cornerCentreY, hubCornerCentreX);
 
