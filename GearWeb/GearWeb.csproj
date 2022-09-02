@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\InvoluteGears\InvoluteGears.csproj" />
     <ProjectReference Include="..\Plotter\Plotter.csproj" />
+    <ProjectReference Include="..\TwoDimensionLib\TwoDimensionLib.csproj" />
   </ItemGroup>
 
 </Project>

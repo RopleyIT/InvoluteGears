@@ -2,10 +2,9 @@
 using Plotter;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace GearWeb.Shared
 {
@@ -69,25 +68,20 @@ namespace GearWeb.Shared
         {
             // Create the output plot file of the gear
 
-            List<IEnumerable<PointF>> gearPoints = new()
+            List<IEnumerable<Coordinate>> gearPoints = new()
             {
-                cutoutCalculator.Gear.GenerateCompleteGearPath().FromCoords()
+                cutoutCalculator.Gear.GenerateCompleteGearPath()
             };
             GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 
             // Now convert to image bytes to return from Web API
 
-            using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048, Color.Black);
-            using MemoryStream ms = new();
-            img.Save(ms, ImageFormat.Jpeg);
-            ms.Seek(0L, SeekOrigin.Begin);
-            byte[] bytes = ms.GetBuffer();
 
             return new GearProfiles
             {
                 Description = cutoutCalculator.Gear.Information + cutoutCalculator.Information,
                 ShortName = cutoutCalculator.Gear.ShortName,
-                JpegBase64 = Convert.ToBase64String(bytes),
+                SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, "black"),
                 SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size),
                 Errors = cutoutCalculator.Gear.Errors + cutoutCalculator.Errors
             };

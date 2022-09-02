@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace Plotter;
 
@@ -16,23 +16,70 @@ public enum StrokeType
     Z
 };
 
-public class SVGPath
+public class SVGPath : IRenderable
 {
-    public string Stroke { get; private set; } = String.Empty;
-    public string StrokeWidth { get; private set; } = String.Empty;
-    public string Fill { get; private set; } = String.Empty;
+    /// <summary>
+    /// The pen or line colour for the path or shape
+    /// </summary>
+    
+    public string Stroke { get; set; } = String.Empty;
+
+    /// <summary>
+    /// The thickness of the line
+    /// </summary>
+    
+    public string StrokeWidth { get; set; } = String.Empty;
+    
+    /// <summary>
+    /// The fill colour
+    /// </summary>
+    
+    public string Fill { get; set; } = String.Empty;
+    
+    public LineCap Cap { get; set; } = LineCap.None;
+    
+    public LineJoin Join { get; set; } = LineJoin.None;
+    
+    /// <summary>
+    /// The lengths of the dashes and gaps for a line pattern
+    /// </summary>
+    
+    public IEnumerable<int> Dashes { get; set; }
+
+    /// <summary>
+    /// Alternative helper function for setting the dash lengths
+    /// </summary>
+    /// <param name="dashes">Sequence of integers for dash lengths
+    /// </param>
+    
+    public void SetDashes(params int[] dashes)
+        => Dashes = dashes;
+
+    /// <summary>
+    /// Create a closed or open path using a sequence of points
+    /// </summary>
+    /// <param name="points">The sequence of points to be joined
+    /// using straight line segments</param>
+    /// <param name="closed">True to close the 
+    /// last point back to the first with a line</param>
+    /// <returns>The path created</returns>
+
+    public static SVGPath FromPoints(IEnumerable<Coordinate> points, bool closed)
+        => new(points, closed);
 
     public IList<SVGPathElement> Elements { get; private set; }
         = new List<SVGPathElement>();
 
-    public SVGPath(IEnumerable<PointF> points, bool closed)
+    public SVGPath() { }
+
+    public SVGPath(IEnumerable<Coordinate> points, bool closed)
     {
         if (points == null || !points.Any())
             throw new ArgumentException("No points for SVG path");
 
-        PointF prev = points.First();
+        Coordinate prev = points.First();
         Elements.Add(SVGPathElement.MoveTo(prev));
-        foreach (PointF p in points.Skip(1))
+        foreach (var p in points.Skip(1))
         {
             if (p != prev)
                 Elements.Add(SVGPathElement.LineTo(p));
@@ -49,9 +96,45 @@ public class SVGPath
         Fill = fillColour;
     }
 
-    public RectangleF BoundingBox()
+    public void MoveTo(Coordinate p)
+    => Elements.Add(SVGPathElement.MoveTo(p.X, p.Y));
+
+    public void MoveRel(double dx, double dy)
+        => Elements.Add(SVGPathElement.MoveRel(dx, dy));
+
+    public void LineTo(Coordinate p)
+        => Elements.Add(SVGPathElement.LineTo(p));
+
+    public void LineTo(double x, double y)
+        => Elements.Add(SVGPathElement.LineTo(x, y));
+
+    public void LineRel(double dx, double dy)
+        => Elements.Add(SVGPathElement.LineRel(dx, dy));
+
+    public void Close()
+        => Elements.Add(SVGPathElement.Close());
+
+    public void Cubic(double cx1, double cy1, double cx2, double cy2, double x, double y)
+        => Elements.Add(SVGPathElement.Cubic(cx1, cy1, cx2, cy2, x, y));
+
+    public void CubicRel(double dx1, double dy1, double dx2, double dy2, double dx, double dy)
+        => Elements.Add(SVGPathElement.CubicRel(dx1, dy1, dx2, dy2, dx, dy));
+
+    public void Quadratic(double cx1, double cy1, double x, double y)
+        => Elements.Add(SVGPathElement.Quadratic(cx1, cy1, x, y));
+
+    public void QuadraticRel(double dx1, double dy1, double dx, double dy)
+        => Elements.Add(SVGPathElement.QuadraticRel(dx1, dy1, dx, dy));
+
+    public void Arc(double rx, double ry, double angle, bool largeArc, bool sweep, double x, double y)
+        => Elements.Add(SVGPathElement.Arc(rx, ry, angle, largeArc, sweep, x, y));
+
+    public void ArcRel(double rx, double ry, double angle, bool largeArc, bool sweep, double dx, double dy)
+        => Elements.Add(SVGPathElement.ArcRel(rx, ry, angle, largeArc, sweep, dx, dy));
+
+    public Rectangle BoundingBox()
     {
-        RectangleF bbox = RectangleF.Empty;
+        Rectangle bbox = Rectangle.Empty;
         var elementsWithPoints =
             from e in Elements
             where e.Points != null && e.Points.Count > 0
@@ -66,13 +149,14 @@ public class SVGPath
         return bbox;
     }
 
-    public static RectangleF Union(RectangleF r, RectangleF s)
+    public static Rectangle Union(Rectangle r, Rectangle s)
     {
-        float xMax = Math.Max(r.Right, s.Right);
-        float xMin = Math.Min(r.Left, s.Left);
-        float yMax = Math.Max(r.Bottom, s.Bottom);
-        float yMin = Math.Min(r.Top, s.Top);
-        return new RectangleF(xMin, yMin, xMax - xMin, yMax - yMin);
+        double xMax = Math.Max(r.Right, s.Right);
+        double xMin = Math.Min(r.Left, s.Left);
+        double yMax = Math.Max(r.Bottom, s.Bottom);
+        double yMin = Math.Min(r.Top, s.Top);
+        return new Rectangle
+            (new(xMin, yMin), xMax - xMin, yMax - yMin);
     }
 
     public override string ToString()
@@ -87,13 +171,45 @@ public class SVGPath
                 sw.WriteLine();
         }
         sw.Write("\"");
+        sw.Write(RenderStye());
+        sw.WriteLine("/>");
+        return sw.ToString();
+    }
+
+    public string RenderStye()
+    {
+        StringWriter sw = new();
         if (!string.IsNullOrEmpty(Stroke))
             sw.Write($" stroke=\"{Stroke}\"");
-        if (!string.IsNullOrEmpty(StrokeWidth))
-            sw.Write($" stroke-width=\"{StrokeWidth}\"");
         if (!string.IsNullOrEmpty(Fill))
             sw.Write($" fill=\"{Fill}\"");
-        sw.WriteLine("/>");
+        if (!string.IsNullOrEmpty(StrokeWidth))
+            sw.Write($" stroke-width=\"{StrokeWidth}\"");
+        var strCap = Cap switch
+        {
+            LineCap.Round => "round",
+            LineCap.Square => "square",
+            LineCap.Butt => "butt",
+            _ => ""
+        };
+        if (!string.IsNullOrEmpty(strCap))
+            sw.Write($" stroke-linecap=\"{strCap}\"");
+        var strJoin = Join switch
+        {
+            LineJoin.Round => "round",
+            LineJoin.Mitre => "mitre",
+            LineJoin.Bevel => "bevel",
+            _ => ""
+        };
+        if (!string.IsNullOrEmpty(strJoin))
+            sw.Write($" stroke-linejoin=\"{strJoin}\"");
+        if (Dashes != null && Dashes.Any())
+        {
+            sw.Write($" stroke-dasharray=\"{Dashes.First()}");
+            foreach (int i in Dashes.Skip(1))
+                sw.Write($",{i}");
+            sw.Write("\"");
+        }
         return sw.ToString();
     }
 }
@@ -103,111 +219,115 @@ public class SVGPathElement
     public StrokeType StrokeType { get; private set; }
     public bool Relative { get; private set; }
 
-    private readonly PointF[] points;
+    private readonly Coordinate[] points;
 
-    public IList<PointF> Points => points;
+    public IList<Coordinate> Points => points;
 
     private SVGPathElement(StrokeType type, bool rel)
     {
         StrokeType = type;
         Relative = rel;
         if (type == StrokeType.Cubic)
-            points = new PointF[3];
+            points = new Coordinate[3];
         else if (type == StrokeType.Quadratic)
-            points = new PointF[2];
+            points = new Coordinate[2];
         else if (type == StrokeType.Arc)
-            points = new PointF[3];
+            points = new Coordinate[3];
         else if (type == StrokeType.Z)
-            points = Array.Empty<PointF>();
+            points = Array.Empty<Coordinate>();
         else
-            points = new PointF[1];
+            points = new Coordinate[1];
     }
 
-    public static SVGPathElement MoveTo(PointF p)
+    public static SVGPathElement MoveTo(Coordinate p)
         => MoveTo(p.X, p.Y);
 
-    public static SVGPathElement MoveTo(float x, float y)
+    public static SVGPathElement MoveTo(double x, double y)
     {
         SVGPathElement element = new(StrokeType.Move, false);
-        element.points[0] = new PointF(x, y);
+        element.points[0] = new Coordinate(x, y);
         return element;
     }
 
-    public static SVGPathElement MoveRel(float dx, float dy)
+    public static SVGPathElement MoveRel(double dx, double dy)
     {
         SVGPathElement element = new(StrokeType.Move, true);
-        element.points[0] = new PointF(dx, dy);
+        element.points[0] = new Coordinate(dx, dy);
         return element;
     }
 
-    public static SVGPathElement LineTo(PointF p)
+    public static SVGPathElement LineTo(Coordinate p)
         => LineTo(p.X, p.Y);
 
-    public static SVGPathElement LineTo(float x, float y)
+    public static SVGPathElement LineTo(double x, double y)
     {
         SVGPathElement element = new(StrokeType.Line, false);
-        element.points[0] = new PointF(x, y);
+        element.points[0] = new Coordinate(x, y);
         return element;
     }
 
-    public static SVGPathElement LineRel(float dx, float dy)
+    public static SVGPathElement LineRel(double dx, double dy)
     {
         SVGPathElement element = new(StrokeType.Line, true);
-        element.points[0] = new PointF(dx, dy);
+        element.points[0] = new Coordinate(dx, dy);
         return element;
     }
 
     public static SVGPathElement Close() => new(StrokeType.Z, false);
 
-    public static SVGPathElement Cubic(float cx1, float cy1, float cx2, float cy2, float x, float y)
+    public static SVGPathElement Cubic
+        (double cx1, double cy1, double cx2, double cy2, double x, double y)
     {
         SVGPathElement element = new(StrokeType.Cubic, false);
-        element.points[0] = new PointF(cx1, cy1);
-        element.points[1] = new PointF(cx2, cy2);
-        element.points[2] = new PointF(x, y);
+        element.points[0] = new Coordinate(cx1, cy1);
+        element.points[1] = new Coordinate(cx2, cy2);
+        element.points[2] = new Coordinate(x, y);
         return element;
     }
 
-    public static SVGPathElement CubicRel(float dx1, float dy1, float dx2, float dy2, float dx, float dy)
+    public static SVGPathElement CubicRel
+        (double dx1, double dy1, double dx2, double dy2, double dx, double dy)
     {
         SVGPathElement element = new(StrokeType.Cubic, true);
-        element.points[0] = new PointF(dx1, dy1);
-        element.points[1] = new PointF(dx2, dy2);
-        element.points[2] = new PointF(dx, dy);
+        element.points[0] = new Coordinate(dx1, dy1);
+        element.points[1] = new Coordinate(dx2, dy2);
+        element.points[2] = new Coordinate(dx, dy);
         return element;
     }
 
-    public static SVGPathElement Quadratic(float cx1, float cy1, float x, float y)
+    public static SVGPathElement Quadratic(double cx1, double cy1, double x, double y)
     {
         SVGPathElement element = new(StrokeType.Cubic, false);
-        element.points[0] = new PointF(cx1, cy1);
-        element.points[1] = new PointF(x, y);
+        element.points[0] = new Coordinate(cx1, cy1);
+        element.points[1] = new Coordinate(x, y);
         return element;
     }
 
-    public static SVGPathElement QuadraticRel(float dx1, float dy1, float dx, float dy)
+    public static SVGPathElement QuadraticRel(double dx1, double dy1, double dx, double dy)
     {
         SVGPathElement element = new(StrokeType.Cubic, true);
-        element.points[0] = new PointF(dx1, dy1);
-        element.points[1] = new PointF(dx, dy);
+        element.points[0] = new Coordinate(dx1, dy1);
+        element.points[1] = new Coordinate(dx, dy);
         return element;
     }
 
-    public static SVGPathElement Arc(float rx, float ry, float angle, bool largeArc, bool sweep, float x, float y)
+    public static SVGPathElement Arc
+        (double rx, double ry, double angle, bool largeArc, bool sweep, double x, double y)
     {
         SVGPathElement element = new(StrokeType.Arc, false);
-        element.points[0] = new PointF(rx, ry);
-        element.points[1] = new PointF(angle, (largeArc ? 1.0f : 0.0f) + (sweep ? 2.0f : 0.0f)); // UGH!
-        element.points[2] = new PointF(x, y);
+        element.points[0] = new Coordinate(rx, ry);
+        element.points[1] = new Coordinate(angle, (largeArc ? 1.0f : 0.0f) + (sweep ? 2.0f : 0.0f)); // UGH!
+        element.points[2] = new Coordinate(x, y);
         return element;
     }
 
-    public static SVGPathElement ArcRel(float rx, float ry, float angle, bool largeArc, bool sweep, float dx, float dy)
+    public static SVGPathElement ArcRel
+        (double rx, double ry, double angle, bool largeArc, bool sweep, double dx, double dy)
     {
         SVGPathElement element = new(StrokeType.Arc, true);
-        element.points[0] = new PointF(rx, ry);
-        element.points[1] = new PointF(angle, (largeArc ? 1.0f : 0.0f) + (sweep ? 2.0f : 0.0f)); // UGH!
-        element.points[2] = new PointF(dx, dy);
+        element.points[0] = new Coordinate(rx, ry);
+        element.points[1] = new Coordinate(angle, (largeArc ? 1.0f : 0.0f) + (sweep ? 2.0f : 0.0f)); // UGH!
+        element.points[2] = new Coordinate(dx, dy);
         return element;
     }
 
@@ -240,17 +360,38 @@ public class SVGPathElement
         return result;
     }
 
-    public RectangleF BoundingBox()
+    public Rectangle BoundingBox()
     {
-        float xMax = points.Select(p => p.X).Max();
-        float xMin = points.Select(p => p.X).Min();
-        float yMax = points.Select(p => p.Y).Max();
-        float yMin = points.Select(p => p.Y).Min();
-        return new(xMin, yMin, xMax - xMin, yMax - yMin);
+        double xMax = points.Select(p => p.X).Max();
+        double xMin = points.Select(p => p.X).Min();
+        double yMax = points.Select(p => p.Y).Max();
+        double yMin = points.Select(p => p.Y).Min();
+        return new(new(xMin, yMin), xMax - xMin, yMax - yMin);
     }
 
-    private static string RenderPoint(PointF p) => $"{p.X:F2},{p.Y:F2}";
+    /// <summary>
+    /// Calculate the width and height of one quarter of the bounding box
+    /// surrounding a rotated ellipse
+    /// </summary>
+    /// <param name="rx">X axis radius of unrotated ellipse</param>
+    /// <param name="ry">Y axis radius of unrotated ellipse</param>
+    /// <param name="angle">The anticlockwise angle through which
+    /// the ellipse has been rotated (radians)</param>
+    /// <returns>The width and height of one quarter of the bounding box
+    /// surrounding the rotated ellipse</returns>
 
-    private static string RenderPoints(IEnumerable<PointF> pe, int count)
+    private static Coordinate EllipseQuarterBounds(float rx, float ry, float angle)
+    {
+        var cosAngle = Math.Cos(angle);
+        var sinAngle = Math.Sin(angle);
+        var xr = Math.Sqrt(Geometry.Square(rx * cosAngle) + Geometry.Square(ry * sinAngle));
+        var yr = Math.Sqrt(Geometry.Square(rx * sinAngle) + Geometry.Square(ry * cosAngle));
+        return new Coordinate(xr, yr);
+    }
+
+
+    private static string RenderPoint(Coordinate p) => $"{p.X:F2},{p.Y:F2}";
+
+    private static string RenderPoints(IEnumerable<Coordinate> pe, int count)
         => string.Join(",", pe.Take(count).Select(p => RenderPoint(p)));
 }

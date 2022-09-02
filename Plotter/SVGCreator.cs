@@ -1,44 +1,106 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace Plotter;
 
-// TODO: Modify to take multiple paths in format that can be fed to Cut2D
-
-/*
- <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <svg width="391" height="391" viewBox="-70.5 -70.5 391 391" xmlns="http://www.w3.org/2000/svg">
-    <rect fill="#fff" stroke="#000" x="-70" y="-70" width="390" height="390"/>
-    <g opacity="0.8">
-        <rect x="25" y="25" width="200" height="200" fill="green" stroke-width="4" stroke="pink" />
-        <circle cx="125" cy="125" r="75" fill="orange" />
-        <polyline points="50,150 50,200 200,200 200,100" stroke="red" stroke-width="4" fill="none" />
-        <line x1="50" y1="50" x2="200" y2="200" stroke="blue" stroke-width="4" />
-    </g>
-    </svg>
- */
 public class SVGCreator
 {
-    private readonly List<SVGPath> svgPaths;
+    private readonly List<IRenderable> svgElements;
 
-    public SVGCreator() => svgPaths = new List<SVGPath>();
+    public bool HasXmlHeader { get; set; } = true;
 
-    public void AddPath(SVGPath path) => svgPaths.Add(path);
+    public bool HasWidthAndHeight { get; set; } = true;
 
-    public void AddClosedPath(IEnumerable<PointF> points, string stroke, double strokeWidth, string fill)
+    public SVGCreator() => svgElements = new List<IRenderable>();
+
+    private IRenderable AddElement(IRenderable element)
     {
-        SVGPath path = new(points, true);
-        path.SetDrawingParams(stroke, strokeWidth, fill);
-        AddPath(path);
+        svgElements.Add(element);
+        return element;
+    }
+    
+    private IRenderable AddWithStyle
+        (IRenderable r, string stroke, double strokeWidth, string fill)
+    {
+        r.Stroke = stroke;
+        r.StrokeWidth = strokeWidth.ToString();
+        r.Fill = fill;
+        return AddElement(r);
     }
 
-    public SizeF DocumentDimensions { get; set; } = SizeF.Empty;
+    public IRenderable AddPath(
+        IEnumerable<Coordinate> points, 
+        bool close = false, 
+        string stroke = "black", 
+        double strokeWidth = 1, 
+        string fill = "white")
+        => AddWithStyle(new SVGPath(points, close), stroke, strokeWidth, fill);
+
+    public IRenderable AddEllipse(Coordinate centre, Coordinate radii, string stroke, double strokeWidth, string fill)
+    {
+        SVGPath path = new();
+        path.MoveTo(new Coordinate(centre.X - radii.X, centre.Y));
+        path.Arc(radii.X, radii.Y, 0, false, false, centre.X + radii.X, centre.Y);
+        path.Arc(radii.X, radii.Y, 0, false, false, centre.X - radii.X, centre.Y);
+        path.Close();
+        return AddWithStyle(path, stroke, strokeWidth, fill);
+    }
+
+    public IRenderable AddText(string text, Coordinate location, string fontSize = "20px",
+        string fontName = "sans-serif", bool italic = false, bool bold = false, string fill = "black")
+    {
+        IRenderable r = new SvgText(text, location, fontSize, fontName, italic, bold);
+        if (!string.IsNullOrWhiteSpace(fill))
+            r.Fill = fill;
+        return AddElement(r);
+    }
+
+    public IRenderable AddCircle(Coordinate centre, float radius, string stroke, double strokeWidth, string fill)
+        => AddEllipse(centre, new Coordinate(radius, radius), stroke, strokeWidth, fill);
+
+    public IRenderable AddRoundedRect(Rectangle r, Coordinate rnd, string stroke, double strokeWidth, string fill)
+    {
+        SVGPath path = new();
+        path.MoveTo(new Coordinate(r.Left, r.Top + rnd.Y));
+        path.Arc(rnd.X, rnd.Y, 0, false, true, r.Left + rnd.X, r.Top);
+        path.LineTo(r.Right - rnd.X, r.Top);
+        path.Arc(rnd.X, rnd.Y, 0, false, true, r.Right, r.Top + rnd.Y);
+        path.LineTo(new Coordinate(r.Right, r.Bottom - rnd.Y));
+        path.Arc(rnd.X, rnd.Y, 0, false, true, r.Right - rnd.X, r.Bottom);
+        path.LineTo(new Coordinate(r.Left + rnd.X, r.Bottom));
+        path.Arc(rnd.X, rnd.Y, 0, false, true, r.Left, r.Bottom - rnd.Y);
+        path.Close();
+        return AddWithStyle(path, stroke, strokeWidth, fill);
+    }
+
+    public IRenderable AddRect(Rectangle r, string stroke, double strokeWidth, string fill)
+    {
+        var corners = new Coordinate[]
+        {
+                new(r.Left, r.Top),
+                new(r.Right, r.Top),
+                new(r.Right, r.Bottom),
+                new(r.Left, r.Bottom)
+        };
+        return AddPath(corners, true, stroke, strokeWidth, fill);
+    }
+
+    public IRenderable AddLine(Coordinate start, Coordinate end, string stroke, double strokeWidth)
+        => AddPath(new Coordinate[] { start, end }, false, stroke, strokeWidth, null);
+
+    public IRenderable AddPolyline(IEnumerable<Coordinate> points, string stroke, double strokeWidth)
+        => AddPath(points, false, stroke, strokeWidth, null);
+
+    public IRenderable AddPolygon(IEnumerable<Coordinate> points, string stroke, double strokeWidth, string fill)
+        => AddPath(points, true, stroke, strokeWidth, fill);
+
+    public Coordinate DocumentDimensions { get; set; } = Coordinate.Empty;
 
     public string DocumentDimensionUnits { get; set; } = string.Empty;
 
-    public RectangleF ViewBoxDimensions { get; set; } = RectangleF.Empty;
+    public Rectangle ViewBoxDimensions { get; set; } = Rectangle.Empty;
 
     public string ViewBoxDimensionUnits { get; set; } = string.Empty;
 
@@ -46,41 +108,55 @@ public class SVGCreator
 
     private static string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 
-    private string StartSvg =>
-        $"<svg width=\"{DocumentDimensions.Width}{DocumentDimensionUnits}\" "
-        + $"height=\"{DocumentDimensions.Height}{DocumentDimensionUnits}\" "
-        + $"viewBox=\"{ViewBoxDimensions.X}{ViewBoxDimensionUnits} "
-        + $"{ViewBoxDimensions.Y}{ViewBoxDimensionUnits} "
-        + $"{ViewBoxDimensions.Width}{ViewBoxDimensionUnits} "
-        + $"{ViewBoxDimensions.Height}{ViewBoxDimensionUnits}\" "
-        + $"xmlns=\"http://www.w3.org/2000/svg\">";
+    private string StartSvg
+    {
+        get
+        {
+            string startSvg = string.Empty;
+            if (HasXmlHeader)
+                startSvg += XmlHeader;
+            startSvg += "<svg ";
+            if (HasWidthAndHeight)
+                startSvg += $"width=\"{DocumentDimensions.X}{DocumentDimensionUnits}\" "
+                        + $"height=\"{DocumentDimensions.Y}{DocumentDimensionUnits}\" ";
+            startSvg += $"viewBox=\"{ViewBoxDimensions.Left}{ViewBoxDimensionUnits} "
+                        + $"{ViewBoxDimensions.Top}{ViewBoxDimensionUnits} "
+                        + $"{ViewBoxDimensions.Width}{ViewBoxDimensionUnits} "
+                        + $"{ViewBoxDimensions.Height}{ViewBoxDimensionUnits}\"";
+            if (HasXmlHeader)
+                startSvg += $" xmlns=\"http://www.w3.org/2000/svg\">";
+            else
+                startSvg += ">";
+            return startSvg;
+        }
+    }
 
     private static string EndSvg => "</svg>";
-
-    public void CalculateViewBox()
+    
+    public void CalculateViewBox(Coordinate margin)
     {
-        if (svgPaths != null && svgPaths.Count > 0)
+        if (svgElements != null && svgElements.Count > 0)
         {
-            ViewBoxDimensions = svgPaths[0].BoundingBox();
-            foreach (SVGPath p in svgPaths.Skip(1))
+            ViewBoxDimensions = svgElements[0].BoundingBox();
+            foreach (IRenderable p in svgElements.Skip(1))
                 ViewBoxDimensions = SVGPath.Union(ViewBoxDimensions, p.BoundingBox());
         }
-        DocumentDimensions = new SizeF(ViewBoxDimensions.Width, ViewBoxDimensions.Height);
+        ViewBoxDimensions = ViewBoxDimensions.Inflate(margin);
+        DocumentDimensions = new Coordinate(ViewBoxDimensions.Width, ViewBoxDimensions.Height);
     }
 
     public override string ToString()
     {
         StringWriter sw = new();
-        sw.WriteLine(XmlHeader);
+        sw.WriteLine(StartSvg);
         if (!string.IsNullOrWhiteSpace(InfoComment))
         {
             sw.WriteLine("<!--");
             sw.Write(InfoComment);
             sw.WriteLine("-->");
         }
-        sw.WriteLine(StartSvg);
-        foreach (SVGPath path in svgPaths)
-            sw.WriteLine(path.ToString());
+        foreach (IRenderable element in svgElements)
+            sw.WriteLine(element.ToString());
         sw.WriteLine(EndSvg);
         return sw.ToString();
     }

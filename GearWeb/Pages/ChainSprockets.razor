@@ -88,14 +88,14 @@
             <h5 class="card-title">Chain sprocket</h5>
             <p class="card-text">@ImageDescription</p>
         </div>
-        <img src="@InvImage" class="card-img-bottom" alt="Image of sprocket will appear here" />
+        @InvImage
     </div>
 }
 
 @code {
     bool IsDisabled = true;
     ChainSprocketParams GearData = new ChainSprocketParams();
-    string InvImage = string.Empty;
+    MarkupString InvImage = new();
     MarkupString ImageDescription = new MarkupString(string.Empty);
     string SVG = string.Empty;
     string SvgUrl = "/";
@@ -109,7 +109,7 @@
             {
                 var gearProfile = GearAPI.CalcChainSprocketImage(GearData);
                 ImageDescription = Program.ToHtmlText(gearProfile.Description);
-                InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
+                InvImage = new(gearProfile.SvgPlot);
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id="
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
@@ -118,7 +118,7 @@
             catch (Exception x)
             {
                 ImageDescription = Program.ToHtmlText("Status: " + x.Message);
-                InvImage = "";
+                InvImage = new();
                 SVG = string.Empty;
             }
         }

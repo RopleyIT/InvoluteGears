@@ -32,24 +32,21 @@ internal class Program
         Console.WriteLine("    Identifies gear pairs that would achieve the desired gear ratio numerator/denominator with");
         Console.WriteLine("    wheels having tooth counts in the range minteeth to maxteeth.");
     }
-
-    private static void CreateGearPlot(Cutouts cutoutCalculator, double size)
+    private static void CreateSvgGearPlot(Cutouts cutoutCalculator, double size)
     {
         // Create the output plot file of the gear
 
-        List<IEnumerable<PointF>> gearPoints = new()
+        List<IEnumerable<Coordinate>> gearPoints = new()
         {
-            cutoutCalculator.Gear.GenerateCompleteGearPath().FromCoords()
+            cutoutCalculator.Gear.GenerateCompleteGearPath()
         };
         GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
 
         // Now convert to image bytes to return from Web API
 
-        using Image img = Plot.PlotGraphs(gearPoints, 2048, 2048, Color.Black);
-        using FileStream ms = new(cutoutCalculator.Gear.ShortName + ".jpg", 
-            FileMode.Create, FileAccess.Write, FileShare.None);
-        img.Save(ms, ImageFormat.Jpeg);
-
+        string svgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640);
+        using StreamWriter ms = new(cutoutCalculator.Gear.ShortName + ".svg");
+        ms.Write(svgPlot);
         GearGenerator.GenerateSVGFile(cutoutCalculator, (float)size, cutoutCalculator.Gear.ShortName);
     }
 
@@ -68,7 +65,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter, 
             cutOut.KeyFlatWidth);
 
-        CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
     }
 
     private static void PlotCycloid(CommonArgs common, CutOutArgs cutOut, CycloidArgs cycloid)
@@ -87,7 +84,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateGearPlot(cutoutCalculator, gear.AddendumDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.AddendumDiameter);
     }
 
     private static void PlotChain(CommonArgs common, CutOutArgs cutOut, ChainArgs chain)
@@ -107,7 +104,7 @@ internal class Program
         cutoutCalculator.AddPlot
             (gear.GenerateInnerGearPath().ToList());
 
-        CreateGearPlot(cutoutCalculator,
+        CreateSvgGearPlot(cutoutCalculator,
             gear.InnerDiameter + 2 * gear.OuterLinkWidth);
     }
 
@@ -126,7 +123,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
     }
 
     private static void PlotRatchet(CommonArgs common, CutOutArgs cutOut, RatchetArgs ratchet)
@@ -142,7 +139,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
     }
 
     private static void PlotRoller(CommonArgs common, CutOutArgs cutOut, RollerSprocketArgs roller)
@@ -160,7 +157,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateGearPlot(cutoutCalculator, gear.OuterDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.OuterDiameter);
     }
 
     private static void Main(string[] args)

@@ -109,14 +109,14 @@
             <h5 class="card-title">Cycloidal spur gear</h5>
             <p class="card-text">@ImageDescription</p>
         </div>
-        <img src="@InvImage" class="card-img-bottom" alt="Image of gear will appear here" />
+        @InvImage
     </div>
 }
 
 @code {
     bool IsDisabled = true;
     CycloidParams GearData = new ();
-    string InvImage = string.Empty;
+    MarkupString InvImage = new();
     MarkupString ImageDescription = new MarkupString(string.Empty);
     MarkupString Errors = new MarkupString(string.Empty);
     string SVG = string.Empty;
@@ -142,7 +142,7 @@
                 var gearProfile = GearAPI.CalcCycloidImage(GearData);
                 ImageDescription = Program.ToHtmlText(gearProfile.Description);
                 Errors = Program.ToHtmlText(gearProfile.Errors);
-                InvImage = "data:image/jpeg;base64," + gearProfile.JpegBase64;
+                InvImage = new(gearProfile.SvgPlot);
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id=" 
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
@@ -152,7 +152,7 @@
             {
                 Errors = Program.ToHtmlText
                     ($"Gear generator threw an exception.\r\nReason: {x.Message}\r\nStack: {x.StackTrace}");
-                InvImage = "";
+                InvImage = new();
                 SVG = string.Empty;
             }
         }
