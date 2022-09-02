@@ -1,9 +1,8 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using InvoluteGears;
-using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
-using TwoDimensionLib;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace GearTests
 {
@@ -51,8 +50,8 @@ namespace GearTests
             CycloidalGear gear = new(
                 teeth,              // Teeth
                 otherTeeth,         // Opposing teeth
-                blunting/100.0,     // Tooth blunting
-                otherBlunting/100.0,// Opposite tooth blunting
+                blunting / 100.0,     // Tooth blunting
+                otherBlunting / 100.0,// Opposite tooth blunting
                 module,             // Module
                 tolerance,          // Tolerance for point count reduction
                 backlash,           // Backlash measured in fractions of the module

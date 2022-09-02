@@ -44,7 +44,7 @@ public class ChainSprocket : IGearProfile
     /// other fields will contain data. If non-empty the other
     /// fields may be empty or null.
     /// </summary>
-    
+
     public string Errors { get; private set; }
 
     /// <summary>
@@ -273,7 +273,7 @@ public class ChainSprocket : IGearProfile
     {
         IList<Coordinate>? profile = outer ? OuterToothProfile : InnerToothProfile;
         double angle = 2 * Math.PI * (gap % ToothCount) / (double)ToothCount;
-        if(profile == null)
+        if (profile == null)
             return Enumerable.Empty<Coordinate>();
         else
             return

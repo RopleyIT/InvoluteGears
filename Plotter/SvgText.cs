@@ -91,7 +91,7 @@ public class SvgText : IRenderable
 
     private readonly string text;
     private Coordinate location;
-    
+
     public SvgText(string text, Coordinate btmLeft, string size, string font, bool italic, bool bold)
     {
         this.text = text;

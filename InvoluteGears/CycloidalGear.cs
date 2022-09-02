@@ -9,7 +9,7 @@ namespace InvoluteGears
     public class CycloidalGear : IGearProfile
     {
         public CycloidalGear(int toothCount, int oppositeToothCount, double toothBlunting,
-            double oppositeToothBlunting, double module, 
+            double oppositeToothBlunting, double module,
             double maxErr, double backlash, double cutterDiam)
         {
             ToothCount = toothCount;
@@ -39,7 +39,7 @@ namespace InvoluteGears
         }
 
         public string ShortName
-            => $"Ct{ToothCount}_{OpposingToothCount}m{Module:N2}a{ToothBlunting*100}_{OpposingToothBlunting}"
+            => $"Ct{ToothCount}_{OpposingToothCount}m{Module:N2}a{ToothBlunting * 100}_{OpposingToothBlunting}"
                 + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}";
 
         public string Information { get; private set; }
@@ -68,10 +68,10 @@ namespace InvoluteGears
         /// former gives very low pressure angles but reduces
         /// the contact ratio possibly below the minimum of 1.0.
         /// </summary>
-        
+
         public double ToothBlunting { get; private set; }
 
-        public double Module { get; private set; }  
+        public double Module { get; private set; }
 
         public double MaxError { get; private set; }
 
@@ -90,7 +90,7 @@ namespace InvoluteGears
         /// of their backlashes as the total backlash between the
         /// gears.
         /// </summary>
-        
+
         public double Backlash { get; private set; }
 
         public int OpposingToothCount { get; private set; }
@@ -156,8 +156,8 @@ namespace InvoluteGears
         private static double CalcMaxAddendumAngle(double radius, double otherLocusRadius, int toothCount, double blunting)
         {
             double maxTipAngle = Math.Min(Math.PI * otherLocusRadius / radius, Math.PI);
-            double func(double phi) 
-                => MaxAngleFunc(radius, otherLocusRadius, phi, 
+            double func(double phi)
+                => MaxAngleFunc(radius, otherLocusRadius, phi,
                     -0.5 * (1 - blunting) * Math.PI / toothCount);
             return Geometry.RootBinarySearch(func, 0, maxTipAngle, Math.PI / 2048); // Approx 0.1 degree resolution
         }
@@ -165,7 +165,7 @@ namespace InvoluteGears
         private double BacklashAngle =>
             Backlash * Module / PitchRadius;
 
-        private void CalcMaximumCriteria(double locusRadius, 
+        private void CalcMaximumCriteria(double locusRadius,
             double wheelLocusRadius, double pinionBlunting, double wheelBlunting)
         {
             double wheelRadius = OpposingToothCount * Module / 2;
@@ -189,24 +189,24 @@ namespace InvoluteGears
         /// <summary>
         /// The angle in radians taken up by one tooth and one dedendum
         /// </summary>
-        
+
         public double ToothAngle => 2 * Math.PI / ToothCount;
 
-        private double PinionContactRatio => 
+        private double PinionContactRatio =>
             (pinionAddendumAngle + pinionDedendumAngle) / ToothAngle;
 
         private double WheelContactRatio =>
             (wheelAddendumAngle + wheelDedendumAngle) / (2 * Math.PI) * OpposingToothCount;
-        
+
         private void InitPointLists()
         {
             // Assume clock toothing with locii radius half of wheel radius
 
-            CalcMaximumCriteria(ToothCount * Module / 4, 
+            CalcMaximumCriteria(ToothCount * Module / 4,
                 OpposingToothCount * Module / 4, ToothBlunting, OpposingToothBlunting);
             if (PinionContactRatio < 1)
                 Errors += "Gear needs more teeth for contact ratio >= 1.0\r\n";
-            if(WheelContactRatio < 1)
+            if (WheelContactRatio < 1)
                 Errors += "Opposite gear needs more teeth for contact ratio >= 1.0\r\n";
             oneToothProfile = OneToothProfile();
             if (oneToothProfile == null)
@@ -223,7 +223,7 @@ namespace InvoluteGears
         private IEnumerable<Coordinate> EpicycloidPoints()
         {
             double angle = 0;
-            Coordinate cycloidPt = new (PitchRadius, 0);
+            Coordinate cycloidPt = new(PitchRadius, 0);
             while (cycloidPt.Phase < ToothAngle / 4
                 && cycloidPt.Phase < pinionAddendumAngle
                 && cycloidPt.Magnitude < pinionAddendumRadius)
@@ -245,9 +245,9 @@ namespace InvoluteGears
         private IEnumerable<Coordinate> HypocycloidPoints()
         {
             double angle = 0;
-            Coordinate cycloidPt = new (PitchRadius, 0);
-            while (cycloidPt.Phase < ToothAngle / 4 
-                && cycloidPt.Phase < pinionDedendumAngle 
+            Coordinate cycloidPt = new(PitchRadius, 0);
+            while (cycloidPt.Phase < ToothAngle / 4
+                && cycloidPt.Phase < pinionDedendumAngle
                 && cycloidPt.Magnitude > pinionDedendumRadius)
             {
                 yield return cycloidPt.Conjugate;
@@ -259,14 +259,14 @@ namespace InvoluteGears
 
         private IList<Coordinate> OneToothProfile()
         {
-            List<Coordinate> cycloids = new (HypocycloidPoints()
+            List<Coordinate> cycloids = new(HypocycloidPoints()
                 .Reverse()
                 .Concat(EpicycloidPoints()));
             double boundaryAngle = cycloids[0].Phase;
-            
+
             // Start with the dedendum circle
             // points before the rising cycloids
-            
+
             List<Coordinate> toothProfile;
             if (CutDiameter <= 0)
                 toothProfile = new(Geometry.CirclePoints
@@ -296,7 +296,7 @@ namespace InvoluteGears
                     (cycloids[^2], cycloids[^1], CutDiameter / 4);
             toothProfile.AddRange(addendumCircle);
             toothProfile.AddRange(cycloids
-                .Select(p => p.Conjugate.Rotate(ToothAngle/2 - BacklashAngle))
+                .Select(p => p.Conjugate.Rotate(ToothAngle / 2 - BacklashAngle))
                 .Reverse());
             return Geometry.LinearReduction(toothProfile, MaxError);
         }
@@ -319,7 +319,7 @@ namespace InvoluteGears
                 double m0 = (ult - centre).Gradient;
                 double c0 = ult.Y - m0 * ult.X;
                 Coordinate crossingPt = Geometry
-                    .LineIntersection(m0, c0, 
+                    .LineIntersection(m0, c0,
                     Math.Tan(ToothAngle / 4 - BacklashAngle / 2), 0);
 
                 // Now draw the arc joining the ends of the epicycloid segments
@@ -338,12 +338,12 @@ namespace InvoluteGears
                 // to the epicycloid at the start and end of the addendum.
 
                 Coordinate upperCentre = centre
-                    .Rotate( ToothAngle / 2 - BacklashAngle - 2 * centre.Phase);
+                    .Rotate(ToothAngle / 2 - BacklashAngle - 2 * centre.Phase);
 
-                List<Coordinate> addendumPoints = new ();
+                List<Coordinate> addendumPoints = new();
                 addendumPoints.AddRange(Geometry
                     .CirclePoints(slope - Math.PI / 2,
-                        ToothAngle / 4 - BacklashAngle / 2, Geometry.AngleStep, 
+                        ToothAngle / 4 - BacklashAngle / 2, Geometry.AngleStep,
                         roundingRadius, centre));
                 addendumPoints.AddRange(Geometry
                     .CirclePoints(ToothAngle / 4 - BacklashAngle / 2,
@@ -358,8 +358,8 @@ namespace InvoluteGears
         {
             // Find the centres of the two cutter circles
 
-            Coordinate upperCentre = new (pinionDedendumRadius, -CutDiameter / 2);
-            Coordinate lowerCentre = 
+            Coordinate upperCentre = new(pinionDedendumRadius, -CutDiameter / 2);
+            Coordinate lowerCentre =
                 new Coordinate(pinionDedendumRadius, CutDiameter / 2)
                     .Rotate(-ToothAngle / 2 - BacklashAngle);
 
@@ -369,12 +369,12 @@ namespace InvoluteGears
             double dedendumAngle = Math.PI - ToothAngle / 4 - BacklashAngle / 2;
             double lowerStartAngle = 3 * Math.PI / 2 - ToothAngle / 2 - BacklashAngle;
             var points = new List<Coordinate>();
-            points.AddRange(Geometry.CirclePoints(dedendumAngle, 
-                lowerStartAngle, Geometry.AngleStep, 
+            points.AddRange(Geometry.CirclePoints(dedendumAngle,
+                lowerStartAngle, Geometry.AngleStep,
                 CutDiameter / 2, lowerCentre)
                 .Reverse());
             points.AddRange(Geometry.CirclePoints(upperEndAngle,
-                dedendumAngle, Geometry.AngleStep, 
+                dedendumAngle, Geometry.AngleStep,
                 CutDiameter / 2, upperCentre)
                     .Reverse());
             return points;

@@ -20,7 +20,7 @@ public class SVGCreator
         svgElements.Add(element);
         return element;
     }
-    
+
     private IRenderable AddWithStyle
         (IRenderable r, string stroke, double strokeWidth, string fill)
     {
@@ -31,10 +31,10 @@ public class SVGCreator
     }
 
     public IRenderable AddPath(
-        IEnumerable<Coordinate> points, 
-        bool close = false, 
-        string stroke = "black", 
-        double strokeWidth = 1, 
+        IEnumerable<Coordinate> points,
+        bool close = false,
+        string stroke = "black",
+        double strokeWidth = 1,
         string fill = "white")
         => AddWithStyle(new SVGPath(points, close), stroke, strokeWidth, fill);
 
@@ -132,7 +132,7 @@ public class SVGCreator
     }
 
     private static string EndSvg => "</svg>";
-    
+
     public void CalculateViewBox(Coordinate margin)
     {
         if (svgElements != null && svgElements.Count > 0)

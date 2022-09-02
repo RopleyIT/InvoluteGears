@@ -19,7 +19,7 @@ public class Ratchet : IGearProfile
         CalculatePoints();
     }
 
-    private string SetInformation() 
+    private string SetInformation()
         => $"Ratchet: {ToothCount} teeth, module = {Module}mm\r\n"
             + $"precision = {MaxError}mm, inner diameter = {InnerDiameter}mm\r\n";
 
@@ -146,7 +146,7 @@ public class Ratchet : IGearProfile
     /// profile of the selected tooth.</returns>
 
     public IEnumerable<Coordinate> ToothProfile(int gap)
-        => OneToothProfile?.Rotated((gap % ToothCount) * ToothAngle) 
+        => OneToothProfile?.Rotated((gap % ToothCount) * ToothAngle)
             ?? Enumerable.Empty<Coordinate>();
 
     /// <summary>

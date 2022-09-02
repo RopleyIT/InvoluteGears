@@ -32,7 +32,7 @@ public static class Geometry
     /// <exception cref="ArgumentException">Thrown if the list is null, or if the
     /// forst index or count take the removal outside the valid indices for
     /// the list</exception>
-    
+
     public static void RemoveRange<T>(this IList<T> ilist, int first, int count)
     {
         if (ilist is null)
@@ -59,7 +59,7 @@ public static class Geometry
     /// point sequence will be generated</param>
     /// <returns>The sequence of rotated points, or Enumerable.Empty if the
     /// points argument is null</returns>
-     
+
     public static IEnumerable<Coordinate> Rotated(this IEnumerable<Coordinate>? points, double phi)
         => points?.Select(p => p.Rotate(phi)) ?? Enumerable.Empty<Coordinate>();
 
@@ -88,9 +88,9 @@ public static class Geometry
         double cosPhiTotal = Math.Cos(phi + phiOffset);
         double sinPhiTotal = Math.Sin(phi + phiOffset);
 
-        double x = radius * (cosPhiTotal + phi * sinPhiTotal) 
+        double x = radius * (cosPhiTotal + phi * sinPhiTotal)
             + offX * cosPhiTotal - offY * sinPhiTotal;
-        double y = radius * (sinPhiTotal - phi * cosPhiTotal) 
+        double y = radius * (sinPhiTotal - phi * cosPhiTotal)
             + offX * sinPhiTotal + offY * cosPhiTotal;
         return new Coordinate(x, y);
     }
@@ -188,7 +188,7 @@ public static class Geometry
     /// </summary>
     /// <param name="v">The expression to be squared</param>
     /// <returns>The square of the value</returns>
-    
+
     public static double Square(double v) => v * v;
 
     /// <summary>
@@ -203,7 +203,7 @@ public static class Geometry
 
     public static double SafeDiv(double y, double x)
         => x == 0 ? y >= 0 ? double.MaxValue : double.MinValue : y / x;
-    
+
     /// <summary>
     /// Given two values, compute the sum of the squares of each
     /// value. Used in geometry for determining magnitudes and
@@ -212,7 +212,7 @@ public static class Geometry
     /// <param name="x">First value to be squared</param>
     /// <param name="y">Second value to be squared</param>
     /// <returns>The sum of squares of the two arguments</returns>
-    
+
     public static double SumOfSquares(double x, double y) => x * x + y * y;
 
     /// <summary>
@@ -222,7 +222,7 @@ public static class Geometry
     /// <param name="x">First value to be squared</param>
     /// <param name="y">Second value to be squared</param>
     /// <returns>The root sum of squares</returns>
-    
+
     public static double RootSumOfSquares(double x, double y)
         => Math.Sqrt(SumOfSquares(x, y));
 
@@ -234,8 +234,8 @@ public static class Geometry
     /// <param name="x">The first value to be squared</param>
     /// <param name="y">The value to be squared and subtracted</param>
     /// <returns>The difference in the squares of the two numbers</returns>
-    
-    public static double DiffOfSquares(double x, double y) => (x + y)*(x - y);
+
+    public static double DiffOfSquares(double x, double y) => (x + y) * (x - y);
 
     /// <summary>
     /// Compute the value (a^2 - b^2)^0.5 if ^ is the power operator
@@ -243,7 +243,7 @@ public static class Geometry
     /// <param name="a">The first value to be squared</param>
     /// <param name="b">The value to be squared and subtracted</param>
     /// <returns>The value (a^2 - b^2)^0.5 if ^ is the power operator</returns>
-    
+
     public static double RootDiffOfSquares(double a, double b)
         => Math.Sqrt(DiffOfSquares(a, b));
 
@@ -306,7 +306,7 @@ public static class Geometry
     /// <param name="m1">Gradient of second line</param>
     /// <param name="c1">Y axis intersection value of second line</param>
     /// <returns>The point of intersection</returns>
-    
+
     public static Coordinate LineIntersection(double m0, double c0, double m1, double c1)
     {
         if (m0 == m1)
@@ -326,7 +326,7 @@ public static class Geometry
     /// when the x value is zero</param>
     /// <returns>An enumeration of the coordinates of intersection. The
     /// coordinates are delivered in order of increasing x value.</returns>
-    
+
     public static IEnumerable<Coordinate> CircleLineIntersection
         (Coordinate centre, double radius, double lineGradient, double yOffset)
     {
@@ -348,13 +348,13 @@ public static class Geometry
     /// <returns>An enumeration of the roots found. Zero length
     /// if no roots, length one or two to match the number
     /// of roots found</returns>
-    
+
     public static IEnumerable<double> SolveQuadratic(double a, double b, double c)
     {
         double rootTerm = Square(b) - 4 * a * c;
         if (rootTerm >= 0)
             yield return 0.5 * (-b - Math.Sqrt(rootTerm)) / a;
-        if(rootTerm > 0)
+        if (rootTerm > 0)
             yield return 0.5 * (-b + Math.Sqrt(rootTerm)) / a;
     }
 
@@ -689,7 +689,7 @@ public static class Geometry
     /// <param name="xResolution">The accuracy at which we shall terminate
     /// the iteration</param>
     /// <returns>The value of the nearest root to the starting value</returns>
-    
+
     public static double NewtonRaphson
         (Func<double, (double, double)> func, double xCurr, double xResolution)
     {
@@ -730,7 +730,7 @@ public static class Geometry
                 ("Root gradient search must have values either side of zero");
         int direction = fUpper >= 0 ? 1 : -1;
         double x = lower;
-        for(double dx = (upper - lower) / 2; dx > delta/2; dx /= 2)
+        for (double dx = (upper - lower) / 2; dx > delta / 2; dx /= 2)
         {
             double fx = direction * func(x);
             if (fx < 0)

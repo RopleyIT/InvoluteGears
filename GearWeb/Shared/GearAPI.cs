@@ -38,11 +38,11 @@ namespace GearWeb.Shared
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
 
-            CycloidalGear gear = new (
+            CycloidalGear gear = new(
                 gParams.Teeth,
                 gParams.OpposingTeeth,
-                gParams.ToothBlunting/100.0,
-                gParams.OpposingToothBlunting/100.0,  
+                gParams.ToothBlunting / 100.0,
+                gParams.OpposingToothBlunting / 100.0,
                 double.Parse(gParams.Module),
                 double.Parse(gParams.Tolerance),
                 double.Parse(gParams.Backlash) / double.Parse(gParams.Module),

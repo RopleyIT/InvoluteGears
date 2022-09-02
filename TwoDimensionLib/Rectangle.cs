@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     /// <summary>
     /// Representation of a pair of points that form opposite
@@ -26,7 +20,7 @@ namespace TwoDimensionLib
             => Inflate(dc.X, dc.Y);
 
         public Rectangle Inflate(double dx, double dy)
-            => new(Location.Offset(-dx, -dy), Width + 2*dx, Height + 2*dy);
+            => new(Location.Offset(-dx, -dy), Width + 2 * dx, Height + 2 * dy);
 
         public Rectangle Resized(double w, double h)
             => new(Location, w, h);

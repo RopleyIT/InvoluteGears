@@ -10,7 +10,7 @@
     /// </summary>
     /// <param name="X">The X cartesian coordinate value</param>
     /// <param name="Y">The Y cartesian coordinate value</param>
-    
+
     public readonly record struct Coordinate(double X, double Y)
     {
         public static readonly Coordinate Empty = new(0.0, 0.0);

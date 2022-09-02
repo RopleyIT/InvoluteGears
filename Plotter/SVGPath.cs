@@ -21,29 +21,29 @@ public class SVGPath : IRenderable
     /// <summary>
     /// The pen or line colour for the path or shape
     /// </summary>
-    
+
     public string Stroke { get; set; } = String.Empty;
 
     /// <summary>
     /// The thickness of the line
     /// </summary>
-    
+
     public string StrokeWidth { get; set; } = String.Empty;
-    
+
     /// <summary>
     /// The fill colour
     /// </summary>
-    
+
     public string Fill { get; set; } = String.Empty;
-    
+
     public LineCap Cap { get; set; } = LineCap.None;
-    
+
     public LineJoin Join { get; set; } = LineJoin.None;
-    
+
     /// <summary>
     /// The lengths of the dashes and gaps for a line pattern
     /// </summary>
-    
+
     public IEnumerable<int> Dashes { get; set; }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class SVGPath : IRenderable
     /// </summary>
     /// <param name="dashes">Sequence of integers for dash lengths
     /// </param>
-    
+
     public void SetDashes(params int[] dashes)
         => Dashes = dashes;
 

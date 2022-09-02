@@ -1,13 +1,11 @@
-﻿using InvoluteGears;
+﻿using CmdArgs;
+using InvoluteGears;
 using Plotter;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using TwoDimensionLib;
-using CmdArgs;
 using System.Linq;
+using TwoDimensionLib;
 
 namespace Gears;
 
@@ -61,8 +59,8 @@ internal class Program
             common.Backlash / common.Module,
             common.CutterDiameter);
 
-        Cutouts cutoutCalculator = new (gear, 
-            cutOut.SpindleDiameter, cutOut.InlayDiameter, 
+        Cutouts cutoutCalculator = new(gear,
+            cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
         CreateSvgGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
@@ -73,14 +71,14 @@ internal class Program
         CycloidalGear gear = new(
             common.Teeth,
             cycloid.OpposingTeeth,
-            cycloid.ToothBlunting/100.0,
-            cycloid.OpposingToothBlunting/100.0,
+            cycloid.ToothBlunting / 100.0,
+            cycloid.OpposingToothBlunting / 100.0,
             common.Module,
             common.Tolerance,
             common.Backlash / common.Module,
             common.CutterDiameter);
 
-        Cutouts cutoutCalculator = new (gear,
+        Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
@@ -98,7 +96,7 @@ internal class Program
             common.CutterDiameter,
             common.Backlash);
 
-        Cutouts cutoutCalculator = new (gear,
+        Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
         cutoutCalculator.AddPlot
@@ -119,7 +117,7 @@ internal class Program
             common.CutterDiameter,
             common.Tolerance);
 
-        Cutouts cutoutCalculator = new (gear,
+        Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
@@ -135,7 +133,7 @@ internal class Program
             ratchet.InnerDiameter,
             common.CutterDiameter);
 
-        Cutouts cutoutCalculator = new (gear,
+        Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
@@ -153,7 +151,7 @@ internal class Program
             roller.ChainWidth,
             common.CutterDiameter);
 
-        Cutouts cutoutCalculator = new (gear,
+        Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
@@ -168,17 +166,17 @@ internal class Program
             return;
         }
 
-        CommonArgs common = new ();
-        CutOutArgs cutOut = new ();
-        InvoluteArgs involute = new ();
-        ChainArgs chain = new ();
-        CycloidArgs cycloid = new ();
-        EscapeArgs escape = new ();
-        RatchetArgs ratchet = new ();
-        RollerSprocketArgs roller = new ();
+        CommonArgs common = new();
+        CutOutArgs cutOut = new();
+        InvoluteArgs involute = new();
+        ChainArgs chain = new();
+        CycloidArgs cycloid = new();
+        EscapeArgs escape = new();
+        RatchetArgs ratchet = new();
+        RollerSprocketArgs roller = new();
 
-        Span<string> opts = new (args, 1, args.Length - 1);
-        switch(args[0])
+        Span<string> opts = new(args, 1, args.Length - 1);
+        switch (args[0])
         {
             case "involute":
                 Arguments.Parse(opts, common, cutOut, involute);
@@ -235,12 +233,12 @@ internal class Program
                     return;
                 }
 
-                if(!int.TryParse(args[1], out int angle))
+                if (!int.TryParse(args[1], out int angle))
                 {
                     Usage("Pressure angle should be an integer, measured in tenths of a degree");
                     return;
                 }
-                
+
                 string[] values = args[2].Split(',', StringSplitOptions.RemoveEmptyEntries);
                 List<int> toothList = new();
                 foreach (string s in values)
@@ -258,7 +256,7 @@ internal class Program
                     return;
                 }
 
-                if (!int.TryParse(args[4], out int shift1) 
+                if (!int.TryParse(args[4], out int shift1)
                     || !int.TryParse(args[5], out int shift2))
                 {
                     Usage("Profile shifts should be a percentage of the module");
@@ -272,7 +270,7 @@ internal class Program
                 }
 
                 using (StreamWriter sw = new(args[7]))
-                    GenerateGearTable(sw, angle, toothList, module, cutterDiameter, shift1/100.0, shift2/100.0);
+                    GenerateGearTable(sw, angle, toothList, module, cutterDiameter, shift1 / 100.0, shift2 / 100.0);
                 return;
             default:
                 Usage("gears [cycloid|chain|escape|involute|ratchet|roller|-m|-C|-c] [arguments]");
@@ -280,12 +278,12 @@ internal class Program
         }
     }
 
-    private static void RenderLine(TextWriter sw, string header, 
+    private static void RenderLine(TextWriter sw, string header,
         IEnumerable<InvoluteGearParameters> gears,
         Func<InvoluteGearParameters, string> selector)
     {
         sw.Write(header);
-        foreach(var g in gears)
+        foreach (var g in gears)
             sw.Write(selector(g));
         sw.WriteLine();
     }

@@ -54,7 +54,7 @@ public class Cutouts
     /// other fields will contain data. If non-empty the other
     /// fields may be empty or null.
     /// </summary>
-    
+
     public string Errors { get; private set; }
 
     /// <summary>

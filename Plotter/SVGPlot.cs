@@ -16,7 +16,7 @@ namespace Plotter
         /// <param name="width">The width in logical pixels for the viewbox to use</param>
         /// <param name="height">The hieght in logical pixels for the viewbox to use</param>
         /// <returns>The scale factor to use</returns>
-        
+
         private static double ScaleFactor(Rectangle bounds, int width, int height)
         {
             double scaleY = height / bounds.Height;
@@ -66,7 +66,7 @@ namespace Plotter
             PlotAxes(bounds, scale, svg);
             int index = 0;
             foreach (List<Coordinate> pl in plots)
-                PlotGraph(pl, svg, bounds.Bounds, scale, 
+                PlotGraph(pl, svg, bounds.Bounds, scale,
                     usedColours[index++ % usedColours.Length]);
             //svg.DocumentDimensions = new Coordinate(600, 600);
             //svg.DocumentDimensionUnits = "px";
@@ -101,7 +101,7 @@ namespace Plotter
                 };
 
                 PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray");
-                if(v != 0)
+                if (v != 0)
                     LabelYRule(v, svg, unitsX);
             }
         }
@@ -147,7 +147,7 @@ namespace Plotter
         private static void PlotGraph(List<Coordinate> points, SVGCreator svg,
             Rectangle bounds, double scale, string penColor)
         {
-            var ir = svg.AddPath(points, false, penColor, 1.0/scale, "transparent");
+            var ir = svg.AddPath(points, false, penColor, 1.0 / scale, "transparent");
             ir.Join = LineJoin.Round;
         }
     }
