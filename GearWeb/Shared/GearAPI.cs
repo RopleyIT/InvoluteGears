@@ -76,15 +76,22 @@ namespace GearWeb.Shared
 
             // Now convert to image bytes to return from Web API
 
-
-            return new GearProfiles
+            var profiles = new GearProfiles
             {
                 Description = cutoutCalculator.Gear.Information + cutoutCalculator.Information,
                 ShortName = cutoutCalculator.Gear.ShortName,
-                SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, "black"),
-                SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size),
+                SvgPlot = string.Empty,
+                SvgData = string.Empty,
                 Errors = cutoutCalculator.Gear.Errors + cutoutCalculator.Errors
             };
+
+            if(string.IsNullOrWhiteSpace(profiles.Errors))
+            {
+                profiles.SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, "black");
+                profiles.SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size);
+            }
+
+            return profiles;
         }
 
         public static GearProfiles CalcEscapeImage(EscapeWheelParams gParams)

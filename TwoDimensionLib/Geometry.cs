@@ -17,7 +17,7 @@ public static class Geometry
         if (ilist is List<T> list)
             list.AddRange(src);
         else
-            foreach (T t in ilist)
+            foreach (T t in src)
                 ilist.Add(t);
     }
 
@@ -36,9 +36,8 @@ public static class Geometry
     public static void RemoveRange<T>(this IList<T> ilist, int first, int count)
     {
         if (ilist is null)
-            throw new ArgumentException("AddRange passed a null list or null range");
-        if (first >= 0 && first < ilist.Count
-            && first + count >= 0 && first + count <= ilist.Count)
+            throw new ArgumentException("RemoveRange passed a null list or null range");
+        if (count > 0 && first >= 0 && first + count <= ilist.Count)
         {
             if (ilist is List<T> list)
                 list.RemoveRange(first, count);
@@ -46,8 +45,6 @@ public static class Geometry
                 for (int i = 0; i < count; i++)
                     ilist.RemoveAt(first);
         }
-        else
-            throw new ArgumentException("AddRange passed invalid indexes");
     }
 
     /// <summary>

@@ -68,7 +68,7 @@ public class Cutouts
 
     public Cutouts(IGearProfile gear, double spindle, double inlay, double keyWidth)
     {
-        Errors = String.Empty;
+        Errors = string.Empty;
         if (spindle < 0 || inlay < 0 || keyWidth < 0)
             throw new ArgumentException("Dimensions cannot be negative");
         Gear = gear ?? throw new ArgumentException("No gear specified for cut out");
