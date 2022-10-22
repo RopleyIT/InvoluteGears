@@ -53,7 +53,8 @@ public static class GearGenerator
         return svgCreator.ToString();
     }
 
-    public static void GenerateCutoutPlot(Cutouts cutoutCalculator, List<IEnumerable<Coordinate>> gearPoints)
+    public static void GenerateCutoutPlot(Cutouts cutoutCalculator, 
+        List<IEnumerable<Coordinate>> gearPoints)
     {
         if (cutoutCalculator.CutoutPlots != null)
             foreach (var cutout in cutoutCalculator.CutoutPlots)

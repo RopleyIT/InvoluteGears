@@ -35,7 +35,7 @@ public class SVGCreator
         bool close = false,
         string stroke = "black",
         double strokeWidth = 1,
-        string fill = "white")
+        string fill = "transparent")
         => AddWithStyle(new SVGPath(points, close), stroke, strokeWidth, fill);
 
     public IRenderable AddEllipse(Coordinate centre, Coordinate radii, string stroke, double strokeWidth, string fill)
@@ -48,8 +48,9 @@ public class SVGCreator
         return AddWithStyle(path, stroke, strokeWidth, fill);
     }
 
-    public IRenderable AddText(string text, Coordinate location, string fontSize = "20px",
-        string fontName = "sans-serif", bool italic = false, bool bold = false, string fill = "black")
+    public IRenderable AddText(string text, Coordinate location, string fill = "black",
+        string fontSize = "20px", string fontName = "sans-serif", bool italic = false, 
+        bool bold = false)
     {
         IRenderable r = new SvgText(text, location, fontSize, fontName, italic, bold);
         if (!string.IsNullOrWhiteSpace(fill))

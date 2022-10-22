@@ -29,6 +29,18 @@ namespace GearWeb.Shared
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
+            
+            if(gParams.ShowCircles)
+            {
+                var circle = cutoutCalculator.CalcCircle(gear.PitchCircleDiameter / 2);
+                cutoutCalculator.AddPlot(circle, "blue", "transparent");
+                circle = cutoutCalculator.CalcCircle(gear.BaseCircleDiameter / 2);
+                cutoutCalculator.AddPlot(circle, "green", "transparent");
+                circle = cutoutCalculator.CalcCircle(gear.AddendumCircleDiameter / 2);
+                cutoutCalculator.AddPlot(circle, "red", "transparent");
+                circle = cutoutCalculator.CalcCircle(gear.DedendumCircleDiameter / 2);
+                cutoutCalculator.AddPlot(circle, "magenta", "transparent");
+            }
 
             return CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
         }
@@ -87,7 +99,11 @@ namespace GearWeb.Shared
 
             if(string.IsNullOrWhiteSpace(profiles.Errors))
             {
-                profiles.SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, "black");
+                List<string> strokes = new List<string> { "black" };
+                List<string> fills = new List<string> { "transparent" };
+                strokes.AddRange(cutoutCalculator.StrokeColours);
+                fills.AddRange(cutoutCalculator.FillColours);
+                profiles.SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, strokes, fills);
                 profiles.SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size);
             }
 

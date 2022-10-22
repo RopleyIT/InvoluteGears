@@ -79,6 +79,12 @@ public class Cutouts
         // Make the calculations
 
         CutoutPlots = CalculateCutouts();
+        for(int i = 0; i < CutoutPlots.Count; i++)
+        {
+            FillColours.Add("transparent");
+            StrokeColours.Add("black");
+        }
+
         if (SpindleDiameter > 0)
         {
             SpindlePlot = CalculateSpindle();
@@ -110,9 +116,12 @@ public class Cutouts
     /// </summary>
     /// <param name="points">The contour to add to the plot</param>
 
-    public void AddPlot(List<Coordinate> points)
+    public void AddPlot(IList<Coordinate> points, 
+        string stroke = "black", string fill = "transparent")
     {
         CutoutPlots?.Add(points);
+        FillColours.Add(fill);
+        StrokeColours.Add(stroke);
     }
 
     /// <summary>
@@ -124,6 +133,9 @@ public class Cutouts
     public IList<Coordinate>? InlayPlot { get; private set; }
     public IList<Coordinate>? HexKeyPlot { get; private set; }
 
+    public IList<string> FillColours { get; private set; } = new List<string>();
+    public IList<string> StrokeColours { get; private set; } = new List<string>();
+
     /// <summary>
     /// Calculate the points that form the spindle circle
     /// </summary>
@@ -131,9 +143,7 @@ public class Cutouts
     /// in the middle of the gear</returns>
 
     private IList<Coordinate> CalculateSpindle()
-        => Geometry.LinearReduction(Geometry.CirclePoints
-            (-Math.PI, Math.PI, Geometry.AngleStep, SpindleDiameter / 2).ToList(),
-            (float)Gear.MaxError);
+        => CalcCircle(SpindleDiameter / 2);
 
 
     /// <summary>
@@ -143,8 +153,17 @@ public class Cutouts
     /// inlay in the middle of the gear</returns>
 
     private IList<Coordinate> CalculateInlay()
+        => CalcCircle(InlayDiameter / 2);
+
+    /// <summary>
+    /// Calculate the points for a circle centred on the middle of the gear
+    /// </summary>
+    /// <param name="radius">Circle's radius</param>
+    /// <returns>The sequence of points on the circle</returns>
+    
+    public IList<Coordinate> CalcCircle(double radius)
         => Geometry.LinearReduction(Geometry.CirclePoints
-            (-Math.PI, Math.PI, Geometry.AngleStep, InlayDiameter / 2).ToList(),
+            (-Math.PI, Math.PI, Geometry.AngleStep, radius).ToList(),
             (float)Gear.MaxError);
 
     /// <summary>

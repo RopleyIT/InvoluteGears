@@ -44,5 +44,7 @@ namespace GearWeb.Shared
         [Required]
         [RegularExpression(@"\d+(\.\d\d?)?", ErrorMessage = "Positive number to nearest 100th of a mm")]
         public string KeyFlatWidth { get; set; }
+
+        public bool ShowCircles { get; set; }
     }
 }

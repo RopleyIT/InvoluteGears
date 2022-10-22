@@ -45,11 +45,17 @@ namespace Plotter
                 "darkmagenta"
         };
 
-        public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points, int width, int height, string color = null)
+        public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points, 
+            int width, int height, IList<string> strokes = null, 
+            IList<string> fills = null)
         {
-            string[] usedColours = colours;
-            if (!string.IsNullOrWhiteSpace(color))
-                usedColours = new string[] { color };
+            if(strokes == null || fills == null
+                || strokes.Count == 0
+                || fills.Count == 0)
+            {
+                strokes = new List<string> { "black" };
+                fills = new List<string> { "transparent" };
+            }
 
             SVGCreator svg = new SVGCreator();
 
@@ -66,8 +72,12 @@ namespace Plotter
             PlotAxes(bounds, scale, svg);
             int index = 0;
             foreach (List<Coordinate> pl in plots)
+            {
+                string stroke = strokes[index % fills.Count];
+                string fill = fills[index++ % fills.Count];
                 PlotGraph(pl, svg, bounds.Bounds, scale,
-                    usedColours[index++ % usedColours.Length]);
+                    stroke, fill);
+            }
             //svg.DocumentDimensions = new Coordinate(600, 600);
             //svg.DocumentDimensionUnits = "px";
             svg.ViewBoxDimensions = bounds.Bounds;
@@ -89,7 +99,7 @@ namespace Plotter
                     new Coordinate(v, bounds.Bounds.Bottom)
                 };
 
-                PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray");
+                PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray", "transparent");
                 LabelXRule(v, svg, unitsY);
             }
             for (double v = RoundUp(bounds.Bounds.Top, unitsY); v < bounds.Bounds.Bottom; v += unitsY)
@@ -100,7 +110,7 @@ namespace Plotter
                     new Coordinate(bounds.Bounds.Right, v)
                 };
 
-                PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray");
+                PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray", "transparent");
                 if (v != 0)
                     LabelYRule(v, svg, unitsX);
             }
@@ -111,7 +121,7 @@ namespace Plotter
             // First generate label string
 
             string label = v.ToString("G4");
-            var txt = svg.AddText(label, new(v, 0), $"{units / 6}px") as SvgText;
+            var txt = svg.AddText(label, new(v, 0), "gray", $"{units / 6}px") as SvgText;
             txt.Alignment = SvgText.Centre | SvgText.Top;
         }
 
@@ -120,7 +130,7 @@ namespace Plotter
             // First generate label string
 
             string label = v.ToString("G4");
-            var txt = svg.AddText(label, new(0, v), $" {units / 6}px") as SvgText;
+            var txt = svg.AddText(label, new(0, v), "gray", $" {units / 6}px") as SvgText;
             txt.Alignment = SvgText.LCaseMiddle;
         }
 
@@ -145,9 +155,9 @@ namespace Plotter
         }
 
         private static void PlotGraph(List<Coordinate> points, SVGCreator svg,
-            Rectangle bounds, double scale, string penColor)
+            Rectangle bounds, double scale, string penColor, string brushColor)
         {
-            var ir = svg.AddPath(points, false, penColor, 1.0 / scale, "transparent");
+            var ir = svg.AddPath(points, false, penColor, 1.0 / scale, brushColor);
             ir.Join = LineJoin.Round;
         }
     }

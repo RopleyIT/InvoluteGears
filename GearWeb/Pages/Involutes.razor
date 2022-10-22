@@ -73,11 +73,24 @@
         </div>
     </div>
     <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="ShowCircles">Show construction</label>
+            <InputCheckbox @bind-Value="GearData.ShowCircles" class="form-control" id="ShowCircles" />
+            <small class="form-text text-muted">Check to show base, pitch, addendum and dedendum circles</small>
+        </div>
         <div class="col-md-3">
             <button type="submit" class="btn btn-primary">Generate</button>
         </div>
-        <div class="col-md-9">
-            <a class="btn btn-primary" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+        <div class="col-md-3">
+            @if(CanDownload)
+            {
+                <a class="btn btn-primary" target="_top" href="@SvgUrl">Download SVG</a>
+            }
+            else
+            {
+                <span>Click 'Generate' with 'Show construction' unchecked to be 
+                    able to download the generated SVG file</span>
+            }
         </div>
     </div>
 </EditForm>
@@ -100,6 +113,8 @@
     string SVG = string.Empty;
     string SvgUrl = "/";
 
+    bool CanDownload = false;
+
     void Generate(EditContext ctx)
     {
         IsDisabled = true;
@@ -114,6 +129,7 @@
                 SvgUrl = "/api/download?id=" 
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
                 IsDisabled = false;
+                CanDownload = !GearData.ShowCircles;
             }
             catch (Exception x)
             {
