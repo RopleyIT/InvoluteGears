@@ -13,7 +13,7 @@ namespace Gears
         [Required]
         [Arg("--pressureangle")]
         [Arg("-pa")]
-        [Description("The angle relative to the line between gear "
+        [Description("The angle in degrees relative to the line between gear "
             + "centres along which force is applied between teeth")]
         public double PressureAngle { get; set; }
     }

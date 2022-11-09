@@ -259,4 +259,9 @@ public class RollerSprocket : IGearProfile
 
         return Math.Atan2(my - ry, mx - rx);
     }
+
+    public DrawablePath GenerateGearCurve()
+    {
+        throw new NotImplementedException();
+    }
 }

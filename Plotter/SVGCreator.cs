@@ -30,7 +30,10 @@ public class SVGCreator
         return AddElement(r);
     }
 
-    public IRenderable AddPath(
+    public IRenderable AddPath(SVGPath path, string stroke, double strokeWidth, string fill)
+       =>  AddWithStyle(path, stroke, strokeWidth, fill);
+    
+        public IRenderable AddPath(
         IEnumerable<Coordinate> points,
         bool close = false,
         string stroke = "black",

@@ -42,7 +42,7 @@ namespace GearWeb.Shared
                 cutoutCalculator.AddPlot(circle, "magenta", "transparent");
             }
 
-            return CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
+            return CreateGearPlot(cutoutCalculator, gear.AddendumCircleDiameter, true);
         }
 
         public static GearProfiles CalcCycloidImage(CycloidParams gParams)
@@ -66,7 +66,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            return CreateGearPlot(cutoutCalculator, gear.AddendumDiameter);
+            return CreateGearPlot(cutoutCalculator, gear.AddendumDiameter, false);
         }
 
         public static Stream CalcInvoluteSvgZip(GearParams gParams)
@@ -76,7 +76,7 @@ namespace GearWeb.Shared
             return zipStream;
         }
 
-        private static GearProfiles CreateGearPlot(Cutouts cutoutCalculator, double size)
+        private static GearProfiles CreateGearPlot(Cutouts cutoutCalculator, double size, bool usePaths)
         {
             // Create the output plot file of the gear
 
@@ -84,7 +84,7 @@ namespace GearWeb.Shared
             {
                 cutoutCalculator.Gear.GenerateCompleteGearPath()
             };
-            GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
+            GearGenerator.AddCutoutsAndSpindles(cutoutCalculator, gearPoints);
 
             // Now convert to image bytes to return from Web API
 
@@ -97,16 +97,28 @@ namespace GearWeb.Shared
                 Errors = cutoutCalculator.Gear.Errors + cutoutCalculator.Errors
             };
 
-            if(string.IsNullOrWhiteSpace(profiles.Errors))
+            if (string.IsNullOrWhiteSpace(profiles.Errors))
             {
                 List<string> strokes = new List<string> { "black" };
                 List<string> fills = new List<string> { "transparent" };
                 strokes.AddRange(cutoutCalculator.StrokeColours);
                 fills.AddRange(cutoutCalculator.FillColours);
-                profiles.SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, strokes, fills);
-                profiles.SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size);
+                if (usePaths)
+                {
+                    IList<DrawablePath> dPaths = new List<DrawablePath>();
+                    dPaths.Add(cutoutCalculator.Gear.GenerateGearCurve());
+                    dPaths.AddRange(cutoutCalculator.Curves);
+                    profiles.SvgPlot = SVGPlot.PlotCurves
+                        (dPaths, 640, 640, strokes, fills);
+                    profiles.SvgData = GearGenerator
+                        .GenerateSVGCurves(cutoutCalculator, (float)size);
+                }
+                else
+                {
+                    profiles.SvgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640, strokes, fills);
+                    profiles.SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size);
+                }
             }
-
             return profiles;
         }
 
@@ -130,7 +142,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+            return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter, false);
         }
 
         public static Stream CalcEscapeWheelSvgZip(EscapeWheelParams gParams)
@@ -158,7 +170,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+            return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter, false);
         }
 
         public static Stream CalcRatchetSvgZip(RatchetParams gParams)
@@ -191,7 +203,7 @@ namespace GearWeb.Shared
                 (gear.GenerateInnerGearPath().ToList());
 
             return CreateGearPlot(cutoutCalculator,
-                gear.InnerDiameter + 2 * gear.OuterLinkWidth);
+                gear.InnerDiameter + 2 * gear.OuterLinkWidth, false);
         }
 
         public static Stream CalcChainSProcketSvgZip(ChainSprocketParams gParams)
@@ -223,7 +235,7 @@ namespace GearWeb.Shared
             cutoutCalculator.AddPlot
                 (gear.GenerateInnerGearPath().ToList());
 
-            return CreateGearPlot(cutoutCalculator, gear.OuterDiameter);
+            return CreateGearPlot(cutoutCalculator, gear.OuterDiameter, false);
         }
 
         public static Stream CalcRollerSProcketSvgZip(RollerSprocketParams gParams)

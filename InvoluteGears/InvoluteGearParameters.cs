@@ -387,6 +387,11 @@ public class InvoluteGearParameters : IGearProfile
 
     private IEnumerable<Coordinate> ComputeInvolutePoints()
     {
+        // Angle away from centre of gap between teeth
+        // at which the involute touches the base circle.
+        // This is because we calculate the gear to have a tooth
+        // gap aligned with the positive X axis.
+
         double involuteBaseAngle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
 
         int limit = AngleIndexFloor(AddendumInvoluteAngle);
@@ -481,16 +486,16 @@ public class InvoluteGearParameters : IGearProfile
                 (startAngle, endAngle, Math.PI / 180, CutDiameter / 2, cutterCentre))
                 UndercutPoints.Add(c);
 
+        // Record the new dedendum diameter since the cutter has reduced it
+
+        cutterAdjustedDedendumDircleDiameter = 2 * cutterCentreRadius - CutDiameter;
+
         // Then add new dedendum circle points round to the y=0 axis, based on
         // the tangent to the cutter circle at yDedendum.
 
         DedendumPoints = new List<Coordinate>(Geometry.CirclePoints
             (-(BacklashAngle + endAngle - Math.PI), endAngle - Math.PI,
-            Geometry.AngleStep, cutterCentreRadius - CutDiameter / 2));
-
-        // Record the new dedendum diameter since the cutter has reduced it
-
-        cutterAdjustedDedendumDircleDiameter = 2 * cutterCentreRadius - CutDiameter;
+            Geometry.AngleStep, cutterAdjustedDedendumDircleDiameter.Value / 2));
 
         // Undercut points and dedendum points were rewritten. Return
         // true to flag this fact.
@@ -539,6 +544,111 @@ public class InvoluteGearParameters : IGearProfile
         UndercutPoints = Geometry.LinearReduction(UndercutPoints, (float)MaxError);
         DedendumPoints = Geometry.LinearReduction(DedendumPoints, (float)MaxError);
         AddendumPoints = Geometry.LinearReduction(AddendumPoints, (float)MaxError);
+
+        // Now initialise the drawable objects, used to make the SVG
+        // file much smaller
+
+        InitDrawables();
+    }
+
+    IList<CubicSpline> InvoluteSplines;
+    CircularArc AddendumCurve = null;
+    CircularArc DedendumCurve = null;
+    PolyLine UndercutCurve = null;
+
+    private void InitDrawables()
+    {
+        // Capture the involute curve as a pair of cubic
+        // splines. Note these are drawn from the addendum
+        // towards the base circle to be consistent with
+        // the previous points only version of the code.
+
+        InvoluteSplines = new List<CubicSpline>(2);
+        var bezPoints = InvoluteAsBezier();
+        InvoluteSplines.Add(new CubicSpline
+        {
+            Points = bezPoints.Skip(4).Reverse().ToArray()
+        });
+        InvoluteSplines.Add(new CubicSpline
+        {
+            Points = bezPoints.Take(4).Reverse().ToArray()
+        });
+
+        // Capture the addendum arc as an arc object instead
+        // of a sequence of points
+
+        AddendumCurve = new CircularArc
+        {
+            StartAngle = GapWidthAngleAtPitchCircle / 2 + ToothTipOffset,
+            EndAngle = ToothAngle - GapWidthAngleAtPitchCircle / 2
+                - ToothTipOffset - BacklashAngle,
+            Anticlockwise = true,
+            Centre = Coordinate.Empty,
+            Radius = AddendumCircleDiameter / 2
+        };
+
+        // Capture the dedendum arc as an arc object instead
+        // of a sequence of points on a circle. Note we are
+        // using the actual points list as it may have been
+        // adjusted for a high diameter end mill.
+
+        DedendumCurve = new CircularArc
+        {
+            StartAngle = DedendumPoints.First().Phase,
+            EndAngle = DedendumPoints.Last().Phase,
+            Anticlockwise = true,
+            Radius = DedendumPoints.First().Magnitude
+        };
+
+        // For now the undercut curve is still captured
+        // as a polyline as we have yet to do the
+        // chebyshev approximation to create bezier curves
+
+        UndercutCurve = new PolyLine
+        {
+            Vertices = UndercutPoints ?? new List<Coordinate>(0)
+        };
+    }
+
+    /// <summary>
+    /// Return the set of eight points that represent the control points of
+    /// two bezier curves that approximate the involute gear surface. Using
+    /// the SVG path rendering, this would be rendered inner to outer as:
+    /// .MoveTo(coord[0]);
+    /// .Cubic(coord[1], coord[2], coord[3]);
+    /// .MoveTo(coord[4]); - leaving this out will remove a slight step in the curve
+    /// .Cubic(coord[5], coord[6], coord[7]);
+    /// For rendering outer to inner, the coordinate indices would be
+    /// reversed to 7...0.
+    /// </summary>
+    /// <returns>The Bezier control points for the involute, in the order
+    /// inner to outer end radially (opposite to InvolutePoints list)</returns>
+    
+    public List<Coordinate> InvoluteAsBezier()
+    {
+        // Angle away from centre of gap between teeth
+        // at which the involute touches the base circle.
+        // This is because we calculate the gear to have a tooth
+        // gap aligned with the positive X axis.
+
+        double involuteBaseAngle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
+
+        // First grab the radius at which the involute begins just beyond
+        // the point at which the undercut trochoid intersects with it
+
+        double startRadius = InvolutePoints.Last().Magnitude;
+        double endRadius = InvolutePoints.First().Magnitude;
+        double innerOffset = (startRadius - PitchCircleDiameter / 2) / Module;
+        double outerOffset = (endRadius - PitchCircleDiameter / 2) / Module;
+        double midPoint = innerOffset + 0.375 * (outerOffset - innerOffset);
+        List<Coordinate> points = new();
+        points.AddRange(InvoluteBezier.BezierPoints
+            (Module, ToothCount, PressureAngle, 3, innerOffset, midPoint)
+            .Rotated(involuteBaseAngle));
+        points.AddRange(InvoluteBezier.BezierPoints
+            (Module, ToothCount, PressureAngle, 3, midPoint, outerOffset)
+            .Rotated(involuteBaseAngle));
+        return points;
     }
 
     /// <summary>
@@ -563,6 +673,67 @@ public class InvoluteGearParameters : IGearProfile
         yield return AnticlockwiseUndercut(i);
         yield return AnticlockwiseInvolute(i);
         yield return Addendum(i);
+    }
+
+    /// <summary>
+    /// Given we have previously generated all the various
+    /// bits of the gear profile, now generate the full wheel
+    /// </summary>
+    /// <returns>The path for the whole gear circumference</returns>
+    
+    public DrawablePath GenerateGearCurve()
+    {
+        return new DrawablePath
+        {
+            Curves = new List<IDrawable>(Enumerable
+                .Range(0, ToothCount)
+                .Select(i => GeneratePathElementsForOnePitch(i))
+                .SelectMany(ep => ep)),
+            Closed = true
+        };
+    }
+
+    public IEnumerable<IDrawable> GeneratePathElementsForOnePitch(int i)
+    {
+        // The angles between the middles of adjacent
+        // teeth in radians is 2*PI / ToothCount
+
+        double gapCentreAngle = (i % ToothCount) * ToothAngle - BacklashAngle;
+        List<IDrawable> elements = new List<IDrawable>();
+
+        // Add the involute inbound from the addendum
+
+        foreach(var e in InvoluteSplines)
+            elements.Add(e.ReflectY()
+                .RotatedBy(gapCentreAngle, Coordinate.Empty));
+
+        // Add the undercut trochoid points
+
+        elements.Add(UndercutCurve.ReflectY()
+            .RotatedBy(gapCentreAngle, Coordinate.Empty));
+
+        // Add the dedendum arc
+
+        elements.Add(DedendumCurve
+            .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
+
+        // Add the undercut on the other side of the dedendum
+
+        elements.Add(UndercutCurve.Reversed()
+            .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
+
+        // Add the involute curves on the other side of the dedendum
+        
+        foreach (var e in InvoluteSplines.Reverse())
+            elements.Add(e.Reversed()
+                .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
+
+        // Last, add the addendum arc
+
+        elements.Add(AddendumCurve
+            .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
+
+        return elements;
     }
 
     /// <summary>

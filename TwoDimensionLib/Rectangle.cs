@@ -38,6 +38,5 @@
 
         public override string ToString()
             => $"{Location}, W={Width}, H={Height}";
-
     }
 }

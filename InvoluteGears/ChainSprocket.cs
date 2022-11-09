@@ -309,4 +309,9 @@ public class ChainSprocket : IGearProfile
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i, false))
             .SelectMany(p => p);
+
+    public DrawablePath GenerateGearCurve()
+    {
+        throw new NotImplementedException();
+    }
 }

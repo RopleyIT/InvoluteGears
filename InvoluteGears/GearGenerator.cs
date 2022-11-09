@@ -24,6 +24,27 @@ public static class GearGenerator
         sw.Close();
     }
 
+    public static string GenerateSVGCurves(Cutouts cutoutCalculator, float docDimension)
+    {
+        SVGCreator svgCreator = new()
+        {
+            InfoComment = cutoutCalculator.Gear.Information + cutoutCalculator.Information
+        };
+        DrawablePath gearPath = cutoutCalculator.Gear.GenerateGearCurve();
+        svgCreator.AddPath(new SVGPath(gearPath), string.Empty, 0, "black");
+        foreach (DrawablePath p in cutoutCalculator.Curves)
+            svgCreator.AddPath(new SVGPath(p), string.Empty, 0, "white");
+        
+        svgCreator.DocumentDimensions = new Coordinate(docDimension, docDimension);
+        svgCreator.DocumentDimensionUnits = "mm";
+        svgCreator.ViewBoxDimensions = new TwoDimensionLib.Rectangle(
+            new(-svgCreator.DocumentDimensions.X / 2.0,
+            -svgCreator.DocumentDimensions.Y / 2.0),
+            svgCreator.DocumentDimensions.X, svgCreator.DocumentDimensions.Y);
+        svgCreator.ViewBoxDimensionUnits = "";
+        return svgCreator.ToString();
+    }
+
     public static string GenerateSVG(Cutouts cutoutCalculator, float docDimension)
     {
         SVGCreator svgCreator = new()
@@ -53,7 +74,7 @@ public static class GearGenerator
         return svgCreator.ToString();
     }
 
-    public static void GenerateCutoutPlot(Cutouts cutoutCalculator, 
+    public static void AddCutoutsAndSpindles(Cutouts cutoutCalculator, 
         List<IEnumerable<Coordinate>> gearPoints)
     {
         if (cutoutCalculator.CutoutPlots != null)
@@ -65,6 +86,5 @@ public static class GearGenerator
             gearPoints.Add(cutoutCalculator.InlayPlot);
         if (cutoutCalculator.SpindlePlot != null)
             gearPoints.Add(cutoutCalculator.SpindlePlot);
-
     }
 }

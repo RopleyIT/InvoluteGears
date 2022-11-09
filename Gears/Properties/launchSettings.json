@@ -2,7 +2,7 @@
   "profiles": {
     "InvoluteConsole": {
       "commandName": "Project",
-      "commandLineArgs": "-c 145 12,15,18,24,48 500 210 -210 635 output.txt"
+      "commandLineArgs": "--bez -t 20 -m 500 -ps 0 -pa 20"
     }
   }
 }

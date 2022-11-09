@@ -246,6 +246,11 @@ public class EscapeGearParameters : IGearProfile
             .Select(i => ToothProfile(i))
             .SelectMany(p => p);
 
+    public DrawablePath GenerateGearCurve()
+    {
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// The distance from the centre of the gear to the
     /// closest part of the curve between leading and

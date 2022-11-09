@@ -26,4 +26,6 @@ public interface IGearProfile
     double CutDiameter { get; }
 
     IEnumerable<Coordinate> GenerateCompleteGearPath();
+
+    DrawablePath GenerateGearCurve();
 }

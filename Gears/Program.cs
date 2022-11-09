@@ -30,6 +30,7 @@ internal class Program
         Console.WriteLine("    Identifies gear pairs that would achieve the desired gear ratio numerator/denominator with");
         Console.WriteLine("    wheels having tooth counts in the range minteeth to maxteeth.");
     }
+
     private static void CreateSvgGearPlot(Cutouts cutoutCalculator, double size)
     {
         // Create the output plot file of the gear
@@ -38,7 +39,7 @@ internal class Program
         {
             cutoutCalculator.Gear.GenerateCompleteGearPath()
         };
-        GearGenerator.GenerateCutoutPlot(cutoutCalculator, gearPoints);
+        GearGenerator.AddCutoutsAndSpindles(cutoutCalculator, gearPoints);
 
         // Now convert to image bytes to return from Web API
 
@@ -225,6 +226,13 @@ internal class Program
                 using (StreamWriter sw = new(args[1]))
                     sw.Write(GenerateGearTables(pressureAngles, teeth, 100, 0));
                 return;
+
+            case "--bez":
+                Arguments.Parse(opts, common, involute);
+                DoBezierDemo(common.Module, common.Teeth,
+                    involute.PressureAngle, involute.ProfileShift);
+                return;
+
             case "-c":
             case "--customratios":
                 if (args.Length != 8)
@@ -276,6 +284,55 @@ internal class Program
                 Usage("gears [cycloid|chain|escape|involute|ratchet|roller|-m|-C|-c] [arguments]");
                 return;
         }
+    }
+
+    private static void DoBezierDemo(double module, int teeth, double pressureAngle, double profileShift)
+    {
+        // Adjust units
+
+        pressureAngle = Geometry.DegToRad(pressureAngle);
+        profileShift /= 100;
+
+
+        var pitchToBase = InvoluteBezier.ModuleFractionFromPitchToBaseCircle
+            (teeth, pressureAngle);
+        if (pitchToBase <= 1 - profileShift)
+            Console.WriteLine("dedendum extends beneath base circle. Adjusting...");
+
+        // First create the sequence of points as per standard line segment involutes
+        
+        List<Coordinate> lineSegs = new();
+        for (double phi = 0; phi < Math.PI / 4; phi += Geometry.AngleStep)
+            lineSegs.Add(Geometry.InvolutePlusOffset
+                (module * (teeth / 2.0 - pitchToBase), 0, 0, phi, 0));
+
+        // Now create the Bezier control points
+
+        var coordsInner = InvoluteBezier.BezierPoints
+            (module, teeth, pressureAngle, 3, -1 + profileShift, -0.25 + profileShift);
+        var coordsOuter = InvoluteBezier.BezierPoints
+            (module, teeth, pressureAngle, 3, -0.25 + profileShift, 1 + profileShift);
+
+        // Now plot a graph
+
+        SVGCreator svg = new SVGCreator();
+        svg.AddPath(lineSegs);
+        SVGPath bez = new SVGPath();
+        bez.MoveTo(coordsInner[0]);
+        bez.Cubic(coordsInner[1].X, coordsInner[1].Y, coordsInner[2].X, coordsInner[2].Y, 
+            coordsInner[3].X, coordsInner[3].Y);
+        bez.LineTo(coordsOuter[0]);
+        bez.Cubic(coordsOuter[1].X, coordsOuter[1].Y, coordsOuter[2].X, coordsOuter[2].Y, 
+            coordsOuter[3].X, coordsOuter[3].Y);
+        svg.AddPath(bez, "red", 1, "transparent");
+        svg.CalculateViewBox(new Coordinate(2, 2));
+        svg.HasXmlHeader = true;
+
+        // Write out the plot
+
+        using StreamWriter sw = new StreamWriter("bezier.svg");
+        sw.WriteLine(svg.ToString());
+        sw.Close();
     }
 
     private static void RenderLine(TextWriter sw, string header,

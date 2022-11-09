@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using TwoDimensionLib;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Plotter
+namespace TwoDimensionLib
 {
     public class BoundsTracker
     {
@@ -26,14 +28,34 @@ namespace Plotter
 
         public IEnumerable<Coordinate> Track(IEnumerable<Coordinate> points)
         {
-            foreach (Coordinate p in points)
-            {
-                left = Math.Min(p.X, left);
-                top = Math.Min(p.Y, top);
-                right = Math.Max(p.X, right);
-                bottom = Math.Max(p.Y, bottom);
-                yield return p;
-            }
+            foreach (Coordinate c in points)
+                Track(c);
+            return points;
+        }
+
+        public Coordinate Track(Coordinate p)
+        {
+            if (double.IsNaN(p.X) || double.IsNaN(p.Y))
+                throw new NotFiniteNumberException("NaN in bounds tracker");
+            left = Math.Min(p.X, left);
+            top = Math.Min(p.Y, top);
+            right = Math.Max(p.X, right);
+            bottom = Math.Max(p.Y, bottom);
+            return p;
+        }
+
+        /// <summary>
+        /// Grow the bounds to include the area from another
+        /// rectangle. Typically this would be used to find
+        /// the bounds of a whole set of graphical items.
+        /// </summary>
+        /// <param name="r">The rectangle to incorporate
+        /// into the overall bounds</param>
+        
+        public void Track(Rectangle r)
+        {
+            Track(r.Location);
+            Track(new Coordinate(r.Right, r.Bottom));
         }
 
         /// <summary>

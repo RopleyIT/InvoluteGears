@@ -73,7 +73,7 @@ class Program
     private static IEnumerable<Coordinate> Arc(double startAngle, double endAngle, double radius, Coordinate origin)
     {
         for (double a = startAngle; a <= endAngle; a += 0.1)
-            yield return Coordinate.FromPolar(radius, DegToRad(a)).Offset(origin);
+            yield return Coordinate.FromPolar(radius, Geometry.DegToRad(a)).Offset(origin);
     }
 
     private static IEnumerable<Coordinate> NutRecessPoints(double flats)
@@ -85,8 +85,6 @@ class Program
         foreach (var p in Arc(30, 150, flats / 3, new(0, flats / 3)))
             yield return p;
     }
-
-    private static double DegToRad(double v) => v * Math.PI / 180.0;
 
     private static void Usage(string v)
     {

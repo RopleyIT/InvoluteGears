@@ -93,6 +93,44 @@ public static class Geometry
     }
 
     /// <summary>
+    /// Find the coordinate mid way between two other coordinates
+    /// </summary>
+    /// <param name="l">Left coordinate</param>
+    /// <param name="r">Right coordinate</param>
+    /// <returns>Midpoint</returns>
+    
+    public static Coordinate MidPoint(Coordinate l, Coordinate r)
+        => new Coordinate((l.X + r.X) / 2, (l.Y + r.Y) / 2);
+
+    /// <summary>
+    /// Convert an angle from degrees to radians
+    /// </summary>
+    /// <param name="degrees">Angle value in degrees</param>
+    /// <returns>The same angle in radians</returns>
+    
+    public static double DegToRad(double degrees)
+        => degrees * Math.PI / 180;
+
+    /// <summary>
+    /// Convert an angle from radians to degrees
+    /// </summary>
+    /// <param name="radians">Anglue value in radians</param>
+    /// <returns>The same angle in degrees</returns>
+    
+    public static double RadToDeg(double radians)
+        => radians * 180 / Math.PI;
+
+    /// <summary>
+    /// Given an angle that is arbitrarily big or small
+    /// map its value into the range 0 ... 2 * Math.PI
+    /// </summary>
+    /// <param name="angle">The un-normalised angle</param>
+    /// <returns>The angle mapped into the first 2 Pi radians</returns>
+    
+    public static double NormaliseAngle(double angle)
+        => angle - 2 * Math.PI * Math.Floor(angle / (2 * Math.PI));
+
+    /// <summary>
     /// Find point on epicycloid. A pitch circle of radius 'radius' has a locus
     /// wheel of radius 'locusRadius' rolloing anticlockwise around it. At the
     /// point (radius, 0) the locus lies on the pitch circle, hence the -PI in

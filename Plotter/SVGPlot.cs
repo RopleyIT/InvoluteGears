@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 //using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using TwoDimensionLib;
 
 namespace Plotter
 {
-    public class SVGPlot
+    public static class SVGPlot
     {
         /// <summary>
         /// Calculate the number of pixels to use for each unit on the graph. Used to
@@ -44,6 +45,47 @@ namespace Plotter
                 "darkblue",
                 "darkmagenta"
         };
+
+        public static string PlotCurves(IList<DrawablePath> paths, int width, int height,
+            IList<string> strokes = null, IList<string> fills = null)
+        {
+            if (strokes == null || fills == null
+                || strokes.Count == 0
+                || fills.Count == 0)
+            {
+                strokes = new List<string> { "black" };
+                fills = new List<string> { "transparent" };
+            }
+
+            SVGCreator svg = new SVGCreator();
+
+            // Turn off header, width and height
+
+            svg.HasXmlHeader = false;
+            svg.HasWidthAndHeight = false;
+
+            BoundsTracker b = new BoundsTracker();
+            foreach (DrawablePath p in paths)
+                b.Track(p.Bounds);
+            double scale = ScaleFactor(b.Bounds, width, height);
+            PlotAxes(b, scale, svg);
+            int index = 0;
+            foreach(DrawablePath p in paths)
+            {
+                string stroke = strokes[index % fills.Count];
+                string fill = fills[index++ % fills.Count];
+                PlotCurve(p, svg, b.Bounds, scale, stroke, fill);
+            }
+            svg.ViewBoxDimensions = b.Bounds;
+            return svg.ToString();
+        }
+
+        private static void PlotCurve(DrawablePath p, SVGCreator svg, 
+            Rectangle bounds, double scale, string stroke, string fill)
+        {
+            var ir = svg.AddPath(new SVGPath(p), stroke, 1.0/scale, fill);
+            ir.Join = LineJoin.Round;
+        }
 
         public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points, 
             int width, int height, IList<string> strokes = null, 
@@ -154,8 +196,10 @@ namespace Plotter
             return PlotGraphs(pointLists, width, height);
         }
 
-        private static void PlotGraph(List<Coordinate> points, SVGCreator svg,
-            Rectangle bounds, double scale, string penColor, string brushColor)
+        private static void PlotGraph
+            (List<Coordinate> points, SVGCreator svg,
+            Rectangle bounds, double scale, string penColor, 
+            string brushColor)
         {
             var ir = svg.AddPath(points, false, penColor, 1.0 / scale, brushColor);
             ir.Join = LineJoin.Round;

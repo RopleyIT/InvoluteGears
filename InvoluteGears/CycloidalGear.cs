@@ -402,5 +402,10 @@ namespace InvoluteGears
                     .Select(i => ToothProfile(i))
                     .SelectMany(p => p);
         }
+
+        public DrawablePath GenerateGearCurve()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
