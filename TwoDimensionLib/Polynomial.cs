@@ -62,6 +62,61 @@ namespace TwoDimensionLib
         }
 
         /// <summary>
+        /// If the polynomial were redescribed as a
+        /// Bernstein polynomial, capture the Bernstein
+        /// coefficients.
+        /// </summary>
+        /// <param name="index">The index of the
+        /// Bernstein coeffiient to calculate</param>
+        /// <returns>The indexth Bernstein coefficient
+        /// </returns>
+        
+        public double BernsteinCoefficient(int index)
+        {
+            if (index < 0 || index > Order)
+                return 0;
+            double coeff = 0;
+            for(int i = 0; i <= index; i++)
+            {
+                coeff += this[i] * Combination(i, index) 
+                    / Combination(i, Order);
+            }
+            return coeff;
+        }
+
+        /// <summary>
+        /// Calculate the combination value or the
+        /// binomial coefficient nCr. This would be
+        /// the number of combinations of k cards
+        /// drawn from a deck of n cards.
+        /// </summary>
+        /// <param name="n">The upper value</param>
+        /// <param name="k">The lower value</param>
+        /// <returns>The binomial coefficient</returns>
+        
+        public static int Combination(int k, int n) 
+            => RangeProduct(n - k + 1, n) / RangeProduct(1, k);
+
+        /// <summary>
+        /// For the values k and n where k < n,
+        /// calculate the value n(n-1)(n-2)...(k+1)k
+        /// </summary>
+        /// <param name="lower">The lower number in
+        /// the product range</param>
+        /// <param name="upper">The upper number in
+        /// the product range</param>
+        /// <returns>The product of all integers
+        /// in the range</returns>
+        
+        private static int RangeProduct(int lower, int upper)
+        {
+            int result = 1;
+            while (lower <= upper)
+                result *= lower++;
+            return result;
+        }
+
+        /// <summary>
         /// Any high order zero coefficients are removed
         /// to ensure the degree of the polynomial matches
         /// the index of the last element in the coefficient

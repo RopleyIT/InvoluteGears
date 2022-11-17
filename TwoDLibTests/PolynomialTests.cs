@@ -162,5 +162,32 @@ namespace TwoDLibTests
             Assert.AreEqual(-1.1, z[1], 0.00000001);
             Assert.AreEqual(-4.3, z[0], 0.00000001);
         }
+
+        [TestMethod]
+        public void CanCalculateCombination()
+        {
+
+            int nCr = Polynomial.Combination(3, 7);
+            Assert.AreEqual(35, nCr);
+            nCr = Polynomial.Combination(4, 7);
+            Assert.AreEqual(35, nCr);
+            nCr = Polynomial.Combination(7, 7);
+            Assert.AreEqual(1, nCr);
+            nCr = Polynomial.Combination(0, 7);
+            Assert.AreEqual(1, nCr);
+            nCr = Polynomial.Combination(1, 7);
+            Assert.AreEqual(7, nCr);
+        }
+
+        [TestMethod]
+        public void ComputesBernsteinCoefficients()
+        {
+            Polynomial p = new Polynomial(-2.0, 3.0, 1.0, 4.0);
+            Assert.AreEqual(-2.0, p.BernsteinCoefficient(0));
+            Assert.AreEqual(-1.0, p.BernsteinCoefficient(1));
+            Assert.AreEqual(1.0 / 3.0, p.BernsteinCoefficient(2));
+            Assert.AreEqual(6.0, p.BernsteinCoefficient(3));
+            Assert.AreEqual(0.0, p.BernsteinCoefficient(4));
+        }
     }
 }
