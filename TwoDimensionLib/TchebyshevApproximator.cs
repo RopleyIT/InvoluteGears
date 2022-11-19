@@ -9,6 +9,20 @@ namespace TwoDimensionLib
     public class TchebyshevApproximator
     {
         /// <summary>
+        /// Used to increase the precision when
+        /// calculating the coefficients. For a
+        /// degree N output polynomial, this means
+        /// we use N*PointsPerPower points to calculate
+        /// the coefficients. Usually setting this to 1
+        /// for a well-behaved polynomial is just fine.
+        /// Use higher numbers when there are poles or
+        /// other discontinuities close to the ends of
+        /// the segment being approximated.
+        /// </summary>
+        
+        const int PointsPerPower = 1;
+
+        /// <summary>
         /// The function we wish to approximate
         /// </summary>
         
@@ -56,8 +70,52 @@ namespace TwoDimensionLib
             MinimumValue = min;
             MaximumValue = max;
             Degree = degree;
+            TchebyshevRoots = 
+                CalcTchebyRoots(PointsPerPower * (Degree + 1));
             TchebyshevPolys = CalcTchebyshevPolys(Degree);
             Coefficients = CalcCoefficients();
+        }
+
+        /// <summary>
+        /// Will hold copies of all the roots of the numRootth
+        /// Tchebyshev polynomial to avoid recomputation
+        /// </summary>
+        
+        private double[] TchebyshevRoots;
+
+        /// <summary>
+        /// Initialise the array of Tchebyshev roots
+        /// </summary>
+        /// <param name="numRoots">The number of roots
+        /// to calculate</param>
+        /// <returns>The array of calculated roots</returns>
+        
+        private double[] CalcTchebyRoots(int numRoots)
+        {
+            double[] roots = new double[numRoots];
+            for (int i = 0; i < numRoots; i++)
+                roots[i] = Root(i, numRoots);
+            return roots;
+        }
+
+        /// <summary>
+        /// Calculate one of the roots of a Tchebyshev
+        /// polynomial
+        /// </summary>
+        /// <param name="root">The index of the root</param>
+        /// <param name="degree">The highest index of the
+        /// set of roots</param>
+        /// <returns>The selected root</returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if the root index is outside the
+        /// valid range of 0 ... degree</exception>
+        
+        private static double Root(int root, int degree)
+        {
+            if (root < 0 || root > degree)
+                throw new ArgumentException("Root index out of range");
+            else
+                return Math.Cos(Math.PI * (root + 0.5) / degree);
         }
 
         /// <summary>
@@ -171,14 +229,6 @@ namespace TwoDimensionLib
             return polys;
         }
 
-        private static double Root(int root, int degree)
-        {
-            if (root < 0 || root > degree)
-                throw new ArgumentException("Root index out of range");
-            else
-                return Math.Cos(Math.PI * (root + 0.5) / degree);
-        }
-
         /// <summary>
         /// Compute one of the coefficients of the
         /// approximation polynomial
@@ -187,18 +237,24 @@ namespace TwoDimensionLib
         /// polynomial this computed coefficient will
         /// multiply in the evaluation of the
         /// polynomial</param>
+        /// <param name="maxPoint">The number of roots
+        /// of the polynomial to calculate coefficients
+        /// over, minus one. Usually maxPoint=Degree is enough.
+        /// However, when evaluating a function close
+        /// to a pole, it sometimes helps to sum over
+        /// a wider range.</param>
         /// <returns>The kth coefficient</returns>
         
         private double CalcCoefficient(int k)
         {
             double ck = 0;
-            for(int i = 0; i <= Degree; i++)
+            for(int i = 0; i < TchebyshevRoots.Length; i++)
             {
-                double root = Root(i, Degree + 1);
+                double root = TchebyshevRoots[i];
                 ck += Function(MapUToX(root)) 
                     * TchebyshevPolys[k].Evaluate(root);
             }
-            ck /= (Degree + 1);
+            ck /= TchebyshevRoots.Length;
             return k == 0 ? ck : 2 * ck;
         }
 

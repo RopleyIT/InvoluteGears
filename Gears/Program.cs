@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using TwoDimensionLib;
 
 namespace Gears;
@@ -293,25 +294,43 @@ internal class Program
         pressureAngle = Geometry.DegToRad(pressureAngle);
         profileShift /= 100;
 
-
-        var pitchToBase = InvoluteBezier.ModuleFractionFromPitchToBaseCircle
-            (teeth, pressureAngle);
+        var pitchRadius = module * teeth / 2.0;
+        var pitchToBase = teeth * (1 - Math.Cos(pressureAngle)) / 2;
         if (pitchToBase <= 1 - profileShift)
             Console.WriteLine("dedendum extends beneath base circle. Adjusting...");
 
+        // Now create the Bezier control points
+
+        var baseCircleRadius = module * teeth / 2.0 * Math.Cos(pressureAngle);
+
+        Func<double, Coordinate> bezFunc =
+            v => new Coordinate(
+                baseCircleRadius * (Math.Cos(v) + v * Math.Sin(v)),
+                baseCircleRadius * (Math.Sin(v) - v * Math.Cos(v)));
+        double dedendumRadius = Math.Max
+            (pitchRadius + (profileShift - 1) * module, baseCircleRadius);
+        double addendumRadius = pitchRadius + (profileShift + 1) * module;
+        //double endAngle = Geometry
+        //    .RootDiffOfSquares(addendumRadius, baseCircleRadius) / baseCircleRadius;
+        double endAngle = Math.PI / 4;
+        double startAngle = Geometry
+            .RootDiffOfSquares(dedendumRadius, baseCircleRadius) / baseCircleRadius;
+
         // First create the sequence of points as per standard line segment involutes
-        
+
         List<Coordinate> lineSegs = new();
         for (double phi = 0; phi < Math.PI / 4; phi += Geometry.AngleStep)
             lineSegs.Add(Geometry.InvolutePlusOffset
                 (module * (teeth / 2.0 - pitchToBase), 0, 0, phi, 0));
-
-        // Now create the Bezier control points
-
-        var coordsInner = InvoluteBezier.BezierPoints
-            (module, teeth, pressureAngle, 3, -1 + profileShift, -0.25 + profileShift);
-        var coordsOuter = InvoluteBezier.BezierPoints
-            (module, teeth, pressureAngle, 3, -0.25 + profileShift, 1 + profileShift);
+        
+        if (startAngle <= 0)
+            startAngle += (endAngle - startAngle) * 0.01; // Avoid the pole
+        double midAngle = startAngle + 0.25 * (endAngle - startAngle);
+        Spline involuteSpline = new Spline(3, bezFunc, startAngle, midAngle);
+        var coordsInner = involuteSpline.ControlPoints;
+        
+        involuteSpline = new Spline(3, bezFunc, midAngle, endAngle);
+        var coordsOuter = involuteSpline.ControlPoints;
 
         // Now plot a graph
 
@@ -321,10 +340,13 @@ internal class Program
         bez.MoveTo(coordsInner[0]);
         bez.Cubic(coordsInner[1].X, coordsInner[1].Y, coordsInner[2].X, coordsInner[2].Y, 
             coordsInner[3].X, coordsInner[3].Y);
-        bez.LineTo(coordsOuter[0]);
+        svg.AddPath(bez, "green", 1, "transparent");
+        bez = new SVGPath();
+        bez.MoveTo(coordsOuter[0]);
         bez.Cubic(coordsOuter[1].X, coordsOuter[1].Y, coordsOuter[2].X, coordsOuter[2].Y, 
             coordsOuter[3].X, coordsOuter[3].Y);
         svg.AddPath(bez, "red", 1, "transparent");
+
         svg.CalculateViewBox(new Coordinate(2, 2));
         svg.HasXmlHeader = true;
 

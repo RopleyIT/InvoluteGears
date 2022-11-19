@@ -36,6 +36,19 @@ namespace TwoDLibTests
         }
 
         [TestMethod]
+        public void ApproximatesCubicPoly()
+        {
+            TchebyshevApproximator t = new TchebyshevApproximator
+                (3, x => 1 / 3.0 * x * x * x - x * x - 8 * x + 7, -4.0, 6.0);
+            Polynomial p = t.ApproximationPolynomial;
+            Assert.AreEqual(3, p.Order);
+            Assert.AreEqual(1.0 / 3.0, p[3], 0.00000001);
+            Assert.AreEqual(-1.0, p[2], 0.00000001);
+            Assert.AreEqual(-8.0, p[1], 0.00000001);
+            Assert.AreEqual(7.0, p[0], 0.00000001);
+        }
+
+        [TestMethod]
         public void ApproximatesReducedPoly()
         {
             TchebyshevApproximator t = new TchebyshevApproximator(2, Func, -1.0, 3.0);

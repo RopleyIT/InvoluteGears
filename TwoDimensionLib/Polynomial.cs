@@ -315,18 +315,25 @@ namespace TwoDimensionLib
             StringBuilder sb = new StringBuilder();
             for (int i = Order; i > 1; i--)
             {
-                sb.Append($"{this[i]}X^{i}");
-                if (this[i - 1] >= 0)
-                    sb.Append('+');
+                if (this[i] != 0)
+                {
+                    sb.Append($"{this[i]}X^{i}");
+                    if (this[i - 1] >= 0)
+                        sb.Append('+');
+                }
             }
-            if (Order > 0)
+            if (Order > 0 && this[1] != 0)
             {
                 sb.Append($"{this[1]}X");
                 if (this[0] >= 0)
                     sb.Append('+');
             }
-            sb.Append(this[0]);
-            return sb.ToString();
+            if (this[0] != 0)
+                sb.Append(this[0]);
+            if (sb.Length != 0)
+                return sb.ToString();
+            else
+                return "0";
         }
     }
 }

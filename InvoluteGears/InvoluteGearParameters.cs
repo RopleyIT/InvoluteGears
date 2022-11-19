@@ -633,21 +633,63 @@ public class InvoluteGearParameters : IGearProfile
 
         double involuteBaseAngle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
 
-        // First grab the radius at which the involute begins just beyond
-        // the point at which the undercut trochoid intersects with it
+        // First grab the radiis at which the involute begins and ends
+        // from just beyond the point at which the undercut trochoid
+        // intersects with it out to the addendum radius
 
         double startRadius = InvolutePoints.Last().Magnitude;
         double endRadius = InvolutePoints.First().Magnitude;
-        double innerOffset = (startRadius - PitchCircleDiameter / 2) / Module;
-        double outerOffset = (endRadius - PitchCircleDiameter / 2) / Module;
-        double midPoint = innerOffset + 0.375 * (outerOffset - innerOffset);
+
+        // The two functions that compute the X,Y coordinate on the
+        // involute curve from the angle between the X axis and the
+        // line to the tangent point for the line unwinding from the
+        // circle to form the involute. These functions assume the
+        // involute meets the base circle on the X axis, so the whole
+        // curve will need to be rotated to the correct point to form
+        // the tooth surface.
+        
+        Func<double, Coordinate> involuteFunctions =
+            angle => new Coordinate(
+                BaseCircleDiameter / 2.0 
+                    * (Math.Cos(angle) + angle * Math.Sin(angle)),
+                BaseCircleDiameter / 2.0 
+                    * (Math.Sin(angle) - angle * Math.Cos(angle)));
+
+        // Find the angles between the X axis and the tangent of the line
+        // that unwinds from the circle to form the involute at its end
+
+        double endAngle = 2 * Geometry.RootDiffOfSquares
+            (endRadius, BaseCircleDiameter/2) / BaseCircleDiameter;
+        double startAngle = 2 * Geometry.RootDiffOfSquares
+            (startRadius, BaseCircleDiameter / 2) / BaseCircleDiameter;
+
+        // As there is an abrupt discontinuity in the involute curve at
+        // the angle of zero, we move a small way away from it when creating
+        // the Bezier spline
+
+        if (startAngle == 0)
+            startAngle += 0.01 * (endAngle - startAngle);
+
+        // We represent the involute using two Bezier curves end to end, to
+        // minimise the errors caused by the Tchebyshev approximation. The
+        // point at which we split the curves is 3/8ths of the way along
+        // the range of angles we plot the curve over.
+
+        double midAngle = startAngle + 0.375 * (endAngle - startAngle);
+
+        // Now use the Spline class to do the donkeywork for us
+
+        Spline inner = new Spline(3, involuteFunctions, startAngle, midAngle);
+        Spline outer = new Spline(3, involuteFunctions, midAngle, endAngle);
         List<Coordinate> points = new();
-        points.AddRange(InvoluteBezier.BezierPoints
-            (Module, ToothCount, PressureAngle, 3, innerOffset, midPoint)
-            .Rotated(involuteBaseAngle));
-        points.AddRange(InvoluteBezier.BezierPoints
-            (Module, ToothCount, PressureAngle, 3, midPoint, outerOffset)
-            .Rotated(involuteBaseAngle));
+
+        // The eight control points for the two Bezier curves are returned
+        // consecutively in an eight element list. Note that the points
+        // are all rotated to the correct angle for a gear being constructed
+        // with the midpoint of the dedendum aligned with the X axis.
+
+        points.AddRange(inner.ControlPoints.Rotated(involuteBaseAngle));
+        points.AddRange(outer.ControlPoints.Rotated(involuteBaseAngle));
         return points;
     }
 

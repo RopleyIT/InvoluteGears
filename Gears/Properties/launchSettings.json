@@ -2,7 +2,7 @@
   "profiles": {
     "InvoluteConsole": {
       "commandName": "Project",
-      "commandLineArgs": "--bez -t 20 -m 500 -ps 0 -pa 20"
+      "commandLineArgs": "--bez -t 12 -m 500 -pa 14.5"
     }
   }
 }
