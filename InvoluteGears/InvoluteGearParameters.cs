@@ -403,6 +403,21 @@ public class InvoluteGearParameters : IGearProfile
         }
     }
 
+    /// <summary>
+    /// If the corner of the meshing tooth extends into the gear too
+    /// far, as happens with gears containing fewer than about 17 teeth
+    /// for pressure angles of 20 deg, undercutting of the tooth
+    /// happens. This is because the corner of the meshing tooth
+    /// follows that path of a prolate trochoid, i.e. one with a loop
+    /// in it. Trochoids that are above the pitch circle follow the
+    /// path of a curtate trochoid, where there is no loop, just a
+    /// curved dip. When the corner meets the pitch circle exacly,
+    /// the shape generated is a cycloid, with a sharp point touching
+    /// the pitch circle.
+    /// </summary>
+    /// <returns>The list of coordinates spaced along the trochoid
+    /// formed by the corner of the tooth</returns>
+    
     private IEnumerable<Coordinate> ComputeUndercutPoints()
     {
         int lowerLimit = AngleIndexFloor(-UndercutAngleAtPitchCircle);
@@ -434,7 +449,7 @@ public class InvoluteGearParameters : IGearProfile
         if (UndercutPoints == null)
             return false;
 
-        // First find the point at which and end-mill of the specified cutter
+        // First find the point at which an end-mill of the specified cutter
         // radius can no longer cut inside the concave profile of the undercut
 
         int i = 0;

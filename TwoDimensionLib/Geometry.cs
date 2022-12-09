@@ -373,6 +373,53 @@ public static class Geometry
     }
 
     /// <summary>
+    /// Given two points on a curve,and the gradients of the curve 
+    /// at those two points, calculate the radius of curvature. This
+    /// is the distance from those two points to the centre of a
+    /// circle that passes through the two points with the gradients
+    /// at those points as specified in the arguments.
+    /// </summary>
+    /// <param name="p1">The first point on the curve</param>
+    /// <param name="p2">The second point on the curve</param>
+    /// <param name="m1">The gradient of the curve at the
+    /// first point</param>
+    /// <param name="m2">The gradient of the curve at the 
+    /// second point</param>
+    /// <returns>The radius of curvature</returns>
+    
+    public static double RadiusOfCurvature
+        (Coordinate p1, Coordinate p2, double m1, double m2)
+    {
+        Coordinate p0 = CentreOfCurvature(p1, p2, m1, m2);
+        return (p1.X - p0.X) * Math.Sqrt(1 + 1 / (m1 * m1));
+    }
+
+    /// <summary>
+    /// Given two points on a curve,and the gradients of the curve 
+    /// at those two points, calculate the circle centre coordinate
+    /// of the circle that passes through the two points with the
+    /// gradients at those points as specified in the arguments.
+    /// </summary>
+    /// <param name="p1">The first point on the curve</param>
+    /// <param name="p2">The second point on the curve</param>
+    /// <param name="m1">The gradient of the curve at the
+    /// first point</param>
+    /// <param name="m2">The gradient of the curve at the 
+    /// second point</param>
+    /// <returns>The circle centre
+    /// </returns>
+    
+    public static Coordinate CentreOfCurvature
+        (Coordinate p1, Coordinate p2, double m1, double m2)
+    {
+        double x0 = (p2.Y - p1.Y) * m1 * m2 + m1 * p2.X - m2 * p1.X;
+        x0 /= m1 - m2;
+        double y0 = (p1.X - x0) / m1 + p1.Y;
+        return new Coordinate(x0, y0);
+    }
+
+
+    /// <summary>
     /// Compute the roots of a quadratic function, using the well-known
     /// formula: "Minus B plus or minus the square root of B squared minus 4AC
     /// all over 2A"
