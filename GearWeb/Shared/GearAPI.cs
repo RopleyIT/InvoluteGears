@@ -206,7 +206,7 @@ namespace GearWeb.Shared
                 gear.InnerDiameter + 2 * gear.OuterLinkWidth, false);
         }
 
-        public static Stream CalcChainSProcketSvgZip(ChainSprocketParams gParams)
+        public static Stream CalcChainSprocketSvgZip(ChainSprocketParams gParams)
         {
             GearProfiles profiles = CalcChainSprocketImage(gParams);
             Stream zipStream = Zipper.ZipStringToStream(profiles.ShortName, profiles.SvgData);

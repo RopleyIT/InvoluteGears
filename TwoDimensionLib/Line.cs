@@ -41,5 +41,8 @@ namespace TwoDimensionLib
 
         public IDrawable Reversed()
             => new Line(End, Start);
+
+        public IDrawable Translated(Coordinate offset)
+            => new Line(Start.Offset(offset), End.Offset(offset));
     }
 }

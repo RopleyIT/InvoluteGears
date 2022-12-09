@@ -408,7 +408,7 @@ public class InvoluteGearParameters : IGearProfile
     /// far, as happens with gears containing fewer than about 17 teeth
     /// for pressure angles of 20 deg, undercutting of the tooth
     /// happens. This is because the corner of the meshing tooth
-    /// follows that path of a prolate trochoid, i.e. one with a loop
+    /// follows the path of a prolate trochoid, i.e. one with a loop
     /// in it. Trochoids that are above the pitch circle follow the
     /// path of a curtate trochoid, where there is no loop, just a
     /// curved dip. When the corner meets the pitch circle exacly,

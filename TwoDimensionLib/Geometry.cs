@@ -63,7 +63,11 @@ public static class Geometry
     /// <summary>
     /// Obtain a point on an involute or a trochoidal curve
     /// </summary>
-    /// <param name="radius">The radius of the base circle on which the involute is formed</param>
+    /// <param name="radius">The radius of the base circle on which the involute is formed.
+    /// For an involute gear, the base circle is used as at the pitch circle the angle
+    /// of the involute has reached the pressure angle. When plotting other trochoids
+    /// such as an undercut trochoid, the circle to be used is the pitch circle, as
+    /// the trochoid is for some other point a fixed offset from the pitch circle.</param>
     /// <param name="offX">Assuming the involute touches the base circle along the +ve
     /// X axis, with the circle centred on the origin, offX is the X component of the
     /// offset to the point being traced as a locus relative to the involute. This value and
@@ -81,7 +85,6 @@ public static class Geometry
     public static Coordinate InvolutePlusOffset
         (double radius, double offX, double offY, double phi, double phiOffset)
     {
-
         double cosPhiTotal = Math.Cos(phi + phiOffset);
         double sinPhiTotal = Math.Sin(phi + phiOffset);
 

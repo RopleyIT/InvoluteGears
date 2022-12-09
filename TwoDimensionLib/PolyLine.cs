@@ -48,5 +48,13 @@ namespace TwoDimensionLib
             {
                 Vertices = this.Vertices.Reverse().ToList()
             };
+
+        public IDrawable Translated(Coordinate offset)
+            => new PolyLine
+            { 
+                Vertices = this.Vertices 
+                    .Select(P => P.Offset(offset))
+                    .ToList()
+            };
     }
 }

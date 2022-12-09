@@ -82,4 +82,14 @@ public class CircularArc : IDrawable
             Radius = this.Radius,
             Anticlockwise = this.Anticlockwise
         };
+
+    public IDrawable Translated(Coordinate offset) 
+        => new CircularArc
+        {
+            Centre = Centre.Offset(offset),
+            StartAngle = this.StartAngle,
+            EndAngle = this.EndAngle,
+            Radius = this.Radius,
+            Anticlockwise = this.Anticlockwise
+        };
 }

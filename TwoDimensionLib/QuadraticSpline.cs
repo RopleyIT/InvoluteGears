@@ -56,5 +56,13 @@ namespace TwoDimensionLib
                     .Select(p => p.RotateAbout(pivot, phi))
                     .ToArray()
             };
+
+        public IDrawable Translated(Coordinate offset)
+            => new QuadraticSpline
+            {
+                Points = this.Points
+                    .Select(P => P.Offset(offset))
+                    .ToArray()
+            };
     }
 }

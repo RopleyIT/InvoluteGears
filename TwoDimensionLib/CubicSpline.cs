@@ -63,5 +63,13 @@ namespace TwoDimensionLib
                     .Select(p => p.RotateAbout(pivot, phi))
                     .ToArray()
             };
+
+        public IDrawable Translated(Coordinate offset)
+            => new CubicSpline
+            {
+                Points = this.Points
+                    .Select(p => p.Offset(offset))
+                .ToArray()
+            };
     }
 }
