@@ -24,6 +24,8 @@ namespace GearWeb.Shared
                 case 2: // Right or opposing gear
                     return CreateGearPlot(opposingCutoutCalculator, true);
                 case 0: // Meshing
+                    return CreateSequencedGearPlots
+                        (cutoutCalculator, opposingCutoutCalculator, true);
                 case 3: // Both full gears
                     return CreateSequencedGearPlots
                         (cutoutCalculator, opposingCutoutCalculator, false);
@@ -162,8 +164,18 @@ namespace GearWeb.Shared
                        .Translated(new Coordinate(-cutout.Gear.PitchRadius, 0)) as DrawableSet;
                     var rightDrawables = rightGear.RotatedBy(-rightStep * i, Coordinate.Empty)
                        .Translated(new Coordinate(opposingCutout.Gear.PitchRadius, 0)) as DrawableSet;
+                    var meshedDrawables = leftDrawables.Merge(rightDrawables);
+                    Rectangle plotBounds;
+                    if (zoom)
+                    {
+                        double m = 2 * Math.PI * cutout.Gear.Module;
+                        plotBounds = new Rectangle
+                            (new Coordinate(-m, -m), 2 * m, 2 * m);
+                    }
+                    else
+                        plotBounds = meshedDrawables.Bounds;
                     profiles.SvgPlot[i] = SVGPlot.PlotCurves
-                        (leftDrawables.Merge(rightDrawables), 640, 640, strokes, fills);
+                        (meshedDrawables, 640, 640, plotBounds, strokes, fills);
                 }
                 profiles.SvgData = GearGenerator
                     .GenerateSVGCurves(cutout, (float)size);

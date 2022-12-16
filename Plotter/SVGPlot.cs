@@ -46,7 +46,13 @@ namespace Plotter
                 "darkmagenta"
         };
 
-        public static string PlotCurves(DrawableSet paths, int width, int height,
+        public static string PlotCurves(DrawableSet paths,
+            int width, int height, IList<string> strokes = null, 
+            IList<string> fills = null)
+            => PlotCurves(paths, width, height,paths.Bounds, strokes, fills);
+
+        public static string PlotCurves(DrawableSet paths, 
+            int width, int height, Rectangle bounds,
             IList<string> strokes = null, IList<string> fills = null)
         {
             if (strokes == null || fills == null
@@ -64,7 +70,6 @@ namespace Plotter
             svg.HasXmlHeader = false;
             svg.HasWidthAndHeight = false;
 
-            Rectangle bounds = paths.Bounds;
             double scale = ScaleFactor(bounds, width, height);
             PlotAxes(bounds, scale, svg);
             int index = 0;
