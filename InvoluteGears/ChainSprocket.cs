@@ -111,8 +111,6 @@ public class ChainSprocket : IGearProfile
 
     public double Module { get; private set; }
 
-    private double radius = 0;
-
     /// <summary>
     /// Sprockets do not have a meaningful interpretation
     /// of an inner diameter. However, it is taken to be
@@ -122,6 +120,14 @@ public class ChainSprocket : IGearProfile
 
     public double InnerDiameter { get; private set; }
 
+    /// <summary>
+    /// For a chain sprocket, this is taken to be the distance
+    /// from the sprocket centre to the intersection of the line
+    /// of centres between two adjacent chain links
+    /// </summary>
+    
+    public double PitchRadius { get; private set; }
+
     private static double Sqr(double x) => x * x;
 
     private (List<Coordinate> outer, List<Coordinate> inner) CalculatePoints()
@@ -129,7 +135,7 @@ public class ChainSprocket : IGearProfile
         // Calculate the inside radius of one end of a link,
         // the two distances for the unequal faces of the
         // polygon that is the profile for the curvature of
-        // the chiin links around the sprocket, and the angle
+        // the chain links around the sprocket, and the angle
         // between two adjacent links in the chain
 
         double r = OuterLinkWidth / 2 - WireThickness;
@@ -155,7 +161,7 @@ public class ChainSprocket : IGearProfile
         // sprocket to one end of the line between adjacent
         // pairs of links
 
-        radius = l / (2 * Math.Sin(Math.PI / ToothCount));
+        PitchRadius = l / (2 * Math.Sin(Math.PI / ToothCount));
 
         // We shall set the origin at the centre of the sprocket. The
         // point in the middle of a link that is parallel to the
@@ -164,7 +170,7 @@ public class ChainSprocket : IGearProfile
         // formed by one end of the link
 
         Coordinate t = new(
-            Geometry.RootDiffOfSquares(radius, b / 2), b / 2);
+            Geometry.RootDiffOfSquares(PitchRadius, b / 2), b / 2);
 
         // C is the centre of the wire for the next link, lying on a
         // line from T in the direction of the 3rd link
@@ -192,7 +198,7 @@ public class ChainSprocket : IGearProfile
         // perpendicular link lies
 
         double oz = Geometry
-            .RootDiffOfSquares(radius, a / 2) - WireThickness / 2;
+            .RootDiffOfSquares(PitchRadius, a / 2) - WireThickness / 2;
         Coordinate z = new(oz * cosTooth, oz * sinTooth);
 
         if (WireThickness >= CutDiameter)

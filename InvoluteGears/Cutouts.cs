@@ -94,12 +94,18 @@ public class Cutouts
 
         int spokes = SpokeCount();
         CutoutPlots = CalculateCutouts(spokes);
-        Curves = CalculateCutoutCurves(spokes);
-        for(int i = 0; i < spokes; i++)
-        {
-            StrokeColours.Add("black");
-            FillColours.Add("transparent");
-        }
+
+        // First curve is the gear teeth profile
+
+        Curves = new DrawableSet();
+        AddCurve(gear.GenerateGearCurve(), "black", "transparent");
+
+        // Next add any cutouts in the gear
+
+        foreach (var dp in CalculateCutoutCurves(spokes))
+            AddCurve(dp, "black", "transparent");
+
+        // Now add the three spindle-centred items
 
         if (SpindleDiameter > 0)
         {
@@ -139,7 +145,7 @@ public class Cutouts
     
     public void AddCurve(DrawablePath d, string stroke, string fill)
     {
-        Curves.Add(d);
+        Curves.Paths.Add(d);
         FillColours.Add(fill);
         StrokeColours.Add(stroke);
     }
@@ -168,7 +174,7 @@ public class Cutouts
     public IList<Coordinate>? InlayPlot { get; private set; }
     public IList<Coordinate>? HexKeyPlot { get; private set; }
 
-    public IList<DrawablePath> Curves { get; private set; }
+    public DrawableSet Curves { get; private set; }
     public IList<string> FillColours { get; private set; } = new List<string>();
     public IList<string> StrokeColours { get; private set; } = new List<string>();
 
@@ -195,10 +201,18 @@ public class Cutouts
                 new CircularArc
                 {
                     StartAngle = 0,
+                    EndAngle = Math.PI,
+                    Anticlockwise = true,
+                    Centre = Coordinate.Empty,
+                    Radius = SpindleDiameter/2,
+                },
+                new CircularArc
+                {
+                    StartAngle = Math.PI,
                     EndAngle = 2 * Math.PI - Geometry.AngleStep,
                     Anticlockwise = true,
                     Centre = Coordinate.Empty,
-                    Radius = SpindleDiameter,
+                    Radius = SpindleDiameter/2,
                 }
             },
             Closed = true
@@ -226,6 +240,14 @@ public class Cutouts
                 new CircularArc
                 {
                     StartAngle = 0,
+                    EndAngle = Math.PI,
+                    Anticlockwise = true,
+                    Centre = Coordinate.Empty,
+                    Radius = InlayDiameter / 2,
+                },
+                new CircularArc
+                {
+                    StartAngle = Math.PI,
                     EndAngle = 2 * Math.PI - Geometry.AngleStep,
                     Anticlockwise = true,
                     Centre = Coordinate.Empty,

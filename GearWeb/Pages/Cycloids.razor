@@ -142,7 +142,7 @@
                 var gearProfile = GearAPI.CalcCycloidImage(GearData);
                 ImageDescription = Program.ToHtmlText(gearProfile.Description);
                 Errors = Program.ToHtmlText(gearProfile.Errors);
-                InvImage = new(gearProfile.SvgPlot);
+                InvImage = new(gearProfile.SvgPlot[0]);
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id=" 
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);

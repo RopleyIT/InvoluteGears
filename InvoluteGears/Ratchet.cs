@@ -53,14 +53,14 @@ public class Ratchet : IGearProfile
     public double ToothAngle => 2 * Math.PI / ToothCount;
 
     /// <summary>
-    /// The pitch circle diameter for an escape
+    /// The pitch circle diameter for a ratchet
     /// wheel is its true diameter to the ends of
     /// the teeth.
     /// </summary>
 
-    public double PitchCircleDiameter => Module * ToothCount;
+    public double PitchRadius => Module * ToothCount/2.0;
 
-    private double ToothDepth => (PitchCircleDiameter - InnerDiameter) / 2;
+    private double ToothDepth => PitchRadius - InnerDiameter / 2;
 
     private IList<Coordinate>? OneToothProfile;
 
@@ -128,7 +128,7 @@ public class Ratchet : IGearProfile
     private Coordinate PointAtAngle(double angle)
     {
         double radius = InnerDiameter / 2
-            + (PitchCircleDiameter - InnerDiameter) / 2
+            + (PitchRadius - InnerDiameter / 2)
             * angle / ToothAngle;
         return Coordinate.FromPolar(radius, angle);
     }

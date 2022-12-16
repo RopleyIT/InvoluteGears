@@ -32,12 +32,14 @@ public class EscapeGearParameters : IGearProfile
         SetInformation();
         OneToothProfile = CalculatePoints();
     }
+
     private void SetInformation()
     {
         Information = $"Escape: {ToothCount} teeth, module = {Module}mm, undercut angle = {UndercutAngle * 180 / Math.PI:N1}\u00b0\r\n";
         Information += $"tooth face = {ToothFaceLength}mm, precision = {MaxError}mm\r\n";
         Information += $"tip width = {TipPitch}mm, tooth gap diameter = {CutDiameter}mm\r\n";
     }
+
     public string ShortName
         => $"Et{ToothCount}m{Module:N2}u{UndercutAngle * 180 / Math.PI:N1}f{ToothFaceLength:N2}"
             + $"e{MaxError:N2}p{TipPitch:N2}c{CutDiameter:N2}";
@@ -125,7 +127,7 @@ public class EscapeGearParameters : IGearProfile
     /// the teeth.
     /// </summary>
 
-    public double PitchCircleDiameter => Module * ToothCount;
+    public double PitchRadius => Module * ToothCount/2.0;
 
     /// <summary>
     /// The distance between adjacent teeth around the pitch circle
@@ -165,12 +167,12 @@ public class EscapeGearParameters : IGearProfile
     {
         // Unrotated tooth tip is on the X axis
 
-        ToothTip = new(PitchCircleDiameter / 2, 0);
+        ToothTip = new(PitchRadius, 0);
 
         // Navigate down the slope of the tooth face
 
         FaceEnd = new(
-            PitchCircleDiameter / 2 - ToothFaceLength * Math.Cos(UndercutAngle),
+            PitchRadius - ToothFaceLength * Math.Cos(UndercutAngle),
             -ToothFaceLength * Math.Sin(UndercutAngle));
 
         // Now find the centre of the undercut circle
@@ -215,7 +217,7 @@ public class EscapeGearParameters : IGearProfile
         points.AddRange(
             Geometry.CirclePoints(
                 GapAngle, ToothAngle, Geometry.AngleStep,
-                PitchCircleDiameter / 2));
+                PitchRadius));
         return Geometry.LinearReduction(points, MaxError);
     }
 

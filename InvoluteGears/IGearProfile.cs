@@ -25,6 +25,8 @@ public interface IGearProfile
 
     double CutDiameter { get; }
 
+    double PitchRadius { get; }
+
     IEnumerable<Coordinate> GenerateCompleteGearPath();
 
     DrawablePath GenerateGearCurve();

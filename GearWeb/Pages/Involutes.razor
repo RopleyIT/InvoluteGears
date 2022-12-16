@@ -7,39 +7,51 @@
 <EditForm Model=@GearData OnSubmit="@Generate">
     <DataAnnotationsValidator />
     <div class="form-row">
-        <div class="form-group col-md-4">
-            <label for="Teeth">Number of teeth</label>
+        <div class="form-group col-md-3">
+            <label for="Teeth">Number of teeth in left gear</label>
             <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
             <small class="form-text text-muted">The number of teeth on the gear. Minimum value is 6.</small>
             <ValidationMessage For="() => GearData.Teeth" />
         </div>
-        <div class="form-group col-md-4">
-            <label for="ProfileShift">Profile shift</label>
+        <div class="form-group col-md-3">
+            <label for="OpposingTeeth">Number of teeth in right gear</label>
+            <InputNumber @bind-Value="GearData.OpposingTeeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="OpposingTeeth" />
+            <small class="form-text text-muted">The number of teeth on the opposing gear. Minimum value is 6</small>
+            <ValidationMessage For="() => GearData.OpposingTeeth" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="ProfileShift">Profile shift in left gear</label>
             <InputText @bind-Value="GearData.ProfileShift" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="ProfileShift" />
             <small class="form-text text-muted">Profile shift for teeth, to nearest 10th of a % of the module, e.g. -10.5</small>
             <ValidationMessage For="() => GearData.ProfileShift" />
         </div>
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
+            <label for="ProfileShift">Profile shift in right gear</label>
+            <InputText @bind-Value="GearData.OpposingProfileShift" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="ProfileShift" />
+            <small class="form-text text-muted">Profile shift for teeth, to nearest 10th of a % of the module, e.g. -10.5</small>
+            <ValidationMessage For="() => GearData.ProfileShift" />
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-3">
             <label for="Tolerance">Precision</label>
             <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
             <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
             <ValidationMessage For="() => GearData.Tolerance" />
         </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="PressureAngle">Pressure angle</label>
             <InputText @bind-Value="GearData.PressureAngle" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 14.5" id="PressureAngle" />
             <small class="form-text text-muted">Pressure angle for teeth on gear to nearest 10th of a degree. Common values are 14.5, 20 or 25</small>
             <ValidationMessage For="() => GearData.PressureAngle" />
         </div>
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="Module">Module</label>
             <InputText @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="Module" />
             <small class="form-text text-muted">Module for gear to nearest 100th of a mm. Diameter at pitch circle will be number of teeth times the module.</small>
             <ValidationMessage For="() => GearData.Module" />
         </div>
-        <div class="form-group col-md-4">
+        <div class="form-group col-md-3">
             <label for="Backlash">Backlash</label>
             <InputText @bind-Value="GearData.Backlash" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 0.25" id="Backlash" />
             <small class="form-text text-muted">Backlash between gear teeth to nearest 100th of a mm. Set zero for a perfectly tight fitting gear.</small>
@@ -78,18 +90,34 @@
             <InputCheckbox @bind-Value="GearData.ShowCircles" class="form-control" id="ShowCircles" />
             <small class="form-text text-muted">Check to show base, pitch, addendum and dedendum circles</small>
         </div>
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary">Generate</button>
+        <div class="form-group col-md-3">
+            <label for="Radial">Radial profile below base circle</label>
+            <InputCheckbox @bind-Value="GearData.Radial" class="form-control" id="Radial" />
+            <small class="form-text text-muted">Check to show radial profile below base circle, leave unchecked for undercut trochoid</small>
         </div>
         <div class="col-md-3">
+            <label for="WhichGears">Choose which gear or gears to draw</label><br/>
+            <InputSelect class="form-select" @bind-Value="GearData.WhichGears" id="WhichGears">
+                <option selected value="1">Left gear</option>
+                <option selected value="2">Right gear</option>
+                <option selected value="3">Both gears</option>
+                <option selected value="0">Meshing</option>
+            </InputSelect>
+            <small class="form-text text-muted">Left or right options plot single gears. 
+                Both plots the two gears meshed. Meshing shows the meshing teeth close-up.</small>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary">Draw</button>
+        </div>
+        <div class="col-md-2">
             @if(CanDownload)
             {
                 <a class="btn btn-primary" target="_top" href="@SvgUrl">Download SVG</a>
             }
             else
             {
-                <span>Click 'Generate' with 'Show construction' unchecked to be 
-                    able to download the generated SVG file</span>
+                <span>Select 'Left gear' or 'Right gear' with 'Show construction' unchecked to be 
+                    able to download the corresponding SVG file</span>
             }
         </div>
     </div>
@@ -100,21 +128,31 @@
         <div class="card-body">
             <h5 class="card-title">Involute spur gear</h5>
             <p class="card-text">@ImageDescription</p>
+            @if(hasTwoGears)
+            {
+            <div><button class="btn btn-primary" @onclick="NextImage">Next</button>
+                <button class="btn btn-outline-primary" @onclick="PrevImage">Previous</button></div>
+            }
         </div>
         @InvImage
     </div>
 }
 
 @code {
+    bool TwoGears() => GearData != null && (GearData.WhichGears == 0 || GearData.WhichGears == 3);
+    bool hasTwoGears = false;
     bool IsDisabled = true;
     GearParams GearData = new GearParams();
     MarkupString InvImage = new();
     MarkupString ImageDescription = new MarkupString(string.Empty);
     string SVG = string.Empty;
     string SvgUrl = "/";
-
+    string OpposingSvgUrl = "/";
     bool CanDownload = false;
-
+    GearProfiles gearProfile = null;
+    int imageIndex = 0;
+    void NextImage() { InvImage = new(gearProfile.SvgPlot[(++imageIndex) & 0x3F]); }
+    void PrevImage() { InvImage = new(gearProfile.SvgPlot[(--imageIndex) & 0x3F]); }
     void Generate(EditContext ctx)
     {
         IsDisabled = true;
@@ -122,14 +160,16 @@
         {
             try
             {
-                var gearProfile = GearAPI.CalcInvoluteImage(GearData);
+                imageIndex = 0;
+                gearProfile = GearAPI.CalcInvoluteImage(GearData);
                 ImageDescription = Program.ToHtmlText(gearProfile.Description);
-                InvImage = new(gearProfile.SvgPlot);
+                InvImage = new(gearProfile.SvgPlot[imageIndex]);
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id=" 
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
                 IsDisabled = false;
-                CanDownload = !GearData.ShowCircles;
+                hasTwoGears = TwoGears();
+                CanDownload = !GearData.ShowCircles && GearData.WhichGears < 3 && GearData.WhichGears > 0;
             }
             catch (Exception x)
             {

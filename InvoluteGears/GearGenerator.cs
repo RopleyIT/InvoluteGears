@@ -32,7 +32,7 @@ public static class GearGenerator
         };
         DrawablePath gearPath = cutoutCalculator.Gear.GenerateGearCurve();
         svgCreator.AddPath(new SVGPath(gearPath), string.Empty, 0, "black");
-        foreach (DrawablePath p in cutoutCalculator.Curves)
+        foreach (DrawablePath p in cutoutCalculator.Curves.Paths)
             svgCreator.AddPath(new SVGPath(p), string.Empty, 0, "white");
         
         svgCreator.DocumentDimensions = new Coordinate(docDimension, docDimension);

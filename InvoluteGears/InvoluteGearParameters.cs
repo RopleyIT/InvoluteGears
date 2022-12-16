@@ -137,6 +137,14 @@ public class InvoluteGearParameters : IGearProfile
         + 2 * Module * (1 + ProfileShift - Backlash);
 
     /// <summary>
+    /// Return the pitch radius, adjusted for any profile shift
+    /// that has been applied to the gear
+    /// </summary>
+    
+    public double PitchRadius
+        => PitchCircleDiameter / 2 + Module * ProfileShift;
+
+    /// <summary>
     /// The maximum non-interfering radius of the inner
     /// circle at the foot of the gap between teeth.
     /// Allowance has been made for profile shifting

@@ -123,7 +123,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateSvgGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.PitchRadius * 2);
     }
 
     private static void PlotRatchet(CommonArgs common, CutOutArgs cutOut, RatchetArgs ratchet)
@@ -139,7 +139,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateSvgGearPlot(cutoutCalculator, gear.PitchCircleDiameter);
+        CreateSvgGearPlot(cutoutCalculator, gear.PitchRadius * 2);
     }
 
     private static void PlotRoller(CommonArgs common, CutOutArgs cutOut, RollerSprocketArgs roller)

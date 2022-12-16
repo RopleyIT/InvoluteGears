@@ -62,6 +62,6 @@ namespace TwoDimensionLib
         /// Generate the calculated bounding box around the points
         /// </summary>
 
-        public Rectangle Bounds => new(new(top, left), right - left, bottom - top);
+        public Rectangle Bounds => new(new(left, top), right - left, bottom - top);
     }
 }

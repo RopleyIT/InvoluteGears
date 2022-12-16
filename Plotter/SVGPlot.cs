@@ -46,7 +46,7 @@ namespace Plotter
                 "darkmagenta"
         };
 
-        public static string PlotCurves(IList<DrawablePath> paths, int width, int height,
+        public static string PlotCurves(DrawableSet paths, int width, int height,
             IList<string> strokes = null, IList<string> fills = null)
         {
             if (strokes == null || fills == null
@@ -64,19 +64,17 @@ namespace Plotter
             svg.HasXmlHeader = false;
             svg.HasWidthAndHeight = false;
 
-            BoundsTracker b = new BoundsTracker();
-            foreach (DrawablePath p in paths)
-                b.Track(p.Bounds);
-            double scale = ScaleFactor(b.Bounds, width, height);
-            PlotAxes(b, scale, svg);
+            Rectangle bounds = paths.Bounds;
+            double scale = ScaleFactor(bounds, width, height);
+            PlotAxes(bounds, scale, svg);
             int index = 0;
-            foreach(DrawablePath p in paths)
+            foreach(DrawablePath p in paths.Paths)
             {
                 string stroke = strokes[index % fills.Count];
                 string fill = fills[index++ % fills.Count];
-                PlotCurve(p, svg, b.Bounds, scale, stroke, fill);
+                PlotCurve(p, svg, bounds, scale, stroke, fill);
             }
-            svg.ViewBoxDimensions = b.Bounds;
+            svg.ViewBoxDimensions = bounds;
             return svg.ToString();
         }
 
@@ -111,7 +109,7 @@ namespace Plotter
             foreach (IEnumerable<Coordinate> pl in points)
                 plots.Add(bounds.Track(pl).ToList());
             double scale = ScaleFactor(bounds.Bounds, width, height);
-            PlotAxes(bounds, scale, svg);
+            PlotAxes(bounds.Bounds, scale, svg);
             int index = 0;
             foreach (List<Coordinate> pl in plots)
             {
@@ -128,31 +126,31 @@ namespace Plotter
             return svg.ToString();
         }
 
-        private static void PlotAxes(BoundsTracker bounds, double scale, SVGCreator svg)
+        private static void PlotAxes(Rectangle bounds, double scale, SVGCreator svg)
         {
-            double unitsX = UnitSize(bounds.Bounds.Width);
-            double unitsY = UnitSize(bounds.Bounds.Height);
+            double unitsX = UnitSize(bounds.Width);
+            double unitsY = UnitSize(bounds.Height);
 
-            for (double v = RoundUp(bounds.Bounds.Left, unitsX); v < bounds.Bounds.Right; v += unitsX)
+            for (double v = RoundUp(bounds.Left, unitsX); v < bounds.Right; v += unitsX)
             {
                 List<Coordinate> rule = new()
                 {
-                    new Coordinate(v, bounds.Bounds.Top),
-                    new Coordinate(v, bounds.Bounds.Bottom)
+                    new Coordinate(v, bounds.Top),
+                    new Coordinate(v, bounds.Bottom)
                 };
 
-                PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray", "transparent");
+                PlotGraph(rule, svg, bounds, scale, "lightgray", "transparent");
                 LabelXRule(v, svg, unitsY);
             }
-            for (double v = RoundUp(bounds.Bounds.Top, unitsY); v < bounds.Bounds.Bottom; v += unitsY)
+            for (double v = RoundUp(bounds.Top, unitsY); v < bounds.Bottom; v += unitsY)
             {
                 List<Coordinate> rule = new()
                 {
-                    new Coordinate(bounds.Bounds.Left, v),
-                    new Coordinate(bounds.Bounds.Right, v)
+                    new Coordinate(bounds.Left, v),
+                    new Coordinate(bounds.Right, v)
                 };
 
-                PlotGraph(rule, svg, bounds.Bounds, scale, "lightgray", "transparent");
+                PlotGraph(rule, svg, bounds, scale, "lightgray", "transparent");
                 if (v != 0)
                     LabelYRule(v, svg, unitsX);
             }
