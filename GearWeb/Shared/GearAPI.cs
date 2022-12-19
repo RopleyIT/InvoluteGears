@@ -101,6 +101,25 @@ namespace GearWeb.Shared
         }
 
         /// <summary>
+        /// Assuming the two gears are involute gears, compute their contact ratio
+        /// </summary>
+        /// <param name="gear">The left gear</param>
+        /// <param name="oppositeGear">the right gear</param>
+        /// <returns>A string describing the contact ratio</returns>
+        
+        private static string ContactRatioInfo(IGearProfile gear, IGearProfile oppositeGear)
+        {
+            if (gear is InvoluteGearParameters
+                    && oppositeGear is InvoluteGearParameters)
+            {
+                (double contactRatio, double centreDistance) = (gear as InvoluteGearParameters)
+                    .ContactRatioWith(oppositeGear as InvoluteGearParameters);
+                return $"Contact ratio: {contactRatio:N2}\r\nDistance between centres: {centreDistance:N2}\r\n";
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
         /// When the plotting type is set to Both or Meshing (3 or 0 respectively)
         /// create the sequence of images of both gears as their teeth rotate while
         /// intermeshing.
@@ -121,7 +140,8 @@ namespace GearWeb.Shared
                 Description = "LEFT GEAR\r\n"
                     + cutout.Gear.Information + cutout.Information
                     + "RIGHT GEAR\r\n"
-                    + opposingCutout.Gear.Information,
+                    + opposingCutout.Gear.Information
+                    + ContactRatioInfo(cutout.Gear, opposingCutout.Gear),
                 ShortName = cutout.Gear.ShortName+"_"+opposingCutout.Gear.ShortName,
                 SvgPlot = new string[] { string.Empty },
                 SvgData = string.Empty,

@@ -345,14 +345,15 @@ public class InvoluteGearParameters : IGearProfile
     /// <param name="meshedGear">The gear with which we are
     /// meshed</param>
     /// <returns>The length of the path along which the two
-    /// gears are in contact before breaking apart</returns>
+    /// gears are in contact before breaking apart,
+    /// then the distance between centres</returns>
 
-    public double ContactDistanceWithGear(InvoluteGearParameters meshedGear)
+    public (double, double) ContactDistanceWithGear(InvoluteGearParameters meshedGear)
     {
         if (!CanMeshWith(meshedGear))
         {
             Information = "Gears have differing modules or pressure angles";
-            return 0;
+            return (0, 0);
         }
         double distanceBetweenCentres
             = PitchCircleDiameter / 2
@@ -361,13 +362,38 @@ public class InvoluteGearParameters : IGearProfile
         double distToPitchPoint = distanceBetweenCentres
             * BaseCircleDiameter / (BaseCircleDiameter + meshedGear.BaseCircleDiameter);
         double meshedDistToPitchPoint = distanceBetweenCentres - distToPitchPoint;
+
+        // Calculate the maximum distance possible without
+        // restriction on meshedGear addendum height
+
         double contactLength
             = Math.Sqrt(Geometry.DiffOfSquares(distToPitchPoint, BaseCircleDiameter / 2))
             - Math.Sqrt(SquaredUndercutRadius - Geometry.Square(BaseCircleDiameter / 2));
+
+        // Now calculate the distance if the meshedGear addendum were
+        // taken into account. Note that the actual contact distance
+        // will be whichever of the two is smaller.
+
+        double Q = Math.Asin(2 * meshedDistToPitchPoint 
+            * Math.Cos(PressureAngle) / meshedGear.AddendumCircleDiameter);
+        double addendumContactLength = meshedGear.AddendumCircleDiameter 
+            / (2 * Math.Cos(PressureAngle)) 
+            * Math.Sin(Math.PI / 2 - Q - PressureAngle);
+        contactLength = Math.Min(contactLength, addendumContactLength);
+
+        // Apply the same calculations to the other part of the contact line
+
         double meshedContactLength
             = Math.Sqrt(Geometry.DiffOfSquares(meshedDistToPitchPoint, meshedGear.BaseCircleDiameter / 2))
             - Math.Sqrt(meshedGear.SquaredUndercutRadius - Geometry.Square(meshedGear.BaseCircleDiameter / 2));
-        return contactLength + meshedContactLength;
+        Q = Math.Asin(2 * distToPitchPoint
+            * Math.Cos(PressureAngle) / AddendumCircleDiameter);
+        double meshedAddendumContactLength = AddendumCircleDiameter
+            / (2 * Math.Cos(PressureAngle))
+            * Math.Sin(Math.PI / 2 - Q - PressureAngle);
+        meshedContactLength = Math.Min(meshedContactLength, meshedAddendumContactLength);
+
+        return (contactLength + meshedContactLength, distanceBetweenCentres);
     }
 
     /// <summary>
@@ -385,8 +411,11 @@ public class InvoluteGearParameters : IGearProfile
     /// <returns>The contact ratio. Must be greater
     /// than one for gears to mesh correctly.</returns>
 
-    public double ContactRatioWith(InvoluteGearParameters meshedGear)
-        => ContactDistanceWithGear(meshedGear) / BaseCirclePitch;
+    public (double, double) ContactRatioWith(InvoluteGearParameters meshedGear)
+    {
+        (double cr, double cd) = ContactDistanceWithGear(meshedGear);
+        return (cr / BaseCirclePitch, cd);
+    }
 
     private IList<Coordinate>? UndercutPoints;
     private IList<Coordinate>? InvolutePoints;
@@ -553,7 +582,7 @@ public class InvoluteGearParameters : IGearProfile
         if (CutDiameter > 0 && AdjustPointsForCircularCutter())
             Information += "Undercut and dedendum adjusted for cutter diameter\r\n";
         if (ToothGapAtUndercut < CutDiameter)
-            Information += $"Cutter dia. {CutDiameter} too wide for tooth gap of {ToothGapAtUndercut}\r\n";
+            Information += $"Cutter dia. {CutDiameter} too wide for tooth gap of {ToothGapAtUndercut:N2}\r\n";
 
         // TODO: Ideally should use AdjustPointsForCircularCutter return
         // value to prevent reduction in tooth addendum height used for
