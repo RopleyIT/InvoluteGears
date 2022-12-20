@@ -56,14 +56,22 @@ namespace GearWeb.Shared
             
             if (gp.ShowCircles)
             {
-                var circle = cutoutCalculator.CalcCircle(gear.PitchCircleDiameter / 2);
-                cutoutCalculator.AddPlot(circle, "blue", "transparent");
-                circle = cutoutCalculator.CalcCircle(gear.BaseCircleDiameter / 2);
-                cutoutCalculator.AddPlot(circle, "green", "transparent");
-                circle = cutoutCalculator.CalcCircle(gear.AddendumCircleDiameter / 2);
-                cutoutCalculator.AddPlot(circle, "red", "transparent");
-                circle = cutoutCalculator.CalcCircle(gear.DedendumCircleDiameter / 2);
-                cutoutCalculator.AddPlot(circle, "magenta", "transparent");
+                //var circle = cutoutCalculator.CalcCircle(gear.PitchCircleDiameter / 2);
+                //cutoutCalculator.AddPlot(circle, "blue", "transparent");
+                cutoutCalculator.InsertCurve
+                    (Cutouts.CircularCurve(gear.PitchCircleDiameter / 2), "blue", "transparent");
+                //circle = cutoutCalculator.CalcCircle(gear.BaseCircleDiameter / 2);
+                //cutoutCalculator.AddPlot(circle, "green", "transparent");
+                cutoutCalculator.InsertCurve
+                    (Cutouts.CircularCurve(gear.BaseCircleDiameter / 2), "green", "transparent");
+                //circle = cutoutCalculator.CalcCircle(gear.AddendumCircleDiameter / 2);
+                //cutoutCalculator.AddPlot(circle, "red", "transparent");
+                cutoutCalculator.InsertCurve
+                   (Cutouts.CircularCurve(gear.AddendumCircleDiameter / 2), "red", "transparent");
+                //circle = cutoutCalculator.CalcCircle(gear.DedendumCircleDiameter / 2);
+                //cutoutCalculator.AddPlot(circle, "magenta", "transparent");
+                cutoutCalculator.InsertCurve
+                   (Cutouts.CircularCurve(gear.DedendumCircleDiameter / 2), "goldenrod", "transparent");
             }
             return cutoutCalculator;
         }
@@ -226,8 +234,13 @@ namespace GearWeb.Shared
 
             if (string.IsNullOrWhiteSpace(profiles.Errors))
             {
-                List<string> strokes = new List<string> { "black" };
-                List<string> fills = new List<string> { "transparent" };
+                List<string> strokes = new List<string>();
+                List<string> fills = new List<string>();
+                if(!usePaths)
+                {
+                    strokes.Add("black");
+                    fills.Add("transparent");
+                }
                 strokes.AddRange(cutoutCalculator.StrokeColours);
                 fills.AddRange(cutoutCalculator.FillColours);
 

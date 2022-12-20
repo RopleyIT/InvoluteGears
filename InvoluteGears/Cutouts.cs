@@ -151,6 +151,24 @@ public class Cutouts
     }
 
     /// <summary>
+    /// Insert an extra cutout profile at the front of the
+    /// list of curves to be drawn by this cutout. Capture 
+    /// the proposed fill and stroke colours at the same time.
+    /// WARNING: inserting at the front of the list is not
+    /// very efficient. Use AddCurve when there is a choice.
+    /// </summary>
+    /// <param name="d"></param>
+    /// <param name="stroke"></param>
+    /// <param name="fill"></param>
+    
+    public void InsertCurve(DrawablePath d, string stroke, string fill)
+    {
+        Curves.Paths.Insert(0, d);
+        FillColours.Insert(0, fill);
+        StrokeColours.Insert(0, stroke);
+    }
+
+    /// <summary>
     /// Add an extra cutout profile to the set of plots 
     /// in this shape. Used for chain sprockets for example
     /// where there is a recess groove as well as an outer shape.
@@ -194,29 +212,7 @@ public class Cutouts
     /// in the middle of the gear</returns>
 
     private DrawablePath CalculateSpindleCurve()
-        => new DrawablePath
-        {
-            Curves = new List<IDrawable>
-            {
-                new CircularArc
-                {
-                    StartAngle = 0,
-                    EndAngle = Math.PI,
-                    Anticlockwise = true,
-                    Centre = Coordinate.Empty,
-                    Radius = SpindleDiameter/2,
-                },
-                new CircularArc
-                {
-                    StartAngle = Math.PI,
-                    EndAngle = 2 * Math.PI - Geometry.AngleStep,
-                    Anticlockwise = true,
-                    Centre = Coordinate.Empty,
-                    Radius = SpindleDiameter/2,
-                }
-            },
-            Closed = true
-        };
+        => CircularCurve(SpindleDiameter / 2, Coordinate.Empty);
 
     /// <summary>
     /// Calculate the points that form the inlaid circle
@@ -233,29 +229,49 @@ public class Cutouts
     /// <returns>A circular arc for the inlay</returns>
 
     private DrawablePath CalculateInlayCurve()
+        => CircularCurve(InlayDiameter / 2, Coordinate.Empty);
+
+    /// <summary>
+    /// Using circular arc drawing paths, create a circle
+    /// of the specified radius at the chosen coordinate
+    /// </summary>
+    /// <param name="radius">Circle radius</param>
+    /// <param name="centre">COordinate of circle centre</param>
+    /// <returns>The closed shape that is the circle</returns>
+    
+    public static DrawablePath CircularCurve(double radius, Coordinate centre)
         => new DrawablePath
-        {
-            Curves = new List<IDrawable>
+           {
+               Curves = new List<IDrawable>
             {
                 new CircularArc
                 {
                     StartAngle = 0,
                     EndAngle = Math.PI,
                     Anticlockwise = true,
-                    Centre = Coordinate.Empty,
-                    Radius = InlayDiameter / 2,
+                    Centre = centre,
+                    Radius = radius,
                 },
                 new CircularArc
                 {
                     StartAngle = Math.PI,
                     EndAngle = 2 * Math.PI - Geometry.AngleStep,
                     Anticlockwise = true,
-                    Centre = Coordinate.Empty,
-                    Radius = InlayDiameter / 2,
+                    Centre = centre,
+                    Radius = radius,
                 }
             },
-            Closed = true
-        };
+               Closed = true
+           };
+
+    /// <summary>
+    /// Default centre of new circle at the origin
+    /// </summary>
+    /// <param name="radius">Radius of the origin-centred circle</param>
+    /// <returns>The circular curve</returns>
+    
+    public static DrawablePath CircularCurve(double radius)
+        => CircularCurve(radius, Coordinate.Empty);
 
     /// <summary>
     /// Calculate the points for a circle centred on the middle of the gear
