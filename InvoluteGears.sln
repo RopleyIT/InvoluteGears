@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AC50544D-ED2F-43AF-9512-6C2369ECEFE3}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		TODO.txt = TODO.txt
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NutRecess", "NutRecess\NutRecess.csproj", "{87CAF85E-8F11-4743-8F44-73099F47BC66}"
@@ -22,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwoDimensionLib", "TwoDimen
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwoDLibTests", "TwoDLibTests\TwoDLibTests.csproj", "{731E8527-C974-4AE2-8AC2-EED2C9876757}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GearTests", "GearTests\GearTests.csproj", "{360635B0-095B-45B6-9114-05A58B490F24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GearTests", "GearTests\GearTests.csproj", "{360635B0-095B-45B6-9114-05A58B490F24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
