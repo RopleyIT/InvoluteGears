@@ -299,7 +299,7 @@ public class ChainSprocket : IGearProfile
     /// <returns>The set of points describing the sprocket outer edge
     /// </returns>
 
-    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
+    private IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i, true))
             .SelectMany(p => p);
@@ -316,8 +316,29 @@ public class ChainSprocket : IGearProfile
             .Select(i => ToothProfile(i, false))
             .SelectMany(p => p);
 
-    public DrawablePath GenerateGearCurve()
-    {
-        throw new NotImplementedException();
-    }
+    public DrawablePath GenerateGearCurve() => 
+        new DrawablePath
+        {
+            Curves = new List<IDrawable>
+                {
+                    new PolyLine
+                    {
+                        Vertices = GenerateCompleteGearPath().ToList()
+                    }
+                },
+            Closed = true
+        };
+
+    public DrawablePath GenerateInnerGearCurve()
+        => new DrawablePath
+        {
+            Curves = new List<IDrawable>
+            {
+                new PolyLine
+                {
+                    Vertices = GenerateInnerGearPath().ToList()
+                }
+            },
+            Closed = true
+        };
 }

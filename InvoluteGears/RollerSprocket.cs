@@ -199,7 +199,7 @@ public class RollerSprocket : IGearProfile
     /// <returns>The set of points describing the sprocket outer edge
     /// </returns>
 
-    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
+    private IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i))
             .SelectMany(p => p);
@@ -209,7 +209,7 @@ public class RollerSprocket : IGearProfile
     /// </summary>
     /// <returns>Base wheel circle</returns>
 
-    public IEnumerable<Coordinate> GenerateInnerGearPath() =>
+    private IEnumerable<Coordinate> GenerateInnerGearPath() =>
         Geometry.CirclePoints
             (0, 2 * Math.PI, Geometry.AngleStep, InnerDiameter / 2);
 
@@ -261,7 +261,28 @@ public class RollerSprocket : IGearProfile
     }
 
     public DrawablePath GenerateGearCurve()
-    {
-        throw new NotImplementedException();
-    }
+        => new DrawablePath
+        {
+            Curves = new List<IDrawable>
+            {
+                new PolyLine
+                {
+                    Vertices = GenerateCompleteGearPath().ToList()
+
+                }
+            }
+        };
+
+    public DrawablePath GenerateInnerGearCurve()
+        => new DrawablePath
+        {
+            Curves = new List<IDrawable>
+            {
+                new PolyLine
+                {
+                    Vertices = GenerateInnerGearPath().ToList()
+
+                }
+            }
+        };
 }

@@ -20,9 +20,9 @@ namespace GearWeb.Shared
             switch(gParams.WhichGears)
             {
                 case 1: // Left or primary gear
-                    return CreateGearPlot(cutoutCalculator, true);
+                    return CreateGearPlot(cutoutCalculator);
                 case 2: // Right or opposing gear
-                    return CreateGearPlot(opposingCutoutCalculator, true);
+                    return CreateGearPlot(opposingCutoutCalculator);
                 case 0: // Meshing
                     return CreateSequencedGearPlots
                         (cutoutCalculator, opposingCutoutCalculator, true);
@@ -30,7 +30,7 @@ namespace GearWeb.Shared
                     return CreateSequencedGearPlots
                         (cutoutCalculator, opposingCutoutCalculator, false);
                 default:
-                    return CreateGearPlot(cutoutCalculator, true); // Temporarily
+                    return CreateGearPlot(cutoutCalculator); // Temporarily
             }
         }
 
@@ -56,20 +56,12 @@ namespace GearWeb.Shared
             
             if (gp.ShowCircles)
             {
-                //var circle = cutoutCalculator.CalcCircle(gear.PitchCircleDiameter / 2);
-                //cutoutCalculator.AddPlot(circle, "blue", "transparent");
                 cutoutCalculator.InsertCurve
                     (Cutouts.CircularCurve(gear.PitchCircleDiameter / 2), "blue", "transparent");
-                //circle = cutoutCalculator.CalcCircle(gear.BaseCircleDiameter / 2);
-                //cutoutCalculator.AddPlot(circle, "green", "transparent");
                 cutoutCalculator.InsertCurve
                     (Cutouts.CircularCurve(gear.BaseCircleDiameter / 2), "green", "transparent");
-                //circle = cutoutCalculator.CalcCircle(gear.AddendumCircleDiameter / 2);
-                //cutoutCalculator.AddPlot(circle, "red", "transparent");
                 cutoutCalculator.InsertCurve
                    (Cutouts.CircularCurve(gear.AddendumCircleDiameter / 2), "red", "transparent");
-                //circle = cutoutCalculator.CalcCircle(gear.DedendumCircleDiameter / 2);
-                //cutoutCalculator.AddPlot(circle, "magenta", "transparent");
                 cutoutCalculator.InsertCurve
                    (Cutouts.CircularCurve(gear.DedendumCircleDiameter / 2), "goldenrod", "transparent");
             }
@@ -97,7 +89,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            return CreateGearPlot(cutoutCalculator, false);
+            return CreateGearPlot(cutoutCalculator);
             //return CreateGearPlot(cutoutCalculator, gear.AddendumDiameter, false);
         }
 
@@ -211,18 +203,8 @@ namespace GearWeb.Shared
             return profiles;
         }
 
-        private static GearProfiles CreateGearPlot(Cutouts cutoutCalculator, bool usePaths)
+        private static GearProfiles CreateGearPlot(Cutouts cutoutCalculator)
         {
-            // Create the output plot file of the gear
-
-            List<IEnumerable<Coordinate>> gearPoints = new()
-            {
-                cutoutCalculator.Gear.GenerateCompleteGearPath()
-            };
-            GearGenerator.AddCutoutsAndSpindles(cutoutCalculator, gearPoints);
-
-            // Now convert to image bytes to return from Web API
-
             var profiles = new GearProfiles
             {
                 Description = cutoutCalculator.Gear.Information + cutoutCalculator.Information,
@@ -234,44 +216,26 @@ namespace GearWeb.Shared
 
             if (string.IsNullOrWhiteSpace(profiles.Errors))
             {
-                List<string> strokes = new List<string>();
-                List<string> fills = new List<string>();
-                if(!usePaths)
-                {
-                    strokes.Add("black");
-                    fills.Add("transparent");
-                }
-                strokes.AddRange(cutoutCalculator.StrokeColours);
-                fills.AddRange(cutoutCalculator.FillColours);
+                List<string> strokes = new List<string>(cutoutCalculator.StrokeColours);
+                List<string> fills = new List<string>(cutoutCalculator.FillColours);
 
                 // Find the square that contains the whole plot
 
                 Rectangle bounds = cutoutCalculator.Curves.Bounds;
                 double size = Math.Max(bounds.Width, bounds.Height);
                 
-                if (usePaths)
+                DrawableSet dPaths = new DrawableSet
                 {
-                    DrawableSet dPaths = new DrawableSet
-                    {
-                        Paths = new List<DrawablePath>
-                            (cutoutCalculator.Curves.Paths)
-                    };
-                    profiles.SvgPlot = new string[]
-                    {
-                        SVGPlot.PlotCurves
-                            (dPaths, 640, 640, strokes, fills)
-                    };
-                    profiles.SvgData = GearGenerator
-                        .GenerateSVGCurves(cutoutCalculator, (float)size);
-                }
-                else
+                    Paths = new List<DrawablePath>
+                        (cutoutCalculator.Curves.Paths)
+                };
+                profiles.SvgPlot = new string[]
                 {
-                    profiles.SvgPlot = new string[]
-                    {
-                        SVGPlot.PlotGraphs(gearPoints, 640, 640, strokes, fills)
-                    };
-                    profiles.SvgData = GearGenerator.GenerateSVG(cutoutCalculator, (float)size);
-                }
+                    SVGPlot.PlotCurves
+                        (dPaths, 640, 640, strokes, fills)
+                };
+                profiles.SvgData = GearGenerator
+                    .GenerateSVGCurves(cutoutCalculator, (float)size);
             }
             return profiles;
         }
@@ -296,7 +260,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            return CreateGearPlot(cutoutCalculator, false);
+            return CreateGearPlot(cutoutCalculator);
             //return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter, false);
         }
 
@@ -325,7 +289,7 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            return CreateGearPlot(cutoutCalculator, false);
+            return CreateGearPlot(cutoutCalculator);
             //return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter, false);
         }
 
@@ -355,12 +319,10 @@ namespace GearWeb.Shared
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
-            cutoutCalculator.AddPlot
-                (gear.GenerateInnerGearPath().ToList());
 
-            return CreateGearPlot(cutoutCalculator, false);
-            //return CreateGearPlot(cutoutCalculator,
-            //    gear.InnerDiameter + 2 * gear.OuterLinkWidth, false);
+            cutoutCalculator.AddCurve
+                (gear.GenerateInnerGearCurve(), "black", "transparent");
+            return CreateGearPlot(cutoutCalculator);
         }
 
         public static Stream CalcChainSprocketSvgZip(ChainSprocketParams gParams)
@@ -389,11 +351,10 @@ namespace GearWeb.Shared
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
-            cutoutCalculator.AddPlot
-                (gear.GenerateInnerGearPath().ToList());
+            cutoutCalculator.AddCurve
+                (gear.GenerateInnerGearCurve(), "black", "transparent");
 
-            return CreateGearPlot(cutoutCalculator, false);
-            //return CreateGearPlot(cutoutCalculator, gear.OuterDiameter, false);
+            return CreateGearPlot(cutoutCalculator);
         }
 
         public static Stream CalcRollerSProcketSvgZip(RollerSprocketParams gParams)

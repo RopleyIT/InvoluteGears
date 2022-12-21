@@ -27,7 +27,5 @@ public interface IGearProfile
 
     double PitchRadius { get; }
 
-    IEnumerable<Coordinate> GenerateCompleteGearPath();
-
     DrawablePath GenerateGearCurve();
 }

@@ -243,15 +243,23 @@ public class EscapeGearParameters : IGearProfile
     /// <returns>The set of points describing the escape wheel
     /// </returns>
 
-    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
+    private IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => ToothProfile(i))
             .SelectMany(p => p);
 
     public DrawablePath GenerateGearCurve()
-    {
-        throw new NotImplementedException();
-    }
+        => new DrawablePath
+        {
+            Curves = new List<IDrawable>
+            {
+                new PolyLine
+                {
+                    Vertices = new List<Coordinate>(GenerateCompleteGearPath())
+                }
+            },
+            Closed = true
+        };
 
     /// <summary>
     /// The distance from the centre of the gear to the

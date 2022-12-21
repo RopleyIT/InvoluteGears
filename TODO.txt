@@ -1,5 +1,3 @@
-* Verify new curve-based SVG files work with Cut3D and machining tools
-
 * Update gears other than involute to plot using DrawablePaths containing lists of coordinates
 
 * Remove the old coordinate code from Involutes and Cutouts

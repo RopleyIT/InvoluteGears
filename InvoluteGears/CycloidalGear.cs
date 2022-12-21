@@ -392,7 +392,7 @@ namespace InvoluteGears
         /// describing the gear wheel
         /// </returns>
 
-        public IEnumerable<Coordinate> GenerateCompleteGearPath()
+        private IEnumerable<Coordinate> GenerateCompleteGearPath()
         {
             if (!string.IsNullOrWhiteSpace(Errors))
                 return Enumerable.Empty<Coordinate>();
@@ -404,8 +404,16 @@ namespace InvoluteGears
         }
 
         public DrawablePath GenerateGearCurve()
-        {
-            throw new NotImplementedException();
-        }
+            => new DrawablePath
+            {
+                Curves = new List<IDrawable>
+                {
+                    new PolyLine
+                    {
+                        Vertices = new List<Coordinate>(GenerateCompleteGearPath())
+                    }
+                },
+                Closed = true,
+            };
     }
 }

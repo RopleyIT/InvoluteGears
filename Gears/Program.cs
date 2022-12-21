@@ -32,22 +32,23 @@ internal class Program
         Console.WriteLine("    wheels having tooth counts in the range minteeth to maxteeth.");
     }
 
-    private static void CreateSvgGearPlot(Cutouts cutoutCalculator, double size)
+    private static void CreateSvgGearPlot(Cutouts cutoutCalculator)
     {
-        // Create the output plot file of the gear
+        // Check for errors that might prevent the output SVG
+        // file from being usable for CNC machining
 
-        List<IEnumerable<Coordinate>> gearPoints = new()
+        string errors = cutoutCalculator.Gear.Errors + cutoutCalculator.Errors;
+        if(!string.IsNullOrWhiteSpace(errors))
+            Usage(errors);
+        else
         {
-            cutoutCalculator.Gear.GenerateCompleteGearPath()
-        };
-        GearGenerator.AddCutoutsAndSpindles(cutoutCalculator, gearPoints);
+            // Find the square that contains the whole plot
 
-        // Now convert to image bytes to return from Web API
-
-        string svgPlot = SVGPlot.PlotGraphs(gearPoints, 640, 640);
-        using StreamWriter ms = new(cutoutCalculator.Gear.ShortName + ".svg");
-        ms.Write(svgPlot);
-        GearGenerator.GenerateSVGFile(cutoutCalculator, (float)size, cutoutCalculator.Gear.ShortName);
+            Rectangle bounds = cutoutCalculator.Curves.Bounds;
+            double size = Math.Max(bounds.Width, bounds.Height);
+            GearGenerator.GenerateSVGFile(cutoutCalculator, 
+                (float)size, cutoutCalculator.Gear.ShortName);
+        }
     }
 
     private static void PlotInvolute(CommonArgs common, CutOutArgs cutOut, InvoluteArgs involute)
@@ -65,7 +66,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateSvgGearPlot(cutoutCalculator, gear.AddendumCircleDiameter);
+        CreateSvgGearPlot(cutoutCalculator);
     }
 
     private static void PlotCycloid(CommonArgs common, CutOutArgs cutOut, CycloidArgs cycloid)
@@ -84,7 +85,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateSvgGearPlot(cutoutCalculator, gear.AddendumDiameter);
+        CreateSvgGearPlot(cutoutCalculator);
     }
 
     private static void PlotChain(CommonArgs common, CutOutArgs cutOut, ChainArgs chain)
@@ -101,11 +102,10 @@ internal class Program
         Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
-        cutoutCalculator.AddPlot
-            (gear.GenerateInnerGearPath().ToList());
+        cutoutCalculator.AddCurve
+            (gear.GenerateInnerGearCurve(), "black", "transparent");
 
-        CreateSvgGearPlot(cutoutCalculator,
-            gear.InnerDiameter + 2 * gear.OuterLinkWidth);
+        CreateSvgGearPlot(cutoutCalculator);
     }
 
     private static void PlotEscape(CommonArgs common, CutOutArgs cutOut, EscapeArgs escape)
@@ -123,7 +123,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateSvgGearPlot(cutoutCalculator, gear.PitchRadius * 2);
+        CreateSvgGearPlot(cutoutCalculator);
     }
 
     private static void PlotRatchet(CommonArgs common, CutOutArgs cutOut, RatchetArgs ratchet)
@@ -139,7 +139,7 @@ internal class Program
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
 
-        CreateSvgGearPlot(cutoutCalculator, gear.PitchRadius * 2);
+        CreateSvgGearPlot(cutoutCalculator);
     }
 
     private static void PlotRoller(CommonArgs common, CutOutArgs cutOut, RollerSprocketArgs roller)
@@ -156,8 +156,10 @@ internal class Program
         Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
+        cutoutCalculator.AddCurve
+            (gear.GenerateInnerGearCurve(), "black", "transparent");
 
-        CreateSvgGearPlot(cutoutCalculator, gear.OuterDiameter);
+        CreateSvgGearPlot(cutoutCalculator);
     }
 
     private static void Main(string[] args)

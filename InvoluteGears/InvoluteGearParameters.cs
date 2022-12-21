@@ -12,6 +12,7 @@ public class InvoluteGearParameters : IGearProfile
         double pressureAngle = Math.PI / 9, double profileShift = 0.0,
         double maxErr = 0.0, double backlash = 0.0, double cutterDiam = 0.0)
     {
+        linesOnly = false; // Set true to force drawing using short line segments
         ToothCount = toothCount;
         Module = module;
         PressureAngle = pressureAngle;
@@ -417,6 +418,14 @@ public class InvoluteGearParameters : IGearProfile
         return (cr / BaseCirclePitch, cd);
     }
 
+    /// <summary>
+    /// Set to true to draw all curves as sequences of
+    /// short lines. No gear contours are drawn using
+    /// circular arcs, Bezier segments or other curves.
+    /// </summary>
+    
+    private bool linesOnly = false;
+
     private IList<Coordinate>? UndercutPoints;
     private IList<Coordinate>? InvolutePoints;
     private IList<Coordinate>? DedendumPoints;
@@ -753,13 +762,13 @@ public class InvoluteGearParameters : IGearProfile
     /// the gear. The last point should be joined back
     /// onto the first point to close the outline.</returns>
 
-    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
+    private IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
             .Range(0, ToothCount)
             .Select(i => GeneratePointsForOnePitch(i))
             .SelectMany(ep => ep)
             .SelectMany(p => p);
 
-    public IEnumerable<IEnumerable<Coordinate>> GeneratePointsForOnePitch(int i)
+    private IEnumerable<IEnumerable<Coordinate>> GeneratePointsForOnePitch(int i)
     {
         yield return ClockwiseInvolute(i);
         yield return ClockwiseUndercut(i);
@@ -777,14 +786,31 @@ public class InvoluteGearParameters : IGearProfile
     
     public DrawablePath GenerateGearCurve()
     {
-        return new DrawablePath
+        if (linesOnly)
         {
-            Curves = new List<IDrawable>(Enumerable
-                .Range(0, ToothCount)
-                .Select(i => GeneratePathElementsForOnePitch(i))
-                .SelectMany(ep => ep)),
-            Closed = true
-        };
+            return new DrawablePath
+            {
+                Curves = new List<IDrawable>
+                {
+                    new PolyLine
+                    {
+                        Vertices = GenerateCompleteGearPath().ToList()
+                    }
+                },
+                Closed = true
+            };
+        }
+        else
+        {
+            return new DrawablePath
+            {
+                Curves = new List<IDrawable>(Enumerable
+                    .Range(0, ToothCount)
+                    .Select(i => GeneratePathElementsForOnePitch(i))
+                    .SelectMany(ep => ep)),
+                Closed = true
+            };
+        }
     }
 
     public IEnumerable<IDrawable> GeneratePathElementsForOnePitch(int i)
@@ -876,7 +902,7 @@ public class InvoluteGearParameters : IGearProfile
     /// <returns>The list of points making up the involute from the
     /// base circle up to the edge of the addendum</returns>
 
-    public IEnumerable<Coordinate> AnticlockwiseInvolute(int gap)
+    private IEnumerable<Coordinate> AnticlockwiseInvolute(int gap)
         => RotateByTeeth(InvolutePoints, gap).Reverse();
 
     /// <summary>
@@ -891,13 +917,13 @@ public class InvoluteGearParameters : IGearProfile
     /// <returns>The list of points making up the involute from the
     /// base circle up to the edge of the addendum</returns>
 
-    public IEnumerable<Coordinate> ClockwiseInvolute(int gap)
+    private IEnumerable<Coordinate> ClockwiseInvolute(int gap)
         => ReflectAndAddBacklash(InvolutePoints, gap);
 
-    public IEnumerable<Coordinate> Dedendum(int gap)
+    private IEnumerable<Coordinate> Dedendum(int gap)
         => RotateByTeeth(DedendumPoints, gap);
 
-    public IEnumerable<Coordinate> Addendum(int gap)
+    private IEnumerable<Coordinate> Addendum(int gap)
         => RotateByTeeth(AddendumPoints, gap);
 
     private IEnumerable<Coordinate> ReflectAndAddBacklash(IEnumerable<Coordinate>? points, int gap)
@@ -926,7 +952,7 @@ public class InvoluteGearParameters : IGearProfile
     /// <returns>The list of points making up the trochoid from the
     /// dedendum circle up to the pitch circle</returns>
 
-    public IEnumerable<Coordinate> AnticlockwiseUndercut(int gap)
+    private IEnumerable<Coordinate> AnticlockwiseUndercut(int gap)
     {
         double gapCentreAngle = (gap % ToothCount) * ToothAngle;
         return UndercutPoints
@@ -948,7 +974,7 @@ public class InvoluteGearParameters : IGearProfile
     /// <returns>The list of points making up the trochoid from the
     /// dedendum circle up to the pitch circle</returns>
 
-    public IEnumerable<Coordinate> ClockwiseUndercut(int gap)
+    private IEnumerable<Coordinate> ClockwiseUndercut(int gap)
         => ReflectAndAddBacklash(UndercutPoints, gap);
 
     /// <summary>
@@ -978,6 +1004,14 @@ public class InvoluteGearParameters : IGearProfile
         }
     }
 
+    /// <summary>
+    /// Given an angle, find the count of the number of whole
+    /// steps in angle of size AngleStep fit into that angle.
+    /// Round down any partial step left over.
+    /// </summary>
+    /// <param name="angle">The angle to be indexed</param>
+    /// <returns>The number of steps in this angle</returns>
+    
     private static int AngleIndexFloor(double angle)
         => (int)(angle / Geometry.AngleStep);
 
