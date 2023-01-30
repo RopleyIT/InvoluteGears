@@ -17,7 +17,7 @@ public static class Zipper
     /// <returns>The memory stream containing the zipped
     /// content. The stream has been rewound to the
     /// beginning ready to be read.</returns>
-    
+
     public static Stream ZipStringToStream(string name, string content)
     {
         MemoryStream ms = new();

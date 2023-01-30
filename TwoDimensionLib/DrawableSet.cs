@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     /// <summary>
     /// Manage a set of drawable paths as an IDrawable
     /// so that rotation, translation etc. can be
     /// applied to the whole set
     /// </summary>
-    
+
     public class DrawableSet : IDrawable
     {
-        public DrawableSet() 
+        public DrawableSet()
         {
             Paths = new List<DrawablePath>();
         }
@@ -43,7 +37,7 @@ namespace TwoDimensionLib
             get
             {
                 BoundsTracker tracker = new BoundsTracker();
-                foreach(var path in Paths)
+                foreach (var path in Paths)
                 {
                     tracker.Track(path.Bounds);
                 }

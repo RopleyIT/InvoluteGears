@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     public class PolyLine : IDrawable
     {
@@ -24,7 +18,7 @@ namespace TwoDimensionLib
             }
         }
 
-        public void Append(PolyLine p) 
+        public void Append(PolyLine p)
             => p.Vertices.AddRange(p.Vertices);
 
         public IDrawable RotatedBy(double phi, Coordinate pivot)
@@ -51,8 +45,8 @@ namespace TwoDimensionLib
 
         public IDrawable Translated(Coordinate offset)
             => new PolyLine
-            { 
-                Vertices = this.Vertices 
+            {
+                Vertices = this.Vertices
                     .Select(P => P.Offset(offset))
                     .ToList()
             };

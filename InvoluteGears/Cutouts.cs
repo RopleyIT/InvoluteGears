@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using TwoDimensionLib;
 
 namespace InvoluteGears;
@@ -64,7 +63,7 @@ public class Cutouts
     /// of teeth in the gear.
     /// </summary>
     /// <returns>The number of spokes to cut out</returns>
-    
+
     private int SpokeCount()
     {
         int spokes = 1 + (Gear.ToothCount - 1) / 8;
@@ -135,7 +134,7 @@ public class Cutouts
     /// <param name="d">The drawable to be added</param>
     /// <param name="stroke">The stroke colour</param>
     /// <param name="fill">The fill colour</param>
-    
+
     public void AddCurve(DrawablePath d, string stroke, string fill)
     {
         Curves.Paths.Add(d);
@@ -153,7 +152,7 @@ public class Cutouts
     /// <param name="d"></param>
     /// <param name="stroke"></param>
     /// <param name="fill"></param>
-    
+
     public void InsertCurve(DrawablePath d, string stroke, string fill)
     {
         Curves.Paths.Insert(0, d);
@@ -193,11 +192,11 @@ public class Cutouts
     /// <param name="radius">Circle radius</param>
     /// <param name="centre">COordinate of circle centre</param>
     /// <returns>The closed shape that is the circle</returns>
-    
+
     public static DrawablePath CircularCurve(double radius, Coordinate centre)
         => new()
         {
-               Curves = new List<IDrawable>
+            Curves = new List<IDrawable>
             {
                 new CircularArc
                 {
@@ -216,15 +215,15 @@ public class Cutouts
                     Radius = radius,
                 }
             },
-               Closed = true
-           };
+            Closed = true
+        };
 
     /// <summary>
     /// Default centre of new circle at the origin
     /// </summary>
     /// <param name="radius">Radius of the origin-centred circle</param>
     /// <returns>The circular curve</returns>
-    
+
     public static DrawablePath CircularCurve(double radius)
         => CircularCurve(radius, Coordinate.Empty);
 
@@ -263,7 +262,7 @@ public class Cutouts
         double angleAtRim = Math.Atan2(cornerCentreY, rimCornerCentreX);
         IDrawable outerCornerCurve = new CircularArc
         {
-            StartAngle = -Math.PI/2,
+            StartAngle = -Math.PI / 2,
             EndAngle = angleAtRim,
             Radius = cornerRadius,
             Centre = rimCornerCentre,
@@ -370,7 +369,7 @@ public class Cutouts
             (ctrToFace - Gear.CutDiameter / 2) / Math.Sqrt(3.0));
         IList<IDrawable> keyCurves = new List<IDrawable>()
         {
-            new Line(new Coordinate(ctrToFace, 0), 
+            new Line(new Coordinate(ctrToFace, 0),
                 new Coordinate(ctrToFace, cornerCtr.Y)),
             new CircularArc
             {
@@ -381,7 +380,7 @@ public class Cutouts
                 Anticlockwise = true
             }
         };
-        for(int i = 1; i <= 5; i++)
+        for (int i = 1; i <= 5; i++)
         {
             keyCurves.Add(keyCurves[0]
                 .RotatedBy(i * Math.PI / 3.0, Coordinate.Empty));

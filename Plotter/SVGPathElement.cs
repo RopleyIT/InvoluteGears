@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TwoDimensionLib;
 
 namespace Plotter;
@@ -177,14 +175,14 @@ public class SVGPathElement
     /// <returns>The width and height of one quarter of the bounding box
     /// surrounding the rotated ellipse</returns>
 
-    private static Coordinate EllipseQuarterBounds(float rx, float ry, float angle)
-    {
-        var cosAngle = Math.Cos(angle);
-        var sinAngle = Math.Sin(angle);
-        var xr = Math.Sqrt(Geometry.Square(rx * cosAngle) + Geometry.Square(ry * sinAngle));
-        var yr = Math.Sqrt(Geometry.Square(rx * sinAngle) + Geometry.Square(ry * cosAngle));
-        return new Coordinate(xr, yr);
-    }
+    //private static Coordinate EllipseQuarterBounds(float rx, float ry, float angle)
+    //{
+    //    var cosAngle = Math.Cos(angle);
+    //    var sinAngle = Math.Sin(angle);
+    //    var xr = Math.Sqrt(Geometry.Square(rx * cosAngle) + Geometry.Square(ry * sinAngle));
+    //    var yr = Math.Sqrt(Geometry.Square(rx * sinAngle) + Geometry.Square(ry * cosAngle));
+    //    return new Coordinate(xr, yr);
+    //}
 
     private static string RenderPoint(Coordinate p) => $"{p.X:F3},{p.Y:F3}";
 

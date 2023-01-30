@@ -1,7 +1,5 @@
 ﻿using Plotter;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using TwoDimensionLib;
 
 namespace InvoluteGears;
@@ -23,7 +21,7 @@ public static class GearGenerator
         };
         foreach (DrawablePath p in cutoutCalculator.Curves.Paths)
             svgCreator.AddPath(new SVGPath(p), "black", 0.1, "transparent").Join = LineJoin.Round;
-        
+
         svgCreator.DocumentDimensions = new Coordinate(docDimension, docDimension);
         svgCreator.DocumentDimensionUnits = "mm";
         svgCreator.ViewBoxDimensions = new TwoDimensionLib.Rectangle(

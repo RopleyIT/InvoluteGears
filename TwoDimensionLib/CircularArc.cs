@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib;
+﻿namespace TwoDimensionLib;
 
 /// <summary>
 /// Unlike the arc used in SVG files, this is
@@ -17,14 +11,14 @@ public class CircularArc : IDrawable
     public Coordinate Centre { get; set; }
 
     public double StartAngle { get; set; }
-    
+
     public double EndAngle { get; set; }
 
     public double Radius { get; set; }
 
     public bool Anticlockwise { get; set; }
 
-    public Coordinate Start 
+    public Coordinate Start
         => Centre + Coordinate.FromPolar(Radius, StartAngle);
 
     public Coordinate End
@@ -34,7 +28,7 @@ public class CircularArc : IDrawable
     {
         get
         {
-            BoundsTracker b = new BoundsTracker();
+            BoundsTracker b = new();
             b.Track(Start);
             b.Track(End);
             double sa = Anticlockwise ? StartAngle : EndAngle;
@@ -45,7 +39,7 @@ public class CircularArc : IDrawable
                 b.Track(Centre + new Coordinate(0, Radius));
             if (sa < Math.PI && ea >= Math.PI)
                 b.Track(Centre + new Coordinate(-Radius, 0));
-            if(sa < 1.5 * Math.PI && ea >= 1.5 * Math.PI)
+            if (sa < 1.5 * Math.PI && ea >= 1.5 * Math.PI)
                 b.Track(Centre + new Coordinate(0, -Radius));
             if (sa <= 0 && ea > 0)
                 b.Track(Centre + new Coordinate(Radius, 0));
@@ -83,7 +77,7 @@ public class CircularArc : IDrawable
             Anticlockwise = this.Anticlockwise
         };
 
-    public IDrawable Translated(Coordinate offset) 
+    public IDrawable Translated(Coordinate offset)
         => new CircularArc
         {
             Centre = Centre.Offset(offset),

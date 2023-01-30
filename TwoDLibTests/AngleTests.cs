@@ -26,7 +26,7 @@ namespace TwoDLibTests
             {
                 Radians = 1.0
             };
-            Assert.AreEqual(180/Math.PI, a.Degrees);
+            Assert.AreEqual(180 / Math.PI, a.Degrees);
         }
 
         [TestMethod]
@@ -119,7 +119,7 @@ namespace TwoDLibTests
             Assert.AreEqual(-135, d.Degrees, 1e-6);
             Assert.AreEqual(-45, e.Degrees, 1e-6);
             Assert.AreEqual(-45, f.Degrees, 1e-6);
-            
+
             double r3 = Math.Sqrt(3);
             Assert.AreEqual(30, Angle.ATan(1 / r3).Degrees, 1e-6);
             Assert.AreEqual(60, Angle.ATan(r3).Degrees, 1e-6);

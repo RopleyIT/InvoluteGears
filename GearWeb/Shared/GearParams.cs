@@ -8,7 +8,7 @@ namespace GearWeb.Shared
         [Required]
         [Range(6, 1000, ErrorMessage = "Must be 6 or more")]
         public int Teeth { get; set; }
-        
+
         [Required]
         [Range(6, 1000, ErrorMessage = "Must be 6 or more")]
         public int OpposingTeeth { get; set; }

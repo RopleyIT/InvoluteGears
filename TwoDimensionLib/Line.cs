@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     public class Line : IDrawable
     {
@@ -14,7 +8,7 @@ namespace TwoDimensionLib
             End = e;
         }
 
-        public Line(double xs, double ys,double xe, double ye) 
+        public Line(double xs, double ys, double xe, double ye)
             : this(new Coordinate(xs, ys), new Coordinate(xe, ye)) { }
         public Line() : this(Coordinate.Empty, Coordinate.Empty) { }
 
@@ -32,8 +26,8 @@ namespace TwoDimensionLib
             }
         }
 
-        public IDrawable RotatedBy(double phi, Coordinate pivot) 
-            => new Line(Start.RotateAbout(pivot, phi), 
+        public IDrawable RotatedBy(double phi, Coordinate pivot)
+            => new Line(Start.RotateAbout(pivot, phi),
                 End.RotateAbout(pivot, phi));
 
         public IDrawable ReflectY()

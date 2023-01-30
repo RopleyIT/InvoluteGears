@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 //using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using TwoDimensionLib;
 
 namespace Plotter
@@ -47,11 +46,11 @@ namespace Plotter
         };
 
         public static string PlotCurves(DrawableSet paths,
-            int width, int height, IList<string> strokes = null, 
+            int width, int height, IList<string> strokes = null,
             IList<string> fills = null)
-            => PlotCurves(paths, width, height,paths.Bounds, strokes, fills);
+            => PlotCurves(paths, width, height, paths.Bounds, strokes, fills);
 
-        public static string PlotCurves(DrawableSet paths, 
+        public static string PlotCurves(DrawableSet paths,
             int width, int height, Rectangle bounds,
             IList<string> strokes = null, IList<string> fills = null)
         {
@@ -73,7 +72,7 @@ namespace Plotter
             double scale = ScaleFactor(bounds, width, height);
             PlotAxes(bounds, scale, svg);
             int index = 0;
-            foreach(DrawablePath p in paths.Paths)
+            foreach (DrawablePath p in paths.Paths)
             {
                 string stroke = strokes[index % fills.Count];
                 string fill = fills[index++ % fills.Count];
@@ -83,18 +82,18 @@ namespace Plotter
             return svg.ToString();
         }
 
-        private static void PlotCurve(DrawablePath p, SVGCreator svg, 
+        private static void PlotCurve(DrawablePath p, SVGCreator svg,
             Rectangle bounds, double scale, string stroke, string fill)
         {
-            var ir = svg.AddPath(new SVGPath(p), stroke, 1.0/scale, fill);
+            var ir = svg.AddPath(new SVGPath(p), stroke, 1.0 / scale, fill);
             ir.Join = LineJoin.Round;
         }
 
-        public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points, 
-            int width, int height, IList<string> strokes = null, 
+        public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points,
+            int width, int height, IList<string> strokes = null,
             IList<string> fills = null)
         {
-            if(strokes == null || fills == null
+            if (strokes == null || fills == null
                 || strokes.Count == 0
                 || fills.Count == 0)
             {
@@ -201,7 +200,7 @@ namespace Plotter
 
         private static void PlotGraph
             (List<Coordinate> points, SVGCreator svg,
-            Rectangle bounds, double scale, string penColor, 
+            Rectangle bounds, double scale, string penColor,
             string brushColor)
         {
             var ir = svg.AddPath(points, false, penColor, 1.0 / scale, brushColor);

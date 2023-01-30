@@ -1,24 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     /// <summary>
     /// This class creates generalised Bezier splines
     /// that approximate a range of input values onto
     /// 2 dimensional coordinates.
     /// </summary>
-    
+
     public class Spline
     {
         /// <summary>
         /// The order of the spline. Use 3 for a
         /// cubic spline, and 2 for quadratic splines.
         /// </summary>
-        
+
         public int Order { get; init; }
 
         /// <summary>
@@ -33,19 +27,19 @@ namespace TwoDimensionLib
         /// double scalar value onto the 2 dimensional
         /// coordinate that is its return value
         /// </summary>
-        
+
         private Func<double, Coordinate> Curve;
-        
+
         /// <summary>
         /// The lower input value in the range to be mapped
         /// </summary>
-        
+
         private double StartVal;
 
         /// <summary>
         /// The upper input value in the range to be mapped
         /// </summary>
-        
+
         private double EndVal;
 
         /// <summary>
@@ -61,9 +55,9 @@ namespace TwoDimensionLib
         /// input scalar parameter onto 2D coordinates</param>
         /// <param name="start">The minimum input value</param>
         /// <param name="end">The maximum input value</param>
-        
-        public Spline(int order, Func<double, Coordinate> func, 
-            double start, double end) 
+
+        public Spline(int order, Func<double, Coordinate> func,
+            double start, double end)
         {
             Order = order;
             Curve = func;
@@ -83,7 +77,7 @@ namespace TwoDimensionLib
         /// so that the Bezier control points can be
         /// captured.
         /// </summary>
-        
+
         private void ComputeSpline()
         {
             // Find the polynomials corresponding to the

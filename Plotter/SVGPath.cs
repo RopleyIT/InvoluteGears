@@ -73,12 +73,12 @@ public class SVGPath : IRenderable
     /// <summary>
     /// The current drawing position in the path
     /// </summary>
-    
+
     public Coordinate CurrentPoint
     {
         get
         {
-            for(int index = Elements.Count - 1; index >= 0; index--)
+            for (int index = Elements.Count - 1; index >= 0; index--)
             {
                 if (Elements[index].StrokeType != StrokeType.Z)
                     return Elements[index].Points.Last();
@@ -112,8 +112,8 @@ public class SVGPath : IRenderable
         else if (d is PolyLine p)
             LinesThrough(p.Vertices.Skip(1), false, false);
         else if (d is CubicSpline c)
-            Cubic(c.Points[1].X, c.Points[1].Y, 
-                c.Points[2].X, c.Points[2].Y, 
+            Cubic(c.Points[1].X, c.Points[1].Y,
+                c.Points[2].X, c.Points[2].Y,
                 c.Points[3].X, c.Points[3].Y);
         else if (d is QuadraticSpline q)
             Quadratic(q.Points[1].X, q.Points[1].Y,
@@ -150,7 +150,7 @@ public class SVGPath : IRenderable
             throw new ArgumentException("No points for SVG path");
 
         Coordinate prev = points.First();
-        if(moveToFirst)
+        if (moveToFirst)
             Elements.Add(SVGPathElement.MoveTo(prev));
         else
             Elements.Add(SVGPathElement.LineTo(prev));

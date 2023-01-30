@@ -127,7 +127,7 @@ public class EscapeGearParameters : IGearProfile
     /// the teeth.
     /// </summary>
 
-    public double PitchRadius => Module * ToothCount/2.0;
+    public double PitchRadius => Module * ToothCount / 2.0;
 
     /// <summary>
     /// The distance between adjacent teeth around the pitch circle

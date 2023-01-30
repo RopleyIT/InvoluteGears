@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     public class BoundsTracker
     {
@@ -51,7 +45,7 @@ namespace TwoDimensionLib
         /// </summary>
         /// <param name="r">The rectangle to incorporate
         /// into the overall bounds</param>
-        
+
         public void Track(Rectangle r)
         {
             Track(r.Location);

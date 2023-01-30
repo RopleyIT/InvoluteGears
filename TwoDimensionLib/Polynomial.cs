@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace TwoDimensionLib
 {
     /// <summary>
     /// Manage a scalar polynomial
     /// </summary>
-    
+
     public class Polynomial
     {
         /// <summary>
         /// The scalar coefficients for the polynomial
         /// </summary>
-        
+
         private IList<double> Coefficients { get; set; }
 
         /// <summary>
@@ -31,8 +25,8 @@ namespace TwoDimensionLib
         /// coefficient applies to</param>
         /// <returns>The coefficient for the selected
         /// power of 'x'</returns>
-        
-        public double this[int index] 
+
+        public double this[int index]
         {
             get
             {
@@ -58,7 +52,7 @@ namespace TwoDimensionLib
                         Coefficients.Add(0.0);
                     Coefficients[index] = (value);
                 }
-            } 
+            }
         }
 
         /// <summary>
@@ -70,15 +64,15 @@ namespace TwoDimensionLib
         /// Bernstein coeffiient to calculate</param>
         /// <returns>The indexth Bernstein coefficient
         /// </returns>
-        
+
         public double BernsteinCoefficient(int index)
         {
             if (index < 0 || index > Order)
                 return 0;
             double coeff = 0;
-            for(int i = 0; i <= index; i++)
+            for (int i = 0; i <= index; i++)
             {
-                coeff += this[i] * Combination(i, index) 
+                coeff += this[i] * Combination(i, index)
                     / Combination(i, Order);
             }
             return coeff;
@@ -93,8 +87,8 @@ namespace TwoDimensionLib
         /// <param name="n">The upper value</param>
         /// <param name="k">The lower value</param>
         /// <returns>The binomial coefficient</returns>
-        
-        public static int Combination(int k, int n) 
+
+        public static int Combination(int k, int n)
             => RangeProduct(n - k + 1, n) / RangeProduct(1, k);
 
         /// <summary>
@@ -107,7 +101,7 @@ namespace TwoDimensionLib
         /// the product range</param>
         /// <returns>The product of all integers
         /// in the range</returns>
-        
+
         private static int RangeProduct(int lower, int upper)
         {
             int result = 1;
@@ -144,7 +138,7 @@ namespace TwoDimensionLib
         /// </summary>
         /// <param name="x">The input value</param>
         /// <returns>The value of f(x)</returns>
-        
+
         public double Evaluate(double x)
         {
             double y = 0;
@@ -166,21 +160,21 @@ namespace TwoDimensionLib
         /// that applies the mapping</param>
         /// <returns>The newly mapped polynomial
         /// </returns>
-        
+
         public Polynomial Transform(Polynomial map)
         {
             Polynomial result = Zero();
             Polynomial powMap = One();
-            for(int i = 0; i <= Order; i++)
+            for (int i = 0; i <= Order; i++)
             {
                 result = result.Plus
                     (powMap.Scale(this[i]));
-                if(i < Order)
+                if (i < Order)
                     powMap = powMap.MultiplyBy(map);
             }
             return result;
         }
-        
+
         /// <summary>
         /// Create a new polynomial that is the product
         /// of this and another polynomial
@@ -188,7 +182,7 @@ namespace TwoDimensionLib
         /// <param name="other">The polynomial to multiply
         /// this polynomial by</param>
         /// <returns>The new product polynomial</returns>
-        
+
         public Polynomial MultiplyBy(Polynomial other)
         {
             Polynomial result = Zero();
@@ -211,7 +205,7 @@ namespace TwoDimensionLib
         /// polynomial. Must be zero or positive.
         /// </param>
         /// <returns>The new polynomial</returns>
-        
+
         public Polynomial Power(int p)
         {
             Polynomial result = Polynomial.One();
@@ -229,11 +223,11 @@ namespace TwoDimensionLib
         /// polynomial to be added</param>
         /// <returns>The sum of the two
         /// polynomials</returns>
-        
+
         public Polynomial Plus(Polynomial other)
         {
             Polynomial result = Zero();
-            for(int i = 0; i <= Math.Max(Order, other.Order); i++)
+            for (int i = 0; i <= Math.Max(Order, other.Order); i++)
                 result[i] = this[i] + other[i];
             return result;
         }
@@ -247,7 +241,7 @@ namespace TwoDimensionLib
         /// polynomial</param>
         /// <returns>The difference polynomial
         /// </returns>
-        
+
         public Polynomial Minus(Polynomial other)
         {
             Polynomial result = Zero();
@@ -263,7 +257,7 @@ namespace TwoDimensionLib
         /// <param name="s">The scalar value</param>
         /// <returns>The polynomial multiplied
         /// by the scalar value</returns>
-        
+
         public Polynomial Scale(double s)
         {
             Polynomial result = Zero();
@@ -277,7 +271,7 @@ namespace TwoDimensionLib
         /// The polynomial representing unity
         /// </summary>
         /// <returns> 1.0 as a polynomial</returns>
-        
+
         public static Polynomial One()
             => new Polynomial(1.0);
 
@@ -285,7 +279,7 @@ namespace TwoDimensionLib
         /// The zero-valued polynomial
         /// </summary>
         /// <returns>0.0 as a polynomial</returns>
-        
+
         public static Polynomial Zero()
             => new Polynomial();
 
@@ -298,7 +292,7 @@ namespace TwoDimensionLib
         /// </summary>
         /// <param name="coeffs">The coefficients for the
         /// powers of the polynomial variable</param>
-        
+
         public Polynomial(params double[] coeffs) : this()
         {
             for (int i = 0; i < coeffs.Length; i++)
@@ -309,7 +303,7 @@ namespace TwoDimensionLib
         /// Render polynomial in a human friendly fashion
         /// </summary>
         /// <returns>The polynomial in a descriptive form</returns>
-        
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();

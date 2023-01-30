@@ -3,7 +3,6 @@ using Plotter;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using TwoDimensionLib;
 
 namespace GearWeb.Shared
@@ -17,7 +16,7 @@ namespace GearWeb.Shared
             Cutouts opposingCutoutCalculator = BuildGear
                 (gParams.OpposingTeeth, gParams.OpposingProfileShift, gParams);
 
-            switch(gParams.WhichGears)
+            switch (gParams.WhichGears)
             {
                 case 1: // Left or primary gear
                     return CreateGearPlot(cutoutCalculator);
@@ -47,13 +46,13 @@ namespace GearWeb.Shared
                 double.Parse(gp.Tolerance),
                 double.Parse(gp.Backlash) / double.Parse(gp.Module),
                 double.Parse(gp.CutterDiameter));
-            
+
             Cutouts cutoutCalculator = new(
                 gear,
                 double.Parse(gp.SpindleDiameter),
                 double.Parse(gp.InlayDiameter),
                 double.Parse(gp.KeyFlatWidth));
-            
+
             if (gp.ShowCircles)
             {
                 cutoutCalculator.InsertCurve
@@ -106,7 +105,7 @@ namespace GearWeb.Shared
         /// <param name="gear">The left gear</param>
         /// <param name="oppositeGear">the right gear</param>
         /// <returns>A string describing the contact ratio</returns>
-        
+
         private static string ContactRatioInfo(IGearProfile gear, IGearProfile oppositeGear)
         {
             if (gear is InvoluteGearParameters
@@ -131,7 +130,7 @@ namespace GearWeb.Shared
         /// meshing in their entirety.</param>
         /// <returns>A gear description profile containing the image sequences
         /// and a textual description for them</returns>
-        
+
         private static GearProfiles CreateSequencedGearPlots
             (Cutouts cutout, Cutouts opposingCutout, bool zoom)
         {
@@ -142,7 +141,7 @@ namespace GearWeb.Shared
                     + "RIGHT GEAR\r\n"
                     + opposingCutout.Gear.Information
                     + ContactRatioInfo(cutout.Gear, opposingCutout.Gear),
-                ShortName = cutout.Gear.ShortName+"_"+opposingCutout.Gear.ShortName,
+                ShortName = cutout.Gear.ShortName + "_" + opposingCutout.Gear.ShortName,
                 SvgPlot = new string[] { string.Empty },
                 SvgData = string.Empty,
                 Errors = cutout.Gear.Errors + cutout.Errors
@@ -170,15 +169,15 @@ namespace GearWeb.Shared
                 if ((opposingCutout.Gear.ToothCount & 1) == 0)
                     rightGear = rightGear.RotatedBy
                         (Math.PI / opposingCutout.Gear.ToothCount, Coordinate.Empty) as DrawableSet;
-                
+
                 // Plot 2^N diagrams of gears at 2^N angles covering one full tooth meshing
                 // Find the step size for the left gear then the right gear
 
                 int N = 6;
-                double leftStep = 2 * Math.PI / ((1<<N) * cutout.Gear.ToothCount);
-                double rightStep = 2 * Math.PI / ((1<<N) * opposingCutout.Gear.ToothCount);
+                double leftStep = 2 * Math.PI / ((1 << N) * cutout.Gear.ToothCount);
+                double rightStep = 2 * Math.PI / ((1 << N) * opposingCutout.Gear.ToothCount);
                 profiles.SvgPlot = new string[1 << N];
-                for(int i = 0; i < (1<<N); i++)
+                for (int i = 0; i < (1 << N); i++)
                 {
                     var leftDrawables = leftGear.RotatedBy(leftStep * i, Coordinate.Empty)
                        .Translated(new Coordinate(-cutout.Gear.PitchRadius, 0)) as DrawableSet;
@@ -223,7 +222,7 @@ namespace GearWeb.Shared
 
                 Rectangle bounds = cutoutCalculator.Curves.Bounds;
                 double size = Math.Max(bounds.Width, bounds.Height);
-                
+
                 DrawableSet dPaths = new DrawableSet
                 {
                     Paths = new List<DrawablePath>

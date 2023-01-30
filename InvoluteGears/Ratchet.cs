@@ -58,7 +58,7 @@ public class Ratchet : IGearProfile
     /// the teeth.
     /// </summary>
 
-    public double PitchRadius => Module * ToothCount/2.0;
+    public double PitchRadius => Module * ToothCount / 2.0;
 
     private double ToothDepth => PitchRadius - InnerDiameter / 2;
 

@@ -88,10 +88,10 @@ public class Angle
     /// <returns>The cosine's positive corresponding angle</returns>
     /// <exception cref="ArgumentException">A cosine value must
     /// lie betwen +1 and -1</exception>
-    
+
     public static Angle ACos(double val)
     {
-        if(val < -1 || val > 1)
+        if (val < -1 || val > 1)
             throw new ArgumentException("Trig argument out of range");
         return new Angle
         {
@@ -113,7 +113,7 @@ public class Angle
     /// <returns>The sine's corresponding angle</returns>
     /// <exception cref="ArgumentException">A sine value must
     /// lie betwen +1 and -1</exception>
-    
+
     public static Angle ASin(double val)
     {
         if (val < -1 || val > 1)
@@ -134,7 +134,7 @@ public class Angle
     /// <param name="re">The X value</param>
     /// <returns>An angle object set to the correct
     /// angle</returns>
-    
+
     public static Angle ATan(double im, double re)
     {
         double magnitude = Geometry.RootSumOfSquares(im, re);
@@ -155,7 +155,7 @@ public class Angle
     /// <param name="v">The tangent ratio</param>
     /// <returns>The angle that has this tangent
     /// value</returns>
-    
+
     public static Angle ATan(double v) => ATan(v, 1);
 
     public static Angle ACot(double v) => ACot(v, 1);

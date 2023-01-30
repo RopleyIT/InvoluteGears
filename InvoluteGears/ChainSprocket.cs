@@ -125,7 +125,7 @@ public class ChainSprocket : IGearProfile
     /// from the sprocket centre to the intersection of the line
     /// of centres between two adjacent chain links
     /// </summary>
-    
+
     public double PitchRadius { get; private set; }
 
     private static double Sqr(double x) => x * x;
@@ -316,7 +316,7 @@ public class ChainSprocket : IGearProfile
             .Select(i => ToothProfile(i, false))
             .SelectMany(p => p);
 
-    public DrawablePath GenerateGearCurve() => 
+    public DrawablePath GenerateGearCurve() =>
         new DrawablePath
         {
             Curves = new List<IDrawable>

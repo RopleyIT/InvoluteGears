@@ -101,7 +101,7 @@ public static class Geometry
     /// <param name="l">Left coordinate</param>
     /// <param name="r">Right coordinate</param>
     /// <returns>Midpoint</returns>
-    
+
     public static Coordinate MidPoint(Coordinate l, Coordinate r)
         => new Coordinate((l.X + r.X) / 2, (l.Y + r.Y) / 2);
 
@@ -110,7 +110,7 @@ public static class Geometry
     /// </summary>
     /// <param name="degrees">Angle value in degrees</param>
     /// <returns>The same angle in radians</returns>
-    
+
     public static double DegToRad(double degrees)
         => degrees * Math.PI / 180;
 
@@ -119,7 +119,7 @@ public static class Geometry
     /// </summary>
     /// <param name="radians">Anglue value in radians</param>
     /// <returns>The same angle in degrees</returns>
-    
+
     public static double RadToDeg(double radians)
         => radians * 180 / Math.PI;
 
@@ -129,7 +129,7 @@ public static class Geometry
     /// </summary>
     /// <param name="angle">The un-normalised angle</param>
     /// <returns>The angle mapped into the first 2 Pi radians</returns>
-    
+
     public static double NormaliseAngle(double angle)
         => angle - 2 * Math.PI * Math.Floor(angle / (2 * Math.PI));
 
@@ -335,7 +335,7 @@ public static class Geometry
     /// <param name="vUpper">Another coordinate on y = v(x)</param>
     /// <returns>The coordinate of the intersection point between
     /// the two lines, or null if they are parallel</returns>
-    
+
     public static Coordinate? IntersectAt
         (Coordinate uLower, Coordinate uUpper, Coordinate vLower, Coordinate vUpper)
     {
@@ -411,7 +411,7 @@ public static class Geometry
     /// <param name="m2">The gradient of the curve at the 
     /// second point</param>
     /// <returns>The radius of curvature</returns>
-    
+
     public static double RadiusOfCurvature
         (Coordinate p1, Coordinate p2, double m1, double m2)
     {
@@ -433,7 +433,7 @@ public static class Geometry
     /// second point</param>
     /// <returns>The circle centre
     /// </returns>
-    
+
     public static Coordinate CentreOfCurvature
         (Coordinate p1, Coordinate p2, double m1, double m2)
     {
@@ -764,24 +764,24 @@ public static class Geometry
     /// <param name="p1">The second coordinate</param>
     /// <param name="p2">The third coordinate</param>
     /// <returns>The centre of the circle</returns>
-    
+
     public static Coordinate CentreOfCurvature(Coordinate p0, Coordinate p1, Coordinate p2)
     {
         // Find the mid points of the lines between the coordinates
 
-        Coordinate p01 = new((p1.X + p0.X)/2, (p1.Y + p0.Y)/2);
+        Coordinate p01 = new((p1.X + p0.X) / 2, (p1.Y + p0.Y) / 2);
         Coordinate p12 = new((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
 
         // Find the gradients of the perpendiculars to the lines
 
-        double m01 = (p0.X - p1.X)/(p1.Y - p0.Y);
+        double m01 = (p0.X - p1.X) / (p1.Y - p0.Y);
         double m12 = (p1.X - p2.X) / (p2.Y - p1.Y);
 
         // If the lines are parallel, then the original three
         // points were colinear. This means there is no rational
         // centre of curvature. Return something enormous.
 
-        if(m01 == m12)
+        if (m01 == m12)
             return new Coordinate(double.MaxValue, double.MaxValue);
 
         // For the line through p01 with gradient m01,
@@ -814,7 +814,7 @@ public static class Geometry
     /// <param name="p2">The third coordinate</param>
     /// <returns>The radius of curvature, or a huge value if the
     /// points were colinear</returns>
-    
+
     public static double RadiusOfCurvature(Coordinate p0, Coordinate p1, Coordinate p2)
     {
         Coordinate centre = CentreOfCurvature(p0, p1, p2);
@@ -929,7 +929,7 @@ public static class Geometry
     /// that will cause a result to be yielded</param>
     /// <returns>The two parameter values that generate the points
     /// closest to the intersection point</returns>
-    
+
     public static (double, double) FindIntersection(
         double uLower, double uUpper,
         double vLower, double vUpper,
@@ -937,7 +937,7 @@ public static class Geometry
         Func<double, Coordinate> vFunc,
         double resolution)
     {
-        while(uUpper - uLower > resolution || vUpper - vLower > resolution)
+        while (uUpper - uLower > resolution || vUpper - vLower > resolution)
             (uLower, uUpper, vLower, vUpper) = CloserApprox(uLower, uUpper, vLower, vUpper, uFunc, vFunc);
         return (uLower, vUpper);
     }
@@ -964,9 +964,9 @@ public static class Geometry
     /// <returns>A better estimate for angles uLower, vLower, uUpper and vUpper</returns>
 
     private static (double, double, double, double) CloserApprox(
-        double uLower, double uUpper, 
-        double vLower, double vUpper, 
-        Func<double, Coordinate> uFunc, 
+        double uLower, double uUpper,
+        double vLower, double vUpper,
+        Func<double, Coordinate> uFunc,
         Func<double, Coordinate> vFunc)
     {
         // Generate the four coordinates from the parametric functions

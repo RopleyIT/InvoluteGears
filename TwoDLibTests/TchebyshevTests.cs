@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using TwoDimensionLib;
 
 namespace TwoDLibTests
@@ -11,7 +10,7 @@ namespace TwoDLibTests
         public void CanCreate()
         {
             TchebyshevApproximator t = new TchebyshevApproximator(3, v => v * v + 3.0, -3, 3);
-            Assert.IsInstanceOfType(t, typeof (TchebyshevApproximator));
+            Assert.IsInstanceOfType(t, typeof(TchebyshevApproximator));
             Assert.AreEqual(-3.0, t.MinimumValue);
             Assert.AreEqual(3.0, t.MaximumValue);
             Assert.AreEqual(3, t.Degree);
@@ -56,7 +55,7 @@ namespace TwoDLibTests
             Assert.AreEqual(2, p.Order);
             Assert.AreEqual(3.0, p[2], 0.00000001);
             Assert.AreEqual(1.0, p[1], 0.00000001);
-            Assert.AreEqual(-32.0/3.0, p[0], 0.00000001);
+            Assert.AreEqual(-32.0 / 3.0, p[0], 0.00000001);
         }
     }
 }

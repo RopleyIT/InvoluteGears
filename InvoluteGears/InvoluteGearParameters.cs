@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using TwoDimensionLib;
 
@@ -144,7 +141,7 @@ public class InvoluteGearParameters : IGearProfile
     /// Return the pitch radius, adjusted for any profile shift
     /// that has been applied to the gear
     /// </summary>
-    
+
     public double PitchRadius
         => PitchCircleDiameter / 2 + Module * ProfileShift;
 
@@ -378,10 +375,10 @@ public class InvoluteGearParameters : IGearProfile
         // taken into account. Note that the actual contact distance
         // will be whichever of the two is smaller.
 
-        double Q = Math.Asin(2 * meshedDistToPitchPoint 
+        double Q = Math.Asin(2 * meshedDistToPitchPoint
             * Math.Cos(PressureAngle) / meshedGear.AddendumCircleDiameter);
-        double addendumContactLength = meshedGear.AddendumCircleDiameter 
-            / (2 * Math.Cos(PressureAngle)) 
+        double addendumContactLength = meshedGear.AddendumCircleDiameter
+            / (2 * Math.Cos(PressureAngle))
             * Math.Sin(Math.PI / 2 - Q - PressureAngle);
         contactLength = Math.Min(contactLength, addendumContactLength);
 
@@ -426,8 +423,8 @@ public class InvoluteGearParameters : IGearProfile
     /// short lines. No gear contours are drawn using
     /// circular arcs, Bezier segments or other curves.
     /// </summary>
-    
-    private bool linesOnly = false;
+
+    private readonly bool linesOnly = false;
 
     private IList<Coordinate>? UndercutPoints;
     private IList<Coordinate>? InvolutePoints;
@@ -459,14 +456,14 @@ public class InvoluteGearParameters : IGearProfile
     /// <param name="index">The index into the involute points list
     /// for which we need the generating angle </param>
     /// <returns>The angle of the specified point</returns>
-    
-    private double InvoluteAngleFromIndex(int index)
-    {
-        double angle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
-        angle += AngleIndexFloor(AddendumInvoluteAngle);
-        angle -= (index % Geometry.PointsPerRotation) * Geometry.AngleStep;
-        return angle;
-    }
+
+    //private double InvoluteAngleFromIndex(int index)
+    //{
+    //    double angle = GapWidthAngleAtPitchCircle / 2 - ToothBaseOffset;
+    //    angle += AngleIndexFloor(AddendumInvoluteAngle);
+    //    angle -= (index % Geometry.PointsPerRotation) * Geometry.AngleStep;
+    //    return angle;
+    //}
 
     /// <summary>
     /// If the corner of the meshing tooth extends into the gear too
@@ -517,7 +514,7 @@ public class InvoluteGearParameters : IGearProfile
     /// </summary>
     /// <returns>Index of last point that has big enough radius of
     /// curvature, or -1 if whole curve has large enough radius</returns>
-    
+
     private int IndexOfLastUndercutPointWithSufficientRadius()
     {
         int i = 0;
@@ -525,7 +522,7 @@ public class InvoluteGearParameters : IGearProfile
         while (!cornerFound && i < UndercutPoints.Count - 2)
         {
             cornerFound = Geometry.RadiusOfCurvature
-                (UndercutPoints[i], UndercutPoints[i + 1], UndercutPoints[i + 2]) 
+                (UndercutPoints[i], UndercutPoints[i + 1], UndercutPoints[i + 2])
                 < CutDiameter / 2;
             i++;
         }
@@ -646,7 +643,7 @@ public class InvoluteGearParameters : IGearProfile
 
         // Find the centre of the end mill at the start of the circular arc
         // used when applying undercut correction
-        
+
         Coordinate cutterCentre = CutterCentreAtUnderCutIndex(undercutCorrectionIdx);
 
         // Find the start angle for the arc starting at the undercut correction point
@@ -698,24 +695,24 @@ public class InvoluteGearParameters : IGearProfile
     /// <param name="undercutCorrectionIdx"></param>
     /// <returns>The coordinate of the centre of the cutter at the specified
     /// undercut coordinate</returns>
-    
+
     private Coordinate CutterCentreAtUnderCutIndex(int undercutCorrectionIdx)
     {
-        double m = UndercutPoints[undercutCorrectionIdx].Y 
+        double m = UndercutPoints[undercutCorrectionIdx].Y
             - UndercutPoints[undercutCorrectionIdx - 1].Y;
-        m /= UndercutPoints[undercutCorrectionIdx].X 
+        m /= UndercutPoints[undercutCorrectionIdx].X
             - UndercutPoints[undercutCorrectionIdx - 1].X;
         m = -1 / m; // Gradient of line perpendicular to last two coords
-        double dx = CutDiameter /(2 * Geometry.RootSumOfSquares(1, m));
+        double dx = CutDiameter / (2 * Geometry.RootSumOfSquares(1, m));
         double dy = m * dx;
-        return new Coordinate(UndercutPoints[undercutCorrectionIdx].X + dx, 
+        return new Coordinate(UndercutPoints[undercutCorrectionIdx].X + dx,
             UndercutPoints[undercutCorrectionIdx].Y + dy);
     }
 
     IList<CubicSpline> InvoluteSplines;
     CircularArc AddendumCurve = null;
     CircularArc DedendumCurve = null;
-    CircularArc UndercutAdjustment = null;
+    CircularArc? UndercutAdjustment = null;
     IList<CubicSpline> UndercutSplines = null;
 
     /// <summary>
@@ -726,10 +723,10 @@ public class InvoluteGearParameters : IGearProfile
     /// point list of the last point with a greater X value
     /// than the intersection point with the undercut
     /// trochoid</param>
-    
-    private void InitDrawables(int involuteIdx, 
+
+    private void InitDrawables(int involuteIdx,
         double undercutStartAngle, double undercutEndAngle,
-        Coordinate adjustedCentre, double adjustedStartAngle, 
+        Coordinate adjustedCentre, double adjustedStartAngle,
         double adjustedEndAngle)
     {
         // Capture the addendum arc as an arc object instead
@@ -782,7 +779,7 @@ public class InvoluteGearParameters : IGearProfile
         // there is one. This is determined by the inequality
         // in the start and end angles for the adjustment.
 
-        if(adjustedEndAngle != adjustedStartAngle)
+        if (CutDiameter > 0 && adjustedEndAngle != adjustedStartAngle)
         {
             UndercutAdjustment = new CircularArc
             {
@@ -812,7 +809,7 @@ public class InvoluteGearParameters : IGearProfile
             StartAngle = -dedendumHalfAngle - BacklashAngle,
             EndAngle = dedendumHalfAngle,
             Anticlockwise = true,
-            Radius = InnerDiameter/ 2
+            Radius = InnerDiameter / 2
         };
     }
 
@@ -833,7 +830,7 @@ public class InvoluteGearParameters : IGearProfile
     /// list of the last point on the involute before the undercut</param>
     /// <returns>The Bezier control points for the involute, in the order
     /// inner to outer end radially (opposite to InvolutePoints list)</returns>
-    
+
     public List<Coordinate> InvoluteAsBezier(int lowerIndex, int upperIndex)
     {
         // Angle away from centre of gap between teeth
@@ -857,12 +854,12 @@ public class InvoluteGearParameters : IGearProfile
         // involute meets the base circle on the X axis, so the whole
         // curve will need to be rotated to the correct point to form
         // the tooth surface.
-        
+
         Func<double, Coordinate> involuteFunctions =
             angle => new Coordinate(
-                BaseCircleDiameter / 2.0 
+                BaseCircleDiameter / 2.0
                     * (Math.Cos(angle) + angle * Math.Sin(angle)),
-                BaseCircleDiameter / 2.0 
+                BaseCircleDiameter / 2.0
                     * (Math.Sin(angle) - angle * Math.Cos(angle)));
 
         // Find the angles between the X axis and the tangent of the line
@@ -978,7 +975,7 @@ public class InvoluteGearParameters : IGearProfile
     /// bits of the gear profile, now generate the full wheel
     /// </summary>
     /// <returns>The path for the whole gear circumference</returns>
-    
+
     public DrawablePath GenerateGearCurve()
     {
         if (linesOnly)
@@ -1018,7 +1015,7 @@ public class InvoluteGearParameters : IGearProfile
 
         // Add the involute inbound from the addendum
 
-        foreach(var e in InvoluteSplines)
+        foreach (var e in InvoluteSplines)
             elements.Add(e.ReflectY()
                 .RotatedBy(gapCentreAngle, Coordinate.Empty));
 
@@ -1031,8 +1028,9 @@ public class InvoluteGearParameters : IGearProfile
 
         // Add the adjustment arc
 
-        elements.Add(UndercutAdjustment.ReflectY()
-            .RotatedBy(gapCentreAngle, Coordinate.Empty));
+        if (UndercutAdjustment != null)
+            elements.Add(UndercutAdjustment.ReflectY()
+                .RotatedBy(gapCentreAngle, Coordinate.Empty));
 
         // Add the dedendum arc
 
@@ -1041,7 +1039,8 @@ public class InvoluteGearParameters : IGearProfile
 
         // Add the adjustment arc the other side of the dedendum
 
-        elements.Add(UndercutAdjustment.Reversed()
+        if (UndercutAdjustment != null)
+            elements.Add(UndercutAdjustment.Reversed()
                 .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
 
         // Add the undercut on the other side of the dedendum
@@ -1051,7 +1050,7 @@ public class InvoluteGearParameters : IGearProfile
                 .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
 
         // Add the involute curves on the other side of the dedendum
-        
+
         foreach (var e in InvoluteSplines.Reverse())
             elements.Add(e.Reversed()
                 .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
@@ -1219,7 +1218,7 @@ public class InvoluteGearParameters : IGearProfile
     /// </summary>
     /// <param name="angle">The angle to be indexed</param>
     /// <returns>The number of steps in this angle</returns>
-    
+
     private static int AngleIndexFloor(double angle)
         => (int)(angle / Geometry.AngleStep);
 

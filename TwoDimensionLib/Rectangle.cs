@@ -21,7 +21,7 @@
         /// <param name="location"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        
+
         public Rectangle(Coordinate location, double width, double height)
             : this(location, new Coordinate(location.X + width, location.Y + height)) { }
 
@@ -32,7 +32,7 @@
         /// be below or right of brhc</param>
         /// <param name="brhc">The notional bottom right coordinate, but
         /// coule be above or left of tlhc</param>
-        
+
         public Rectangle(Coordinate tlhc, Coordinate brhc)
         {
             Location = new(Math.Min(tlhc.X, brhc.X), Math.Min(tlhc.Y, brhc.Y));
@@ -62,13 +62,13 @@
 
         public bool Surrounds(Coordinate c)
         {
-            return Top <= c.Y && Bottom >= c.Y 
+            return Top <= c.Y && Bottom >= c.Y
                 && Left <= c.X && Right >= c.X;
         }
 
         public Rectangle Union(Coordinate c)
         {
-            if(Surrounds(c))
+            if (Surrounds(c))
                 return this;
             else
             {
@@ -76,11 +76,11 @@
                 double bottom = Math.Max(Bottom, c.Y);
                 double left = Math.Min(Left, c.X);
                 double right = Math.Max(Right, c.X);
-                return new(new(left, top), right-left, bottom-top);
+                return new(new(left, top), right - left, bottom - top);
             }
         }
 
-        public Rectangle Union(Rectangle r) 
+        public Rectangle Union(Rectangle r)
             => Union(r.Location).Union(new Coordinate(r.Right, r.Bottom));
 
         public double Top => Location.Y;

@@ -4,8 +4,6 @@ using Plotter;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
 using TwoDimensionLib;
 
 namespace Gears;
@@ -38,7 +36,7 @@ internal class Program
         // file from being usable for CNC machining
 
         string errors = cutoutCalculator.Gear.Errors + cutoutCalculator.Errors;
-        if(!string.IsNullOrWhiteSpace(errors))
+        if (!string.IsNullOrWhiteSpace(errors))
             Usage(errors);
         else
         {
@@ -46,7 +44,7 @@ internal class Program
 
             Rectangle bounds = cutoutCalculator.Curves.Bounds;
             double size = Math.Max(bounds.Width, bounds.Height);
-            GearGenerator.GenerateSVGFile(cutoutCalculator, 
+            GearGenerator.GenerateSVGFile(cutoutCalculator,
                 (float)size, cutoutCalculator.Gear.ShortName);
         }
     }
@@ -323,13 +321,13 @@ internal class Program
         for (double phi = 0; phi < Math.PI / 4; phi += Geometry.AngleStep)
             lineSegs.Add(Geometry.InvolutePlusOffset
                 (module * (teeth / 2.0 - pitchToBase), offX, 0, phi, 0));
-        
+
         if (startAngle <= 0)
             startAngle += (endAngle - startAngle) * 0.01; // Avoid the pole
         double midAngle = startAngle + 0.25 * (endAngle - startAngle);
         Spline involuteSpline = new Spline(3, bezFunc, startAngle, midAngle);
         var coordsInner = involuteSpline.ControlPoints;
-        
+
         involuteSpline = new Spline(3, bezFunc, midAngle, endAngle);
         var coordsOuter = involuteSpline.ControlPoints;
 
@@ -339,12 +337,12 @@ internal class Program
         svg.AddPath(lineSegs, false, "black", 0.1, "transparent");
         SVGPath bez = new SVGPath();
         bez.MoveTo(coordsInner[0]);
-        bez.Cubic(coordsInner[1].X, coordsInner[1].Y, coordsInner[2].X, coordsInner[2].Y, 
+        bez.Cubic(coordsInner[1].X, coordsInner[1].Y, coordsInner[2].X, coordsInner[2].Y,
             coordsInner[3].X, coordsInner[3].Y);
         svg.AddPath(bez, "green", 0.1, "transparent");
         bez = new SVGPath();
         bez.MoveTo(coordsOuter[0]);
-        bez.Cubic(coordsOuter[1].X, coordsOuter[1].Y, coordsOuter[2].X, coordsOuter[2].Y, 
+        bez.Cubic(coordsOuter[1].X, coordsOuter[1].Y, coordsOuter[2].X, coordsOuter[2].Y,
             coordsOuter[3].X, coordsOuter[3].Y);
         svg.AddPath(bez, "red", 0.1, "transparent");
 

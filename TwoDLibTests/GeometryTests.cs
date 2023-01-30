@@ -37,7 +37,7 @@ namespace TwoDLibTests
             Coordinate p1 = new(2.4142135623, 2.4142135623);
             Coordinate p2 = new(1 + 2 * cos30, 1 + 2 * sin30);
             Coordinate p0 = Geometry.CentreOfCurvature
-                (p1, p2, -1, - Math.Sqrt(3));
+                (p1, p2, -1, -Math.Sqrt(3));
             Assert.AreEqual(1.0, p0.X, 1e-6);
             Assert.AreEqual(1.0, p0.Y, 1e-6);
         }
@@ -50,7 +50,7 @@ namespace TwoDLibTests
             Coordinate p1 = new(2.4142135623, 2.4142135623);
             Coordinate p2 = new(1 + 2 * cos30, 1 + 2 * sin30);
             double r = Geometry.RadiusOfCurvature
-                (p1, p2, -1, - Math.Sqrt(3));
+                (p1, p2, -1, -Math.Sqrt(3));
             Assert.AreEqual(2.0, r, 1e-6);
         }
 

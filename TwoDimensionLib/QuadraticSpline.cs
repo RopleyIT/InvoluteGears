@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     public class QuadraticSpline : IDrawable
     {
@@ -24,9 +18,9 @@ namespace TwoDimensionLib
                 // once to pull the control points closer
                 // to the spline.
 
-                Coordinate leftMid = 
+                Coordinate leftMid =
                     Geometry.MidPoint(Points[0], Points[1]);
-                Coordinate rightMid = 
+                Coordinate rightMid =
                     Geometry.MidPoint(Points[1], Points[2]);
                 BoundsTracker b = new BoundsTracker();
                 b.Track(Start);

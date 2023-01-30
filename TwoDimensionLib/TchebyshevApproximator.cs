@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TwoDimensionLib
+﻿namespace TwoDimensionLib
 {
     public class TchebyshevApproximator
     {
@@ -19,21 +13,21 @@ namespace TwoDimensionLib
         /// other discontinuities close to the ends of
         /// the segment being approximated.
         /// </summary>
-        
+
         const int PointsPerPower = 1;
 
         /// <summary>
         /// The function we wish to approximate
         /// </summary>
-        
+
         public Func<double, double> Function { get; init; }
-        
+
         /// <summary>
         /// The lower bound of the range of values that
         /// will be passed to the function for it to 
         /// approximate
         /// </summary>
-    
+
         public double MinimumValue { get; init; }
 
         /// <summary>
@@ -49,7 +43,7 @@ namespace TwoDimensionLib
         /// approximating polynomial. The lower
         /// the degree, the worse the approximation.
         /// </summary>
-        
+
         public int Degree { get; init; }
 
         /// <summary>
@@ -62,7 +56,7 @@ namespace TwoDimensionLib
         /// variable (i.e. the 'x' in f(x))</param>
         /// <param name="max">The maximum value for the
         /// function variable</param>
-        
+
         public TchebyshevApproximator
             (int degree, Func<double, double> func, double min, double max)
         {
@@ -70,7 +64,7 @@ namespace TwoDimensionLib
             MinimumValue = min;
             MaximumValue = max;
             Degree = degree;
-            TchebyshevRoots = 
+            TchebyshevRoots =
                 CalcTchebyRoots(PointsPerPower * (Degree + 1));
             TchebyshevPolys = CalcTchebyshevPolys(Degree);
             Coefficients = CalcCoefficients();
@@ -80,7 +74,7 @@ namespace TwoDimensionLib
         /// Will hold copies of all the roots of the numRootth
         /// Tchebyshev polynomial to avoid recomputation
         /// </summary>
-        
+
         private double[] TchebyshevRoots;
 
         /// <summary>
@@ -89,7 +83,7 @@ namespace TwoDimensionLib
         /// <param name="numRoots">The number of roots
         /// to calculate</param>
         /// <returns>The array of calculated roots</returns>
-        
+
         private double[] CalcTchebyRoots(int numRoots)
         {
             double[] roots = new double[numRoots];
@@ -109,7 +103,7 @@ namespace TwoDimensionLib
         /// <exception cref="ArgumentException">
         /// Thrown if the root index is outside the
         /// valid range of 0 ... degree</exception>
-        
+
         private static double Root(int root, int degree)
         {
             if (root < 0 || root > degree)
@@ -147,7 +141,7 @@ namespace TwoDimensionLib
         /// Bezier cubic splines that fit the original
         /// function.
         /// </summary>
-        
+
         public Polynomial ApproximationPolynomial
         {
             get
@@ -157,7 +151,7 @@ namespace TwoDimensionLib
                     / (MinimumValue - MaximumValue),
                     2 / (MaximumValue - MinimumValue));
                 Polynomial result = Polynomial.Zero();
-                for(int i = 0; i <= Degree; i++)
+                for (int i = 0; i <= Degree; i++)
                 {
                     result = result.Plus(TchebyshevPolys[i]
                         .Transform(mapXToU)
@@ -179,7 +173,7 @@ namespace TwoDimensionLib
 
         private double MapXToU(double val)
         {
-            return (2 * val - MaximumValue - MinimumValue) 
+            return (2 * val - MaximumValue - MinimumValue)
                 / (MaximumValue - MinimumValue);
         }
 
@@ -193,7 +187,7 @@ namespace TwoDimensionLib
 
         private double MapUToX(double u)
         {
-            return u * (MaximumValue - MinimumValue) / 2 
+            return u * (MaximumValue - MinimumValue) / 2
                 + (MaximumValue + MinimumValue) / 2;
         }
 
@@ -201,7 +195,7 @@ namespace TwoDimensionLib
         /// Lists all the Tchebyshev polynomials from 0 up to
         /// and including the degree of this approximator
         /// </summary>
-        
+
         private IList<Polynomial> TchebyshevPolys { get; init; }
 
         private IList<double> Coefficients { get; init; }
@@ -212,14 +206,14 @@ namespace TwoDimensionLib
         /// <param name="degree">The degree of the highest
         /// degree polynomial to be generated</param>
         /// <returns>The list of polynomials</returns>
-        
+
         private static IList<Polynomial> CalcTchebyshevPolys(int degree)
         {
             Polynomial twox = new Polynomial(0.0, 2.0);
             List<Polynomial> polys = new List<Polynomial>(degree + 1);
             polys.Add(new Polynomial(1.0)); // 1.0
             polys.Add(new Polynomial(0.0, 1.0)); // x
-            for(int i = 2; i <= degree; i++)
+            for (int i = 2; i <= degree; i++)
 
             {
                 polys.Add(polys[i - 1]
@@ -244,14 +238,14 @@ namespace TwoDimensionLib
         /// to a pole, it sometimes helps to sum over
         /// a wider range.</param>
         /// <returns>The kth coefficient</returns>
-        
+
         private double CalcCoefficient(int k)
         {
             double ck = 0;
-            for(int i = 0; i < TchebyshevRoots.Length; i++)
+            for (int i = 0; i < TchebyshevRoots.Length; i++)
             {
                 double root = TchebyshevRoots[i];
-                ck += Function(MapUToX(root)) 
+                ck += Function(MapUToX(root))
                     * TchebyshevPolys[k].Evaluate(root);
             }
             ck /= TchebyshevRoots.Length;
@@ -263,8 +257,8 @@ namespace TwoDimensionLib
         /// for this polynomial approximation
         /// </summary>
         /// <returns>The set of coefficients</returns>
-        
-        private IList<double> CalcCoefficients() 
+
+        private IList<double> CalcCoefficients()
             => new List<double>(Enumerable
                 .Range(0, Degree + 1)
                 .Select(i => CalcCoefficient(i)));
