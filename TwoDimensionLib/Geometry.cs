@@ -300,7 +300,9 @@ public static class Geometry
     /// <summary>
     /// Compute the intersection point of a straight line drawn from p11
     /// to p12 with a line drawn from p21 to p22. If they don't intersect
-    /// return null. If they do, return the intersection point.
+    /// return null. If they do, return the intersection point. This function
+    /// also constrains the intersection to lie on the lines drawn from p11
+    /// to p12, and from p21 to p22.
     /// </summary>
     /// <param name="p11">End of first line</param>
     /// <param name="p12">Other end of first line</param>
@@ -309,31 +311,51 @@ public static class Geometry
     /// <returns>Intersection point or false if lines do not
     /// intersect between their endpoints</returns>
 
-    public static (bool Found, Coordinate Value)
+    public static Coordinate?
         CrossAt(Coordinate p11, Coordinate p12, Coordinate p21, Coordinate p22)
+    {
+        var intersection = IntersectAt(p11, p12, p21, p22);
+        if (intersection.HasValue
+            && InRectangle(intersection.Value, p11, p12)
+            && InRectangle(intersection.Value, p21, p22))
+            return intersection;
+        else
+            return null;
+    }
+
+    /// <summary>
+    /// Find the coordinate of a point at which two straight lines
+    /// passing through uLower and uUpper in one case, and vLower
+    /// and vUpper in the other intersect. If the lines are parallel,
+    /// return null.
+    /// </summary>
+    /// <param name="uLower">A coordinate on the line y = u(x)</param>
+    /// <param name="uUpper">Another coordinate on y = u(x)</param>
+    /// <param name="vLower">A coordinate on the line y = v(x)</param>
+    /// <param name="vUpper">Another coordinate on y = v(x)</param>
+    /// <returns>The coordinate of the intersection point between
+    /// the two lines, or null if they are parallel</returns>
+    
+    public static Coordinate? IntersectAt
+        (Coordinate uLower, Coordinate uUpper, Coordinate vLower, Coordinate vUpper)
     {
         // Find gradients of lines
 
-        double m1 = (p12 - p11).Gradient;
-        double m2 = (p22 - p21).Gradient;
+        double mu = (uUpper - uLower).Gradient;
+        double mv = (vUpper - vLower).Gradient;
 
         // Parallel lines do not intersect
 
-        if (m1 != m2)
+        if (mu != mv)
         {
             // Calculate the intersection point
 
-            double x = (p22.Y - p12.Y + m1 * p12.X - m2 * p22.X) / (m1 - m2);
-            double y = m1 * (x - p11.X) + p11.Y;
-            Coordinate result = new(x, y);
-
-            // Make sure the intersection point
-            // doesn't lie beyond either line end
-
-            if (InRectangle(result, p11, p12))
-                return (true, result);
+            double x = (vUpper.Y - uUpper.Y + mu * uUpper.X - mv * vUpper.X) / (mu - mv);
+            double y = mu * (x - uLower.X) + uLower.Y;
+            return new(x, y);
         }
-        return (false, Coordinate.Empty);
+        else
+            return null;
     }
 
     /// <summary>
@@ -517,8 +539,8 @@ public static class Geometry
         for (int i = 0; i < list1.Count - 1; i++)
         {
             var crossPt = CrossAt(list1[i], list1[i + 1], list2[i], list2[i + 1]);
-            if (crossPt.Found)
-                return crossPt;
+            if (crossPt.HasValue)
+                return (true, crossPt.Value);
         }
         return (false, Coordinate.Empty);
     }
@@ -735,15 +757,72 @@ public static class Geometry
     }
 
     /// <summary>
-    /// Determine whether a point lies within a circle
+    /// Given three coordinates, find the coordinate of the centre of
+    /// the circle that passes through the three coordinates
     /// </summary>
-    /// <param name="pt">The point being tested</param>
-    /// <param name="centre">The coordinates of the circle centre</param>
-    /// <param name="radius">The radius of the circle</param>
-    /// <returns>True if the point is within the circle</returns>
+    /// <param name="p0">The first coordinate</param>
+    /// <param name="p1">The second coordinate</param>
+    /// <param name="p2">The third coordinate</param>
+    /// <returns>The centre of the circle</returns>
+    
+    public static Coordinate CentreOfCurvature(Coordinate p0, Coordinate p1, Coordinate p2)
+    {
+        // Find the mid points of the lines between the coordinates
 
-    public static bool PointInCircle(Coordinate pt, Coordinate centre, double radius)
-        => SumOfSquares(pt.X - centre.X, pt.Y - centre.Y) < Square(radius);
+        Coordinate p01 = new((p1.X + p0.X)/2, (p1.Y + p0.Y)/2);
+        Coordinate p12 = new((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
+
+        // Find the gradients of the perpendiculars to the lines
+
+        double m01 = (p0.X - p1.X)/(p1.Y - p0.Y);
+        double m12 = (p1.X - p2.X) / (p2.Y - p1.Y);
+
+        // If the lines are parallel, then the original three
+        // points were colinear. This means there is no rational
+        // centre of curvature. Return something enormous.
+
+        if(m01 == m12)
+            return new Coordinate(double.MaxValue, double.MaxValue);
+
+        // For the line through p01 with gradient m01,
+        // find the 'c' in y = mx + c. Then do likewise
+        // for the line through p12
+
+        double c01 = p01.Y - m01 * p01.X;
+        double c12 = p12.Y - m12 * p12.X;
+
+        // Now find the X coordinate of the centre
+
+        double x = (c01 - c12) / (m12 - m01);
+
+        // Substitute into one of the two line equations
+        // to find the value of Y for the centre
+
+        double y = m01 * x + c01;
+
+        // Now return the centre coordinate of the circle
+
+        return new Coordinate(x, y);
+    }
+
+    /// <summary>
+    /// Given three points, calculate the radius of a circle that
+    /// can be drawn through the three points
+    /// </summary>
+    /// <param name="p0">The first coordinate</param>
+    /// <param name="p1">The second coordinate</param>
+    /// <param name="p2">The third coordinate</param>
+    /// <returns>The radius of curvature, or a huge value if the
+    /// points were colinear</returns>
+    
+    public static double RadiusOfCurvature(Coordinate p0, Coordinate p1, Coordinate p2)
+    {
+        Coordinate centre = CentreOfCurvature(p0, p1, p2);
+        if (centre.X == double.MaxValue)
+            return double.MaxValue;
+        else
+            return RootSumOfSquares(p0.X - centre.X, p0.Y - centre.Y);
+    }
 
     /// <summary>
     /// The resolution of points on the various curves
@@ -768,7 +847,9 @@ public static class Geometry
     /// Implement the Newton Raphson iterative root finding algorithm
     /// </summary>
     /// <param name="func">The function whose value and gradient are computed
-    /// as part of the process of finding the function's roots</param>
+    /// as part of the process of finding the function's roots. Given a value
+    /// for the variable x this function returns a tuple containing the value
+    /// of func(x) and dfunc(x)/dx.</param>
     /// <param name="xCurr">The starting value for the iterative
     /// root finder</param>
     /// <param name="xResolution">The accuracy at which we shall terminate
@@ -824,5 +905,93 @@ public static class Geometry
                 x -= dx;
         }
         return x;
+    }
+
+    /// <summary>
+    /// Given two parametric functions that map a scalar
+    /// parameter to a 2D coordinate in each case,
+    /// find the parametric values that generated coordinates
+    /// closest to the intersection point of the functions.
+    /// </summary>
+    /// <param name="uLower">The angle passed to the U function
+    /// that generates the coordinate with the lower X value</param>
+    /// <param name="vLower">The angle passed to the V function
+    /// that generates the coordinate with the lower X value</param>
+    /// <param name="uUpper">The angle passed to the U function
+    /// that generates the coordinate with the higher X value</param>
+    /// <param name="vUpper">The angle passed to the V function
+    /// that generates the coordinate with the higher X value</param>
+    /// <param name="uFunc">The first function, usually the
+    /// undercut trochoid</param>
+    /// <param name="vFunc">The second function, usually the 
+    /// gear tooth involute</param>
+    /// <param name="resolution">The resolution in the parameters
+    /// that will cause a result to be yielded</param>
+    /// <returns>The two parameter values that generate the points
+    /// closest to the intersection point</returns>
+    
+    public static (double, double) FindIntersection(
+        double uLower, double uUpper,
+        double vLower, double vUpper,
+        Func<double, Coordinate> uFunc,
+        Func<double, Coordinate> vFunc,
+        double resolution)
+    {
+        while(uUpper - uLower > resolution || vUpper - vLower > resolution)
+            (uLower, uUpper, vLower, vUpper) = CloserApprox(uLower, uUpper, vLower, vUpper, uFunc, vFunc);
+        return (uLower, vUpper);
+    }
+
+    /// <summary>
+    /// Given two functions of type Coordinate func(angle), and
+    /// four angles that represent coordinates either side of a
+    /// crossing point between the lines drawn by the functions
+    /// in the X-Y plane, find four angles that embrace a
+    /// closer approximation to the intersection point.
+    /// </summary>
+    /// <param name="uLower">The angle passed to the U function
+    /// that generates the coordinate with the lower X value</param>
+    /// <param name="vLower">The angle passed to the V function
+    /// that generates the coordinate with the lower X value</param>
+    /// <param name="uUpper">The angle passed to the U function
+    /// that generates the coordinate with the higher X value</param>
+    /// <param name="vUpper">The angle passed to the V function
+    /// that generates the coordinate with the higher X value</param>
+    /// <param name="uFunc">The first function, usually the
+    /// undercut trochoid</param>
+    /// <param name="vFunc">The second function, usually the 
+    /// gear tooth involute</param>
+    /// <returns>A better estimate for angles uLower, vLower, uUpper and vUpper</returns>
+
+    private static (double, double, double, double) CloserApprox(
+        double uLower, double uUpper, 
+        double vLower, double vUpper, 
+        Func<double, Coordinate> uFunc, 
+        Func<double, Coordinate> vFunc)
+    {
+        // Generate the four coordinates from the parametric functions
+        // and the angles passed to them for upper and lower values
+
+        Coordinate ucLower = uFunc(uLower);
+        Coordinate ucHigher = uFunc(uUpper);
+        Coordinate vcLower = vFunc(vLower);
+        Coordinate vcHigher = vFunc(vUpper);
+        double uMiddle = (uLower + uUpper) / 2;
+        Coordinate ucMiddle = uFunc(uMiddle);
+        double vMiddle = (vLower + vUpper) / 2;
+        Coordinate vcMiddle = vFunc(vMiddle);
+
+        // Find which pair of ranges contains the crossing point
+        // in the lines drawn between the three sets of points
+
+        if (CrossAt(ucLower, ucMiddle, vcLower, vcMiddle).HasValue)
+            return (uLower, uMiddle, vLower, vMiddle);
+        if (CrossAt(ucLower, ucMiddle, vcMiddle, vcHigher).HasValue)
+            return (uLower, uMiddle, vMiddle, vUpper);
+        if (CrossAt(ucMiddle, ucHigher, vcLower, vcMiddle).HasValue)
+            return (uMiddle, uUpper, vLower, vMiddle);
+        if (CrossAt(ucMiddle, ucHigher, vcMiddle, vcHigher).HasValue)
+            return (uMiddle, uUpper, vMiddle, vUpper);
+        throw new ArgumentException("Curves do not intersect");
     }
 }

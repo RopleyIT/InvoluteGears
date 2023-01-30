@@ -236,8 +236,9 @@ public class SVGPath : IRenderable
         foreach (SVGPathElement pe in Elements)
         {
             sw.Write(pe.ToString());
-            if (++i % 10 == 0)
-                sw.WriteLine();
+            //if (++i % 10 == 0)
+            //    sw.WriteLine();
+            sw.WriteLine();
         }
         sw.Write("\"");
         sw.Write(RenderStye());

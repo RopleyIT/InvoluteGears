@@ -233,7 +233,7 @@ internal class Program
             case "--bez":
                 Arguments.Parse(opts, common, involute);
                 DoBezierDemo(common.Module, common.Teeth,
-                    involute.PressureAngle, involute.ProfileShift);
+                    involute.PressureAngle, involute.ProfileShift, common.CutterDiameter);
                 return;
 
             case "-c":
@@ -289,7 +289,7 @@ internal class Program
         }
     }
 
-    private static void DoBezierDemo(double module, int teeth, double pressureAngle, double profileShift)
+    private static void DoBezierDemo(double module, int teeth, double pressureAngle, double profileShift, double offX)
     {
         // Adjust units
 
@@ -304,11 +304,10 @@ internal class Program
         // Now create the Bezier control points
 
         var baseCircleRadius = module * teeth / 2.0 * Math.Cos(pressureAngle);
-
         Func<double, Coordinate> bezFunc =
             v => new Coordinate(
-                baseCircleRadius * (Math.Cos(v) + v * Math.Sin(v)),
-                baseCircleRadius * (Math.Sin(v) - v * Math.Cos(v)));
+                baseCircleRadius * (Math.Cos(v) + v * Math.Sin(v)) + offX * Math.Cos(v),
+                baseCircleRadius * (Math.Sin(v) - v * Math.Cos(v)) + offX * Math.Sin(v));
         double dedendumRadius = Math.Max
             (pitchRadius + (profileShift - 1) * module, baseCircleRadius);
         double addendumRadius = pitchRadius + (profileShift + 1) * module;
@@ -323,7 +322,7 @@ internal class Program
         List<Coordinate> lineSegs = new();
         for (double phi = 0; phi < Math.PI / 4; phi += Geometry.AngleStep)
             lineSegs.Add(Geometry.InvolutePlusOffset
-                (module * (teeth / 2.0 - pitchToBase), 0, 0, phi, 0));
+                (module * (teeth / 2.0 - pitchToBase), offX, 0, phi, 0));
         
         if (startAngle <= 0)
             startAngle += (endAngle - startAngle) * 0.01; // Avoid the pole
@@ -337,17 +336,17 @@ internal class Program
         // Now plot a graph
 
         SVGCreator svg = new SVGCreator();
-        svg.AddPath(lineSegs);
+        svg.AddPath(lineSegs, false, "black", 0.1, "transparent");
         SVGPath bez = new SVGPath();
         bez.MoveTo(coordsInner[0]);
         bez.Cubic(coordsInner[1].X, coordsInner[1].Y, coordsInner[2].X, coordsInner[2].Y, 
             coordsInner[3].X, coordsInner[3].Y);
-        svg.AddPath(bez, "green", 1, "transparent");
+        svg.AddPath(bez, "green", 0.1, "transparent");
         bez = new SVGPath();
         bez.MoveTo(coordsOuter[0]);
         bez.Cubic(coordsOuter[1].X, coordsOuter[1].Y, coordsOuter[2].X, coordsOuter[2].Y, 
             coordsOuter[3].X, coordsOuter[3].Y);
-        svg.AddPath(bez, "red", 1, "transparent");
+        svg.AddPath(bez, "red", 0.1, "transparent");
 
         svg.CalculateViewBox(new Coordinate(2, 2));
         svg.HasXmlHeader = true;

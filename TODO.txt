@@ -1,10 +1,17 @@
-* Update gears other than involute to plot using DrawablePaths containing lists of coordinates
-
 * Remove the old coordinate code from Involutes and Cutouts
 
 * Use Bezier curves for undercuts in Involute gears
 
 * Use Bezier curves and circular arcs for all gears
+
+* Make Cycloidal gears do 'Both' and 'Meshing'
+
+* Use straight + Cutate Cycloidal undercut on involute gears as an option
+
+* Rounding of involute gear addendum teeth
+
+* Truncation of involute addendum to opposing gear base circle,
+  when meshing with low tooth count pinions, to remove undercut
 
 * Investigate circle wiggle
 
