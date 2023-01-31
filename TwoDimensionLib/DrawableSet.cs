@@ -42,7 +42,7 @@
         {
             var newSet = new DrawableSet();
             newSet.Paths.AddRange
-                (Paths.Select(p => p.ReflectY() as DrawablePath));
+                (Paths.Select(p => (DrawablePath)p.ReflectY()));
             return newSet;
         }
 
@@ -50,7 +50,7 @@
         {
             var newSet = new DrawableSet();
             newSet.Paths.AddRange
-                (Paths.Select(p => p.Reversed() as DrawablePath));
+                (Paths.Select(p => (DrawablePath)p.Reversed()));
             return newSet;
         }
 
@@ -58,7 +58,7 @@
         {
             var newSet = new DrawableSet();
             newSet.Paths.AddRange
-                (Paths.Select(p => (p.RotatedBy(phi, pivot) as DrawablePath)));
+                (Paths.Select(p => (DrawablePath)p.RotatedBy(phi, pivot)));
             return newSet;
         }
 
@@ -66,7 +66,7 @@
         {
             var newSet = new DrawableSet();
             newSet.Paths.AddRange
-                (Paths.Select(p => (p.Translated(offset) as DrawablePath)));
+                (Paths.Select(p => (DrawablePath)p.Translated(offset)));
             return newSet;
         }
     }

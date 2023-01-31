@@ -44,7 +44,7 @@ public class SVGPath : IRenderable
     /// The lengths of the dashes and gaps for a line pattern
     /// </summary>
 
-    public IEnumerable<int> Dashes { get; set; }
+    public IEnumerable<int> Dashes { get; set; } = Enumerable.Empty<int>();
 
     /// <summary>
     /// Alternative helper function for setting the dash lengths
@@ -123,8 +123,8 @@ public class SVGPath : IRenderable
             // Translate the arc data into
             // the bizarre SVG arc format
 
-            Coordinate startVec = Coordinate
-                .FromPolar(a.Radius, a.StartAngle);
+            //Coordinate startVec = Coordinate
+            //    .FromPolar(a.Radius, a.StartAngle);
             //Coordinate startPoint = a.Centre 
             //    + startVec;
             double sweptAngle = Geometry
@@ -232,7 +232,7 @@ public class SVGPath : IRenderable
     {
         StringWriter sw = new();
         sw.Write("<path d=\"");
-        int i = 0;
+        //int i = 0;
         foreach (SVGPathElement pe in Elements)
         {
             sw.Write(pe.ToString());
@@ -273,7 +273,7 @@ public class SVGPath : IRenderable
         };
         if (!string.IsNullOrEmpty(strJoin))
             sw.Write($" stroke-linejoin=\"{strJoin}\"");
-        if (Dashes != null && Dashes.Any())
+        if (Dashes.Any())
         {
             sw.Write($" stroke-dasharray=\"{Dashes.First()}");
             foreach (int i in Dashes.Skip(1))

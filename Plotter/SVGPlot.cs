@@ -46,13 +46,13 @@ namespace Plotter
         //};
 
         public static string PlotCurves(DrawableSet paths,
-            int width, int height, IList<string> strokes = null,
-            IList<string> fills = null)
+            int width, int height, IList<string>? strokes = null,
+            IList<string>? fills = null)
             => PlotCurves(paths, width, height, paths.Bounds, strokes, fills);
 
         public static string PlotCurves(DrawableSet paths,
             int width, int height, Rectangle bounds,
-            IList<string> strokes = null, IList<string> fills = null)
+            IList<string>? strokes = null, IList<string>? fills = null)
         {
             if (strokes == null || fills == null
                 || strokes.Count == 0
@@ -91,8 +91,8 @@ namespace Plotter
         }
 
         public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points,
-            int width, int height, IList<string> strokes = null,
-            IList<string> fills = null)
+            int width, int height, IList<string>? strokes = null,
+            IList<string>? fills = null)
         {
             if (strokes == null || fills == null
                 || strokes.Count == 0
@@ -167,8 +167,8 @@ namespace Plotter
             // First generate label string
 
             string label = v.ToString("G4");
-            var txt = svg.AddText(label, new(v, 0), "gray", $"{units / 6}px") as SvgText;
-            txt.Alignment = SvgText.Centre | SvgText.Top;
+            if (svg.AddText(label, new(v, 0), "gray", $"{units / 6}px") is SvgText txt)
+                txt.Alignment = SvgText.Centre | SvgText.Top;
         }
 
         private static void LabelYRule(double v, SVGCreator svg, double units)
@@ -176,8 +176,8 @@ namespace Plotter
             // First generate label string
 
             string label = v.ToString("G4");
-            var txt = svg.AddText(label, new(0, v), "gray", $" {units / 6}px") as SvgText;
-            txt.Alignment = SvgText.LCaseMiddle;
+            if (svg.AddText(label, new(0, v), "gray", $" {units / 6}px") is SvgText txt)
+                txt.Alignment = SvgText.LCaseMiddle;
         }
 
         private static double RoundUp(double x, double unitsX) => Math.Ceiling(x / unitsX) * unitsX;

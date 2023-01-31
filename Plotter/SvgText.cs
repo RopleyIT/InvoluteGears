@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using TwoDimensionLib;
 
@@ -8,12 +9,12 @@ namespace Plotter;
 
 public class SvgText : IRenderable
 {
-    public string Stroke { get; set; }
-    public string StrokeWidth { get; set; }
-    public string Fill { get; set; }
+    public string Stroke { get; set; } = string.Empty;
+    public string StrokeWidth { get; set; } = string.Empty;
+    public string Fill { get; set; } = string.Empty;
     public LineCap Cap { get; set; } = LineCap.None;
     public LineJoin Join { get; set; } = LineJoin.None;
-    public IEnumerable<int> Dashes { get; set; }
+    public IEnumerable<int> Dashes { get; set; } = Enumerable.Empty<int>();
 
     public void SetDashes(params int[] dashes)
         => Dashes = dashes;

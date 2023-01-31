@@ -92,10 +92,10 @@ public class SVGCreator
     }
 
     public IRenderable AddLine(Coordinate start, Coordinate end, string stroke, double strokeWidth)
-        => AddPath(new Coordinate[] { start, end }, false, stroke, strokeWidth, null);
+        => AddPath(new Coordinate[] { start, end }, false, stroke, strokeWidth);
 
     public IRenderable AddPolyline(IEnumerable<Coordinate> points, string stroke, double strokeWidth)
-        => AddPath(points, false, stroke, strokeWidth, null);
+        => AddPath(points, false, stroke, strokeWidth);
 
     public IRenderable AddPolygon(IEnumerable<Coordinate> points, string stroke, double strokeWidth, string fill)
         => AddPath(points, true, stroke, strokeWidth, fill);

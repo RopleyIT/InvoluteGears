@@ -426,10 +426,10 @@ public class InvoluteGearParameters : IGearProfile
 
     private readonly bool linesOnly = false;
 
-    private IList<Coordinate>? UndercutPoints;
-    private IList<Coordinate>? InvolutePoints;
-    private IList<Coordinate>? DedendumPoints;
-    private IList<Coordinate>? AddendumPoints;
+    private IList<Coordinate> UndercutPoints = new List<Coordinate>();
+    private IList<Coordinate> InvolutePoints = new List<Coordinate>();
+    private IList<Coordinate> DedendumPoints = new List<Coordinate>();
+    private IList<Coordinate> AddendumPoints = new List<Coordinate>();
 
     private IEnumerable<Coordinate> ComputeInvolutePoints()
     {
@@ -544,7 +544,7 @@ public class InvoluteGearParameters : IGearProfile
 
     private bool AdjustPointsForCircularCutter(Coordinate cutterCentre)
     {
-        if (UndercutPoints == null)
+        if (UndercutPoints.Count == 0)
             return false;
 
         // First find the point at which an end-mill of the specified cutter
@@ -555,9 +555,9 @@ public class InvoluteGearParameters : IGearProfile
         // Copy across the curve that we are able to follow before
         // deviating from it according to cutter radius
 
-        if (UndercutPoints != null)
+        if (UndercutPoints.Any())
             UndercutPoints = new List<Coordinate>(UndercutPoints.Take(i + 1));
-        var lastPt = UndercutPoints?.Last() ?? Coordinate.Empty;
+        var lastPt = UndercutPoints.Any() ? UndercutPoints.Last() : Coordinate.Empty;
 
         // Calculate the angle for the last point in the undercut curve
 
@@ -614,9 +614,9 @@ public class InvoluteGearParameters : IGearProfile
 
     private void InitPointLists()
     {
-        InvolutePoints = new List<Coordinate>(ComputeInvolutePoints());
-        UndercutPoints = new List<Coordinate>(ComputeUndercutPoints());
-        DedendumPoints = new List<Coordinate>(ComputeDedendumCirclePoints());
+        InvolutePoints.AddRange(ComputeInvolutePoints());
+        UndercutPoints.AddRange(ComputeUndercutPoints());
+        DedendumPoints.AddRange(ComputeDedendumCirclePoints());
 
         underCutPoint = Geometry.ClosestPoint(InvolutePoints, UndercutPoints);
         int involuteIdx = Geometry.IndexOfLastPointWithGreaterXVal(InvolutePoints, underCutPoint.X);
@@ -680,7 +680,7 @@ public class InvoluteGearParameters : IGearProfile
         InvolutePoints.RemoveRange(involuteIdx + 1, InvolutePoints.Count - involuteIdx - 1);
         UndercutPoints.RemoveRange(0, undercutIdx + 1);
         AdjustPointsForCircularCutter(cutterCentre);
-        AddendumPoints = new List<Coordinate>(ComputeAddendumCirclePoints());
+        AddendumPoints.AddRange(ComputeAddendumCirclePoints());
         InvolutePoints = Geometry.LinearReduction(InvolutePoints, (float)MaxError);
         UndercutPoints = Geometry.LinearReduction(UndercutPoints, (float)MaxError);
         DedendumPoints = Geometry.LinearReduction(DedendumPoints, (float)MaxError);
@@ -709,11 +709,12 @@ public class InvoluteGearParameters : IGearProfile
             UndercutPoints[undercutCorrectionIdx].Y + dy);
     }
 
-    IList<CubicSpline> InvoluteSplines;
-    CircularArc AddendumCurve = null;
-    CircularArc DedendumCurve = null;
+    readonly IList<CubicSpline> InvoluteSplines = new List<CubicSpline>(2);
+    CircularArc? AddendumCurve = null;
+    CircularArc? DedendumCurve = null;
     CircularArc? UndercutAdjustment = null;
-    IList<CubicSpline> UndercutSplines = null;
+    readonly IList<CubicSpline> UndercutSplines = new List<CubicSpline>(2);
+
 
     /// <summary>
     /// Setup the drawing curves if not using all straight
@@ -747,7 +748,6 @@ public class InvoluteGearParameters : IGearProfile
         // towards the base circle to be consistent with
         // the previous points only version of the code.
 
-        InvoluteSplines = new List<CubicSpline>(2);
         var bezPoints = InvoluteAsBezier(0, involuteIdx);
         InvoluteSplines.Add(new CubicSpline
         {
@@ -764,7 +764,6 @@ public class InvoluteGearParameters : IGearProfile
         // at the point the curvature is too sharp for the
         // end-mill cutter diameter.
 
-        UndercutSplines = new List<CubicSpline>(2);
         bezPoints = UndercutAsBezier(undercutStartAngle, undercutEndAngle);
         UndercutSplines.Add(new CubicSpline
         {
@@ -855,9 +854,8 @@ public class InvoluteGearParameters : IGearProfile
         // curve will need to be rotated to the correct point to form
         // the tooth surface.
 
-        Func<double, Coordinate> involuteFunctions =
-            angle => new Coordinate(
-                BaseCircleDiameter / 2.0
+        Coordinate involuteFunctions(double angle) 
+            => new(BaseCircleDiameter / 2.0
                     * (Math.Cos(angle) + angle * Math.Sin(angle)),
                 BaseCircleDiameter / 2.0
                     * (Math.Sin(angle) - angle * Math.Cos(angle)));
@@ -909,8 +907,7 @@ public class InvoluteGearParameters : IGearProfile
         // occurs because the tooth corner is at an offset from the
         // parent involute unwinding from the pitch circle.
 
-        Func<double, Coordinate> undercutFunctions =
-            angle => Geometry.InvolutePlusOffset(
+        Coordinate undercutFunctions(double angle) => Geometry.InvolutePlusOffset(
                 PitchCircleDiameter / 2,
                 -Module * (1 - ProfileShift),
                 Module * (Math.PI / 4 - Math.Tan(PressureAngle)),
@@ -1034,8 +1031,9 @@ public class InvoluteGearParameters : IGearProfile
 
         // Add the dedendum arc
 
-        elements.Add(DedendumCurve
-            .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
+        if(DedendumCurve != null)
+            elements.Add(DedendumCurve
+                .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
 
         // Add the adjustment arc the other side of the dedendum
 
@@ -1057,8 +1055,9 @@ public class InvoluteGearParameters : IGearProfile
 
         // Last, add the addendum arc
 
-        elements.Add(AddendumCurve
-            .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
+        if(AddendumCurve != null)
+            elements.Add(AddendumCurve
+                .RotatedBy(i % ToothCount * ToothAngle, Coordinate.Empty));
 
         return elements;
     }
