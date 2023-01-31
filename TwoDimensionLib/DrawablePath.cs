@@ -2,23 +2,23 @@
 {
     public class DrawablePath : IDrawable
     {
-        public IList<IDrawable> Curves { get; set; }
+        public IList<IDrawable> Curves { get; set; } = new List<IDrawable>();
         public bool Closed { get; set; }
 
         public Rectangle Bounds
         {
             get
             {
-                BoundsTracker b = new BoundsTracker();
+                BoundsTracker b = new();
                 foreach (IDrawable d in Curves)
                     b.Track(d.Bounds);
                 return b.Bounds;
             }
         }
 
-        public Coordinate Start => Curves[0].Start;
+        public Coordinate Start => Curves.Any() ? Curves[0].Start : Coordinate.Empty;
 
-        public Coordinate End => Curves[Curves.Count - 1].End;
+        public Coordinate End => Curves.Any() ? Curves[^1].End : Coordinate.Empty;
 
         public IDrawable ReflectY()
             => new DrawablePath

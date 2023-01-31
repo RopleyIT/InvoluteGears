@@ -24,26 +24,26 @@ namespace Plotter
             return Math.Min(scaleX, scaleY);
         }
 
-        private static string[] colours =
-        {
-                "gold",
-                "darkgreen",
-                "darkred",
-                "cornflowerblue",
-                "darkorange",
-                "green",
-                "red",
-                "cadetblue",
-                "yellow",
-                "greenyellow",
-                "tomato",
-                "blue",
-                "coral",
-                "olive",
-                "salmon",
-                "darkblue",
-                "darkmagenta"
-        };
+        //private static readonly string[] colours =
+        //{
+        //        "gold",
+        //        "darkgreen",
+        //        "darkred",
+        //        "cornflowerblue",
+        //        "darkorange",
+        //        "green",
+        //        "red",
+        //        "cadetblue",
+        //        "yellow",
+        //        "greenyellow",
+        //        "tomato",
+        //        "blue",
+        //        "coral",
+        //        "olive",
+        //        "salmon",
+        //        "darkblue",
+        //        "darkmagenta"
+        //};
 
         public static string PlotCurves(DrawableSet paths,
             int width, int height, IList<string> strokes = null,
@@ -62,12 +62,13 @@ namespace Plotter
                 fills = new List<string> { "transparent" };
             }
 
-            SVGCreator svg = new SVGCreator();
+            SVGCreator svg = new()
+            {
+                // Turn off header, width and height
 
-            // Turn off header, width and height
-
-            svg.HasXmlHeader = false;
-            svg.HasWidthAndHeight = false;
+                HasXmlHeader = false,
+                HasWidthAndHeight = false
+            };
 
             double scale = ScaleFactor(bounds, width, height);
             PlotAxes(bounds, scale, svg);
@@ -76,14 +77,14 @@ namespace Plotter
             {
                 string stroke = strokes[index % fills.Count];
                 string fill = fills[index++ % fills.Count];
-                PlotCurve(p, svg, bounds, scale, stroke, fill);
+                PlotCurve(p, svg, scale, stroke, fill);
             }
             svg.ViewBoxDimensions = bounds;
             return svg.ToString();
         }
 
         private static void PlotCurve(DrawablePath p, SVGCreator svg,
-            Rectangle bounds, double scale, string stroke, string fill)
+            double scale, string stroke, string fill)
         {
             var ir = svg.AddPath(new SVGPath(p), stroke, 1.0 / scale, fill);
             ir.Join = LineJoin.Round;
@@ -101,12 +102,13 @@ namespace Plotter
                 fills = new List<string> { "transparent" };
             }
 
-            SVGCreator svg = new SVGCreator();
+            SVGCreator svg = new()
+            {
+                // Turn off header, width and height
 
-            // Turn off header, width and height
-
-            svg.HasXmlHeader = false;
-            svg.HasWidthAndHeight = false;
+                HasXmlHeader = false,
+                HasWidthAndHeight = false
+            };
 
             BoundsTracker bounds = new();
             List<List<Coordinate>> plots = new();
@@ -119,7 +121,7 @@ namespace Plotter
             {
                 string stroke = strokes[index % fills.Count];
                 string fill = fills[index++ % fills.Count];
-                PlotGraph(pl, svg, bounds.Bounds, scale,
+                PlotGraph(pl, svg, scale,
                     stroke, fill);
             }
             //svg.DocumentDimensions = new Coordinate(600, 600);
@@ -143,7 +145,7 @@ namespace Plotter
                     new Coordinate(v, bounds.Bottom)
                 };
 
-                PlotGraph(rule, svg, bounds, scale, "lightgray", "transparent");
+                PlotGraph(rule, svg, scale, "lightgray", "transparent");
                 LabelXRule(v, svg, unitsY);
             }
             for (double v = RoundUp(bounds.Top, unitsY); v < bounds.Bottom; v += unitsY)
@@ -154,7 +156,7 @@ namespace Plotter
                     new Coordinate(bounds.Right, v)
                 };
 
-                PlotGraph(rule, svg, bounds, scale, "lightgray", "transparent");
+                PlotGraph(rule, svg, scale, "lightgray", "transparent");
                 if (v != 0)
                     LabelYRule(v, svg, unitsX);
             }
@@ -200,7 +202,7 @@ namespace Plotter
 
         private static void PlotGraph
             (List<Coordinate> points, SVGCreator svg,
-            Rectangle bounds, double scale, string penColor,
+            double scale, string penColor,
             string brushColor)
         {
             var ir = svg.AddPath(points, false, penColor, 1.0 / scale, brushColor);

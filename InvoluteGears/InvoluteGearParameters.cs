@@ -886,8 +886,8 @@ public class InvoluteGearParameters : IGearProfile
 
         // Now use the Spline class to do the donkeywork for us
 
-        Spline inner = new Spline(3, involuteFunctions, startAngle, midAngle);
-        Spline outer = new Spline(3, involuteFunctions, midAngle, endAngle);
+        Spline inner = new (3, involuteFunctions, startAngle, midAngle);
+        Spline outer = new (3, involuteFunctions, midAngle, endAngle);
         List<Coordinate> points = new();
 
         // The eight control points for the two Bezier curves are returned
@@ -932,8 +932,8 @@ public class InvoluteGearParameters : IGearProfile
 
         // Now use the Spline class to do the donkeywork for us
 
-        Spline inner = new Spline(3, undercutFunctions, startAngle, midAngle);
-        Spline outer = new Spline(3, undercutFunctions, midAngle, endAngle);
+        Spline inner = new (3, undercutFunctions, startAngle, midAngle);
+        Spline outer = new (3, undercutFunctions, midAngle, endAngle);
         List<Coordinate> points = new();
 
         // The eight control points for the two Bezier curves are returned
@@ -1011,7 +1011,7 @@ public class InvoluteGearParameters : IGearProfile
         // teeth in radians is 2*PI / ToothCount
 
         double gapCentreAngle = (i % ToothCount) * ToothAngle - BacklashAngle;
-        List<IDrawable> elements = new List<IDrawable>();
+        List<IDrawable> elements = new ();
 
         // Add the involute inbound from the addendum
 

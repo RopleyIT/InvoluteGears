@@ -8,17 +8,12 @@
 
     public class DrawableSet : IDrawable
     {
-        public DrawableSet()
-        {
-            Paths = new List<DrawablePath>();
-        }
-
         public DrawableSet Merge(DrawableSet other)
             => Merge(other.Paths);
 
         public DrawableSet Merge(IList<DrawablePath> paths)
         {
-            DrawableSet ds = new DrawableSet
+            DrawableSet ds = new()
             {
                 Paths = this.Paths
             };
@@ -26,21 +21,19 @@
             return ds;
         }
 
-        public IList<DrawablePath> Paths { get; set; }
+        public IList<DrawablePath> Paths { get; set; } = new List<DrawablePath>();
 
-        public Coordinate Start => Paths.Count == 0 ? Coordinate.Empty : Paths[0].Start;
+        public Coordinate Start => Paths.Any() ? Paths[0].Start : Coordinate.Empty;
 
-        public Coordinate End => Paths.Count == 0 ? Coordinate.Empty : Paths[^1].End;
+        public Coordinate End => Paths.Any() ? Paths[^1].End : Coordinate.Empty;
 
         public Rectangle Bounds
         {
             get
             {
-                BoundsTracker tracker = new BoundsTracker();
+                BoundsTracker tracker = new();
                 foreach (var path in Paths)
-                {
                     tracker.Track(path.Bounds);
-                }
                 return tracker.Bounds;
             }
         }
@@ -49,7 +42,7 @@
         {
             var newSet = new DrawableSet();
             newSet.Paths.AddRange
-                (Paths.Select(p => (p.ReflectY() as DrawablePath)));
+                (Paths.Select(p => p.ReflectY() as DrawablePath));
             return newSet;
         }
 
@@ -57,7 +50,7 @@
         {
             var newSet = new DrawableSet();
             newSet.Paths.AddRange
-                (Paths.Select(p => (p.Reversed() as DrawablePath)));
+                (Paths.Select(p => p.Reversed() as DrawablePath));
             return newSet;
         }
 
