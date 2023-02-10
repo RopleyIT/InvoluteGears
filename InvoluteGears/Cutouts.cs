@@ -67,7 +67,7 @@ public class Cutouts
     private int SpokeCount()
     {
         int spokes = 1 + (Gear.ToothCount - 1) / 8;
-        return spokes > 3 ? spokes : 0;
+        return spokes >= 3 ? spokes : 0;
     }
 
     /// <summary>

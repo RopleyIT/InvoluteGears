@@ -149,12 +149,7 @@ public static class Geometry
     /// angle around the pitch circle</returns>
 
     public static Coordinate Epicycloid(double radius, double locusRadius, double phi)
-    {
-        Coordinate locusCentre = Coordinate.FromPolar(radius + locusRadius, phi);
-        double locusAngle = -Math.PI + phi * (1 + radius / locusRadius);
-        Coordinate locus = Coordinate.FromPolar(locusRadius, locusAngle);
-        return locusCentre + locus;
-    }
+        => CycloidPlusOffset(radius, locusRadius, phi, -locusRadius, 0);
 
     /// <summary>
     /// Find point on hypocycloid. A pitch circle of radius 'radius' has a locus
@@ -171,11 +166,43 @@ public static class Geometry
     /// angle around the pitch circle</returns>
 
     public static Coordinate Hypocycloid(double radius, double locusRadius, double phi)
+        => CycloidPlusOffset(radius, -locusRadius, phi, locusRadius, 0);
+
+    /// <summary>
+    /// Given a point at offset [xOff, yOff] relative to the centre of the locus
+    /// circle of radius locusRadius, find the point's new coordinate when the
+    /// locus wheel has rolled around the inside or outside of the main wheel
+    /// so that their line of centres has moved by angle phi. The origin of
+    /// the model [0, 0] is assumed to be the centre of the main wheel,
+    /// meaning that for zero rotation angle, the point of interest is
+    /// at [radius+locusRadius-xOff, yOff]
+    /// </summary>
+    /// <param name="radius">Radius of the pitch circle</param>
+    /// <param name="locusRadius">Radius of the rolling wheel a point on the
+    /// circumference of which traces out the cycloid. For an epicycloid, i.e.
+    /// a locus wheel rolling round the outside of a main wheel, this should
+    /// be positive. For a hypocycloid rolling round the inside of a main
+    /// wheel, the locus radius should be negative.</param>
+    /// <param name="phi">The angle around the pitch circle of the contact
+    /// point between the two circles, also the angle relative to the X
+    /// axis of the line of centres between the two circles</param>
+    /// <param name="xOff">X offset from the centre of the locus circle
+    /// of the point of interest when the locus circle centre lies
+    /// on the X axis. Negative values are back towards the origin,
+    /// positive angles being outward towards the perimeter.</param>
+    /// <param name="yOff">Y offset from the centre of the locus circle
+    /// of the point of interest when the locus circle centre lies
+    /// on the X axis</param>
+    /// <returns>The point's new location corresponding to the selected
+    /// angle around the pitch circle</returns>
+
+    public static Coordinate CycloidPlusOffset
+        (double radius, double locusRadius, double phi, double xOff, double yOff)
     {
-        Coordinate locusCentre = Coordinate.FromPolar(radius - locusRadius, phi);
-        double locusAngle = phi * (1 - radius / locusRadius);
-        Coordinate locus = Coordinate.FromPolar(locusRadius, locusAngle);
-        return locusCentre + locus;
+        Coordinate locusCentre = Coordinate.FromPolar(radius + locusRadius, phi);
+        double locusAngle = phi * (1 + radius / locusRadius);
+        Coordinate offsetPt = new (xOff, yOff);
+        return locusCentre + offsetPt.Rotate(locusAngle);
     }
 
     /// <summary>
