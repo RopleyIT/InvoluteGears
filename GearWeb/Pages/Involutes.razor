@@ -34,16 +34,16 @@
     </div>
     <div class="form-row">
         <div class="form-group col-md-3">
-            <label for="Tolerance">Precision</label>
-            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
-            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
-            <ValidationMessage For="() => GearData.Tolerance" />
-        </div>
-        <div class="form-group col-md-3">
             <label for="PressureAngle">Pressure angle</label>
             <InputText @bind-Value="GearData.PressureAngle" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 14.5" id="PressureAngle" />
             <small class="form-text text-muted">Pressure angle for teeth on gear to nearest 10th of a degree. Common values are 14.5, 20 or 25</small>
             <ValidationMessage For="() => GearData.PressureAngle" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="Tolerance">Precision</label>
+            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
+            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
+            <ValidationMessage For="() => GearData.Tolerance" />
         </div>
         <div class="form-group col-md-3">
             <label for="Module">Module</label>
@@ -86,14 +86,15 @@
     </div>
     <div class="form-row">
         <div class="form-group col-md-3">
+            <!--<label for="Radial">Radial profile below base circle</label>
+            <InputCheckbox @bind-Value="GearData.Radial" class="form-control" id="Radial" />
+            <small class="form-text text-muted">Check to show radial profile below base circle, leave unchecked for undercut trochoid</small>-->
+            &nbsp;
+        </div>
+        <div class="form-group col-md-3">
             <label for="ShowCircles">Show construction</label>
             <InputCheckbox @bind-Value="GearData.ShowCircles" class="form-control" id="ShowCircles" />
             <small class="form-text text-muted">Check to show base, pitch, addendum and dedendum circles</small>
-        </div>
-        <div class="form-group col-md-3">
-            <label for="Radial">Radial profile below base circle</label>
-            <InputCheckbox @bind-Value="GearData.Radial" class="form-control" id="Radial" />
-            <small class="form-text text-muted">Check to show radial profile below base circle, leave unchecked for undercut trochoid</small>
         </div>
         <div class="col-md-3">
             <label for="WhichGears">Choose which gear or gears to draw</label><br/>

@@ -8,35 +8,35 @@
     <DataAnnotationsValidator />
     <div class="form-row">
         <div class="form-group col-md-3">
-            <label for="Teeth">Number of teeth</label>
+            <label for="Teeth">Number of teeth in left gear</label>
             <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
-            <small class="form-text text-muted">The number of teeth on the gear. Minimum value is 6.</small>
+            <small class="form-text text-muted">The number of teeth on the left gear. Minimum value is 6.</small>
             <ValidationMessage For="() => GearData.Teeth" />
         </div>
         <div class="form-group col-md-3">
-            <label for="OpposingTeeth">Number of teeth in opposite gear</label>
+            <label for="OpposingTeeth">Number of teeth in right gear</label>
             <InputNumber @bind-Value="GearData.OpposingTeeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="OpposingTeeth" />
-            <small class="form-text text-muted">The number of teeth on the opposing gear. Minimum value is 6</small>
+            <small class="form-text text-muted">The number of teeth on the right gear. Minimum value is 6</small>
             <ValidationMessage For="() => GearData.OpposingTeeth" />
         </div>
         <div class="form-group col-md-3">
-            <label for="ToothBlunting">Addendum blunting</label>
+            <label for="ToothBlunting">Addendum blunting of left gear</label>
             <InputNumber @bind-Value="GearData.ToothBlunting" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer, 0..100" id="ToothBlunting" />
-            <small class="form-text text-muted">Percentage of width of raised tooth flattened at top of tooth</small>
+            <small class="form-text text-muted">Percentage of width of raised tooth flattened at top of tooth on left gear</small>
             <ValidationMessage For="() => GearData.ToothBlunting" />
         </div>
         <div class="form-group col-md-3">
-            <label for="OpposingToothBlunting">Opposite tooth addendum blunting</label>
+            <label for="OpposingToothBlunting">Addendum blunting of right gear</label>
             <InputNumber @bind-Value="GearData.OpposingToothBlunting" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer, 0..100" id="OpposingToothBlunting" />
-            <small class="form-text text-muted">Percentage of width of opposite tooth flattened at top of tooth</small>
+            <small class="form-text text-muted">Percentage of width of  tooth flattened at top of tooth on right gear</small>
             <ValidationMessage For="() => GearData.OpposingToothBlunting" />
         </div>
     </div>
     <div class="form-row">
-        <div class="col-md-3">
-            <label for="SwapGears">Switch the two gears</label><br/>
+        <div class="col-md-3">&nbsp;
+            <!--<label for="SwapGears">Switch the two gears</label><br/>
             <button class="btn btn-primary" id="SwapGears" @onclick="SwapGears">Switch gears</button>
-            <small class="form-text text-muted">Swap the details of the two gears to plot the opposing gear</small>
+            <small class="form-text text-muted">Swap the details of the two gears to plot the opposing gear</small>-->
         </div>
         <div class="form-group col-md-3">
             <label for="Tolerance">Precision</label>
@@ -84,11 +84,35 @@
         </div>
     </div>
     <div class="form-row">
+        <div class="col-md-6">&nbsp;</div>
         <div class="col-md-3">
-            <button type="submit" class="btn btn-primary">Generate</button>
+            <label for="WhichGears">Choose which gear or gears to draw</label><br />
+            <InputSelect class="form-select" @bind-Value="GearData.WhichGears" id="WhichGears">
+                <option selected value="1">Left gear</option>
+                <option selected value="2">Right gear</option>
+                <option selected value="3">Both gears</option>
+                <option selected value="0">Meshing</option>
+            </InputSelect>
+            <small class="form-text text-muted">
+                Left or right options plot single gears.
+                Both plots the two gears meshed. Meshing shows the meshing teeth close-up.
+            </small>
         </div>
-        <div class="col-md-9">
-            <a class="btn btn-primary" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary">Draw</button>
+        </div>
+        <div class="col-md-2">
+            @if (CanDownload)
+            {
+                <a class="btn btn-primary" target="_top" href="@SvgUrl">Download SVG</a>
+            }
+            else
+            {
+                <span>
+                    Select 'Left gear' or 'Right gear' to be
+                    able to download the corresponding SVG file
+                </span>
+            }
         </div>
     </div>
 </EditForm>
@@ -108,30 +132,34 @@
         <div class="card-body">
             <h5 class="card-title">Cycloidal spur gear</h5>
             <p class="card-text">@ImageDescription</p>
+            @if (hasTwoGears)
+            {
+                <div>
+                    <button class="btn btn-primary" @onclick="NextImage">Next</button>
+                    <button class="btn btn-outline-primary" @onclick="PrevImage">Previous</button>
+                </div>
+            }
         </div>
         @InvImage
     </div>
 }
 
 @code {
+    bool TwoGears() => GearData != null && (GearData.WhichGears == 0 || GearData.WhichGears == 3);
+    bool hasTwoGears = false;
     bool IsDisabled = true;
+    bool CanDownload = false;
     CycloidParams GearData = new ();
+    GearProfiles gearProfile = null;
     MarkupString InvImage = new();
     MarkupString ImageDescription = new MarkupString(string.Empty);
     MarkupString Errors = new MarkupString(string.Empty);
     string SVG = string.Empty;
     string SvgUrl = "/";
-
-    void SwapGears()
-    {
-        int teeth = GearData.Teeth;
-        GearData.Teeth = GearData.OpposingTeeth;
-        GearData.OpposingTeeth = teeth;
-        int blunting = GearData.ToothBlunting;
-        GearData.ToothBlunting = GearData.OpposingToothBlunting;
-        GearData.OpposingToothBlunting = blunting;
-    }
-
+    int imageIndex = 0;
+    void NextImage() { InvImage = new(gearProfile.SvgPlot[(++imageIndex) & 0x3F]); }
+    void PrevImage() { InvImage = new(gearProfile.SvgPlot[(--imageIndex) & 0x3F]); }
+    
     void Generate(EditContext ctx)
     {
         IsDisabled = true;
@@ -139,14 +167,17 @@
         {
             try
             {
-                var gearProfile = GearAPI.CalcCycloidImage(GearData);
+                imageIndex = 0;
+                gearProfile = GearAPI.CalcCycloidImage(GearData);
                 ImageDescription = Program.ToHtmlText(gearProfile.Description);
                 Errors = Program.ToHtmlText(gearProfile.Errors);
-                InvImage = new(gearProfile.SvgPlot[0]);
+                InvImage = new(gearProfile.SvgPlot[imageIndex]);
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id=" 
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
                 IsDisabled = false;
+                hasTwoGears = TwoGears();
+                CanDownload = GearData.WhichGears < 3 && GearData.WhichGears > 0;
             }
             catch (Exception x)
             {

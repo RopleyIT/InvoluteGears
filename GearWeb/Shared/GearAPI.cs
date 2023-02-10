@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using TwoDimensionLib;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GearWeb.Shared
 {
@@ -71,25 +72,69 @@ namespace GearWeb.Shared
         {
             if (gParams == null)
                 throw new ArgumentNullException(nameof(gParams));
+            Cutouts cutoutCalculator = BuildCycloidalGear(gParams, false);
+            Cutouts opposingCutoutCalculator = BuildCycloidalGear(gParams, true);
 
+
+            switch (gParams.WhichGears)
+            {
+                case 1: // Left or primary gear
+                    return CreateGearPlot(cutoutCalculator);
+                case 2: // Right or opposing gear
+                    return CreateGearPlot(opposingCutoutCalculator);
+                case 0: // Meshing
+                    return CreateSequencedGearPlots
+                        (cutoutCalculator, opposingCutoutCalculator, true);
+                case 3: // Both full gears
+                    return CreateSequencedGearPlots
+                        (cutoutCalculator, opposingCutoutCalculator, false);
+                default:
+                    return CreateGearPlot(cutoutCalculator); // Temporarily
+            }
+        }
+
+        private static Cutouts BuildCycloidalGear(CycloidParams gParams, bool swapGears)
+        {
+            CycloidParams gp = new CycloidParams()
+            {
+                Backlash = gParams.Backlash,
+                CutterDiameter = gParams.CutterDiameter,
+                InlayDiameter = gParams.InlayDiameter,
+                KeyFlatWidth = gParams.KeyFlatWidth,
+                Module = gParams.Module,
+                Tolerance = gParams.Tolerance,
+                SpindleDiameter = gParams.SpindleDiameter,
+                WhichGears = gParams.WhichGears,
+            };
+            if (swapGears)
+            {
+                gp.Teeth = gParams.OpposingTeeth;
+                gp.ToothBlunting = gParams.OpposingToothBlunting;
+                gp.OpposingTeeth = gParams.Teeth;
+                gp.OpposingToothBlunting = gParams.ToothBlunting;
+            }
+            else 
+            {
+                gp.OpposingTeeth = gParams.OpposingTeeth;
+                gp.OpposingToothBlunting = gParams.OpposingToothBlunting;
+                gp.Teeth = gParams.Teeth;
+                gp.ToothBlunting = gParams.ToothBlunting;
+            }
             CycloidalGear gear = new(
-                gParams.Teeth,
-                gParams.OpposingTeeth,
-                gParams.ToothBlunting / 100.0,
-                gParams.OpposingToothBlunting / 100.0,
-                double.Parse(gParams.Module),
-                double.Parse(gParams.Tolerance),
-                double.Parse(gParams.Backlash) / double.Parse(gParams.Module),
-                double.Parse(gParams.CutterDiameter));
+               gp.Teeth,
+               gp.OpposingTeeth,
+               gp.ToothBlunting / 100.0,
+               gp.OpposingToothBlunting / 100.0,
+               double.Parse(gp.Module),
+               double.Parse(gp.Tolerance),
+               double.Parse(gp.Backlash) / double.Parse(gp.Module),
+               double.Parse(gp.CutterDiameter));
 
-            Cutouts cutoutCalculator = new(
+            return new(
                 gear,
-                double.Parse(gParams.SpindleDiameter),
-                double.Parse(gParams.InlayDiameter),
-                double.Parse(gParams.KeyFlatWidth));
-
-            return CreateGearPlot(cutoutCalculator);
-            //return CreateGearPlot(cutoutCalculator, gear.AddendumDiameter, false);
+                double.Parse(gp.SpindleDiameter),
+                double.Parse(gp.InlayDiameter),
+                double.Parse(gp.KeyFlatWidth));
         }
 
         public static Stream CalcInvoluteSvgZip(GearParams gParams)

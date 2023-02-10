@@ -382,7 +382,7 @@ namespace InvoluteGears
 
         public IEnumerable<Coordinate> ToothProfile(int gap)
             => oneToothProfile
-                .Rotated((gap % ToothCount) * ToothAngle);
+                .Rotated((gap % ToothCount) * ToothAngle + ToothAngle/4);
 
         /// <summary>
         /// Generate the complete path of
