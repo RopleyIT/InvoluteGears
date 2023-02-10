@@ -16,21 +16,23 @@ namespace GearWeb.Shared
                 (gParams.Teeth, gParams.ProfileShift, gParams);
             Cutouts opposingCutoutCalculator = BuildGear
                 (gParams.OpposingTeeth, gParams.OpposingProfileShift, gParams);
+            return GenerateProfiles
+                (gParams.WhichGears, cutoutCalculator, opposingCutoutCalculator);
+        }
 
-            switch (gParams.WhichGears)
+        private static GearProfiles GenerateProfiles(int whichGears, Cutouts left, Cutouts right)
+        {
+            switch (whichGears)
             {
                 case 1: // Left or primary gear
-                    return CreateGearPlot(cutoutCalculator);
-                case 2: // Right or opposing gear
-                    return CreateGearPlot(opposingCutoutCalculator);
-                case 0: // Meshing
-                    return CreateSequencedGearPlots
-                        (cutoutCalculator, opposingCutoutCalculator, true);
-                case 3: // Both full gears
-                    return CreateSequencedGearPlots
-                        (cutoutCalculator, opposingCutoutCalculator, false);
                 default:
-                    return CreateGearPlot(cutoutCalculator); // Temporarily
+                    return CreateGearPlot(left);
+                case 2: // Right or opposing gear
+                    return CreateGearPlot(right);
+                case 0: // Meshing
+                    return CreateSequencedGearPlots(left, right, true);
+                case 3: // Both full gears
+                    return CreateSequencedGearPlots(left, right, false);
             }
         }
 
@@ -74,23 +76,7 @@ namespace GearWeb.Shared
                 throw new ArgumentNullException(nameof(gParams));
             Cutouts cutoutCalculator = BuildCycloidalGear(gParams, false);
             Cutouts opposingCutoutCalculator = BuildCycloidalGear(gParams, true);
-
-
-            switch (gParams.WhichGears)
-            {
-                case 1: // Left or primary gear
-                    return CreateGearPlot(cutoutCalculator);
-                case 2: // Right or opposing gear
-                    return CreateGearPlot(opposingCutoutCalculator);
-                case 0: // Meshing
-                    return CreateSequencedGearPlots
-                        (cutoutCalculator, opposingCutoutCalculator, true);
-                case 3: // Both full gears
-                    return CreateSequencedGearPlots
-                        (cutoutCalculator, opposingCutoutCalculator, false);
-                default:
-                    return CreateGearPlot(cutoutCalculator); // Temporarily
-            }
+            return GenerateProfiles(gParams.WhichGears, cutoutCalculator, opposingCutoutCalculator);
         }
 
         private static Cutouts BuildCycloidalGear(CycloidParams gParams, bool swapGears)
