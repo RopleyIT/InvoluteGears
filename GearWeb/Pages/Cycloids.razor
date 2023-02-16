@@ -22,13 +22,13 @@
         <div class="form-group col-md-3">
             <label for="ToothBlunting">Addendum blunting of left gear</label>
             <InputNumber @bind-Value="GearData.ToothBlunting" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer, 0..100" id="ToothBlunting" />
-            <small class="form-text text-muted">Percentage of width of raised tooth flattened at top of tooth on left gear</small>
+            <small class="form-text text-muted">Percentage of width of zero-backlash raised tooth flattened at top of tooth on left gear. Backlash will reduce blunting as tooth already shortened.</small>
             <ValidationMessage For="() => GearData.ToothBlunting" />
         </div>
         <div class="form-group col-md-3">
             <label for="OpposingToothBlunting">Addendum blunting of right gear</label>
             <InputNumber @bind-Value="GearData.OpposingToothBlunting" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer, 0..100" id="OpposingToothBlunting" />
-            <small class="form-text text-muted">Percentage of width of  tooth flattened at top of tooth on right gear</small>
+            <small class="form-text text-muted">Percentage of width of zero-backlash tooth flattened at top of tooth on right gear. Backlash will reduce blunting as tooth already shortened.</small>
             <ValidationMessage For="() => GearData.OpposingToothBlunting" />
         </div>
     </div>

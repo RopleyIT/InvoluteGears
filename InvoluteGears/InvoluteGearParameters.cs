@@ -709,7 +709,7 @@ public class InvoluteGearParameters : IGearProfile
             UndercutPoints[undercutCorrectionIdx].Y + dy);
     }
 
-    readonly IList<CubicSpline> InvoluteSplines = new List<CubicSpline>(2);
+    private readonly IList<CubicSpline> InvoluteSplines = new List<CubicSpline>(2);
     CircularArc? AddendumCurve = null;
     CircularArc? DedendumCurve = null;
     CircularArc? UndercutAdjustment = null;
