@@ -317,7 +317,7 @@ public class ChainSprocket : IGearProfile
             .SelectMany(p => p);
 
     public DrawablePath GenerateGearCurve() =>
-        new DrawablePath
+        new()
         {
             Curves = new List<IDrawable>
                 {
@@ -330,7 +330,7 @@ public class ChainSprocket : IGearProfile
         };
 
     public DrawablePath GenerateInnerGearCurve()
-        => new DrawablePath
+        => new()
         {
             Curves = new List<IDrawable>
             {

@@ -151,7 +151,6 @@ namespace TwoDLibTests
             Assert.AreEqual(-135, d.Degrees, 1e-6);
             Assert.AreEqual(135, e.Degrees, 1e-6);
             Assert.AreEqual(135, f.Degrees, 1e-6);
-            double r3 = Math.Sqrt(3);
         }
     }
 }

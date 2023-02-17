@@ -63,13 +63,13 @@ public class Angle
 
     public double Cosec => 1 / imaginary;
 
-    public static Angle operator -(Angle a) => new Angle
+    public static Angle operator -(Angle a) => new()
     {
         real = a.real,
         imaginary = -a.imaginary
     };
 
-    public static Angle operator +(Angle a, Angle b) => new Angle
+    public static Angle operator +(Angle a, Angle b) => new()
     {
         real = a.real * b.real - a.imaginary * b.imaginary,
         imaginary = a.real * b.imaginary + b.real * a.imaginary

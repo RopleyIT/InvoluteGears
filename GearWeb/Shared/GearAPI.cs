@@ -22,18 +22,17 @@ namespace GearWeb.Shared
 
         private static GearProfiles GenerateProfiles(int whichGears, Cutouts left, Cutouts right)
         {
-            switch (whichGears)
+            return whichGears switch
             {
-                case 1: // Left or primary gear
-                default:
-                    return CreateGearPlot(left);
-                case 2: // Right or opposing gear
-                    return CreateGearPlot(right);
-                case 0: // Meshing
-                    return CreateSequencedGearPlots(left, right, true);
-                case 3: // Both full gears
-                    return CreateSequencedGearPlots(left, right, false);
-            }
+                // Right or opposing gear
+                2 => CreateGearPlot(right),
+                // Meshing
+                0 => CreateSequencedGearPlots(left, right, true),
+                // Both full gears
+                3 => CreateSequencedGearPlots(left, right, false),
+                // Left or primary gear
+                _ => CreateGearPlot(left),
+            };
         }
 
         private static Cutouts BuildGear(int teeth, string profileShift, GearParams gp)
@@ -81,7 +80,7 @@ namespace GearWeb.Shared
 
         private static Cutouts BuildCycloidalGear(CycloidParams gParams, bool swapGears)
         {
-            CycloidParams gp = new CycloidParams()
+            CycloidParams gp = new()
             {
                 Backlash = gParams.Backlash,
                 CutterDiameter = gParams.CutterDiameter,
@@ -181,8 +180,8 @@ namespace GearWeb.Shared
 
             if (string.IsNullOrWhiteSpace(profiles.Errors))
             {
-                List<string> strokes = new List<string>(cutout.StrokeColours);
-                List<string> fills = new List<string>(cutout.FillColours);
+                List<string> strokes = new(cutout.StrokeColours);
+                List<string> fills = new(cutout.FillColours);
 
                 // Find the square that contains the whole plot
 
@@ -246,15 +245,15 @@ namespace GearWeb.Shared
 
             if (string.IsNullOrWhiteSpace(profiles.Errors))
             {
-                List<string> strokes = new List<string>(cutoutCalculator.StrokeColours);
-                List<string> fills = new List<string>(cutoutCalculator.FillColours);
+                List<string> strokes = new(cutoutCalculator.StrokeColours);
+                List<string> fills = new(cutoutCalculator.FillColours);
 
                 // Find the square that contains the whole plot
 
                 Rectangle bounds = cutoutCalculator.Curves.Bounds;
                 double size = Math.Max(bounds.Width, bounds.Height);
 
-                DrawableSet dPaths = new DrawableSet
+                DrawableSet dPaths = new()
                 {
                     Paths = new List<DrawablePath>
                         (cutoutCalculator.Curves.Paths)

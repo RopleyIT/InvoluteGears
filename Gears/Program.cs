@@ -302,8 +302,7 @@ internal class Program
         // Now create the Bezier control points
 
         var baseCircleRadius = module * teeth / 2.0 * Math.Cos(pressureAngle);
-        Func<double, Coordinate> bezFunc =
-            v => new Coordinate(
+        Coordinate bezFunc(double v) => new(
                 baseCircleRadius * (Math.Cos(v) + v * Math.Sin(v)) + offX * Math.Cos(v),
                 baseCircleRadius * (Math.Sin(v) - v * Math.Cos(v)) + offX * Math.Sin(v));
         double dedendumRadius = Math.Max
@@ -325,7 +324,7 @@ internal class Program
         if (startAngle <= 0)
             startAngle += (endAngle - startAngle) * 0.01; // Avoid the pole
         double midAngle = startAngle + 0.25 * (endAngle - startAngle);
-        Spline involuteSpline = new Spline(3, bezFunc, startAngle, midAngle);
+        Spline involuteSpline = new(3, bezFunc, startAngle, midAngle);
         var coordsInner = involuteSpline.ControlPoints;
 
         involuteSpline = new Spline(3, bezFunc, midAngle, endAngle);
@@ -333,9 +332,9 @@ internal class Program
 
         // Now plot a graph
 
-        SVGCreator svg = new SVGCreator();
+        SVGCreator svg = new();
         svg.AddPath(lineSegs, false, "black", 0.1, "transparent");
-        SVGPath bez = new SVGPath();
+        SVGPath bez = new();
         bez.MoveTo(coordsInner[0]);
         bez.Cubic(coordsInner[1].X, coordsInner[1].Y, coordsInner[2].X, coordsInner[2].Y,
             coordsInner[3].X, coordsInner[3].Y);
@@ -351,7 +350,7 @@ internal class Program
 
         // Write out the plot
 
-        using StreamWriter sw = new StreamWriter("bezier.svg");
+        using StreamWriter sw = new("bezier.svg");
         sw.WriteLine(svg.ToString());
         sw.Close();
     }
