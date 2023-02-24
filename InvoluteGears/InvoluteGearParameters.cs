@@ -973,31 +973,43 @@ public class InvoluteGearParameters : IGearProfile
     /// </summary>
     /// <returns>The path for the whole gear circumference</returns>
 
-    public DrawablePath GenerateGearCurve()
+    public DrawableSet GenerateGearCurves()
     {
         if (linesOnly)
         {
-            return new DrawablePath
+            return new DrawableSet
             {
-                Curves = new List<IDrawable>
+                Paths = new List<DrawablePath>
                 {
-                    new PolyLine
+                    new DrawablePath
                     {
-                        Vertices = GenerateCompleteGearPath().ToList()
+                        Curves = new List<IDrawable>
+                        {
+                            new PolyLine
+                            {
+                                Vertices = GenerateCompleteGearPath().ToList()
+                            }
+                        },
+                        Closed = true
                     }
-                },
-                Closed = true
+                }
             };
         }
         else
         {
-            return new DrawablePath
+            return new DrawableSet
             {
-                Curves = new List<IDrawable>(Enumerable
-                    .Range(0, ToothCount)
-                    .Select(i => GeneratePathElementsForOnePitch(i))
-                    .SelectMany(ep => ep)),
-                Closed = true
+                Paths = new List<DrawablePath>
+                {
+                    new DrawablePath
+                    {
+                        Curves = new List<IDrawable>(Enumerable
+                            .Range(0, ToothCount)
+                            .Select(i => GeneratePathElementsForOnePitch(i))
+                            .SelectMany(ep => ep)),
+                        Closed = true
+                    }
+                }
             };
         }
     }

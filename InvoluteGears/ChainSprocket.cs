@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization.Metadata;
+using System.Xml.Schema;
 using TwoDimensionLib;
 
 namespace InvoluteGears;
@@ -18,23 +20,23 @@ public class ChainSprocket : IGearProfile
         CutDiameter = cutDiameter;
         Errors = String.Empty;
         Information = SetInformation();
-        var curves = CalculatePoints();
-        OuterToothProfile = Geometry.LinearReduction
-            (curves.outer, MaxError);
-        InnerToothProfile = Geometry.LinearReduction
-            (curves.inner, MaxError);
+        //var curves = CalculatePoints();
+        //OuterToothProfile = Geometry.LinearReduction
+        //    (curves.outer, MaxError);
+        //InnerToothProfile = Geometry.LinearReduction
+        //    (curves.inner, MaxError);
     }
 
     private string SetInformation()
     {
         var info = $"Sprocket: {ToothCount} teeth, link thickness = {WireThickness}mm\r\n";
         info += $"precision = {MaxError}mm, inner length = {InnerLinkLength}mm\r\n";
-        info += $"outer width = {OuterLinkWidth}mm\r\n";
+        info += $"outer width = {OuterLinkWidth}mm, backlash = {Backlash}mm\r\n";
         return info;
     }
 
     public string ShortName
-        => $"St{ToothCount}w{WireThickness:N2}e{MaxError:N2}i{InnerLinkLength:N2}o{OuterLinkWidth:N2}";
+        => $"St{ToothCount}w{WireThickness:N2}e{MaxError:N2}i{InnerLinkLength:N2}o{OuterLinkWidth:N2}b{Backlash:N2}";
 
     public string Information { get; private set; }
 
@@ -55,6 +57,9 @@ public class ChainSprocket : IGearProfile
     /// </summary>
 
     public int ToothCount { get; private set; }
+
+    public double ToothAngle
+        => 2 * Math.PI / ToothCount;
 
     /// <summary>
     /// The distance across the width of a chain link
@@ -316,17 +321,15 @@ public class ChainSprocket : IGearProfile
             .Select(i => ToothProfile(i, false))
             .SelectMany(p => p);
 
-    public DrawablePath GenerateGearCurve() =>
+    public DrawableSet GenerateGearCurves() =>
         new()
         {
-            Curves = new List<IDrawable>
-                {
-                    new PolyLine
-                    {
-                        Vertices = GenerateCompleteGearPath().ToList()
-                    }
-                },
-            Closed = true
+            Paths = new List<DrawablePath>
+            {
+                PinProfile(), // Temporary to test shoulder profile
+                ShoulderProfile(),
+                RimProfile()
+            }
         };
 
     public DrawablePath GenerateInnerGearCurve()
@@ -341,4 +344,256 @@ public class ChainSprocket : IGearProfile
             },
             Closed = true
         };
+
+    // New functions
+    //
+    // A chain has wire links made of two semicircles joined by two
+    // parallel straight wires from their tips. The inside length
+    // of the links is InnerLinkLength. The outside width of a link
+    // across the parallel sides is OuterLinkWidth. The diameter of
+    // the wire is WireThickness. The number of links around each
+    // sprocket is ToothCount, but given alternate links are normal
+    // then coplanar with the plane of the sprocket, the tooth
+    // pattern around the gear repeats ToothCount/2 times.
+    //
+    // We assume a link is pulled on the sprocket so that the plane
+    // in which it lies includes the centre of curvature for the
+    // semicircular end of the next link, whose plane is normal to
+    // the plane of the first link.
+
+    double normalRadius = 0;    // Distance from centre of sprocket to
+                                // centreline of link that lies at
+                                // right angles to the plane of gear
+    double innerArcRadius= 0;   // Radius of arc drawn beneath the
+                                // coplanar link as a recess for it
+    Coordinate innerArcCentre;  // Centre of the inner arc
+
+    /// <summary>
+    /// Generate the closed path for the wheel rim
+    /// at layers 1 and 5 of the chain sprocket
+    /// </summary>
+    /// <returns>The path for the circular rime</returns>
+    
+    private DrawablePath RimProfile()
+    {
+        double n = (InnerLinkLength + OuterLinkWidth) / 2 - WireThickness;
+        double m = (InnerLinkLength - OuterLinkWidth) / 2 + WireThickness;
+        double cosTooth = Math.Cos(ToothAngle/2);
+        double sinTooth = Math.Sin(ToothAngle/2);
+        normalRadius = (m + n * cosTooth) / sinTooth;
+        double rimRadius = Geometry.RootDiffOfSquares(normalRadius, n) 
+            + OuterLinkWidth / 2;
+        return CircularArc.Circle(rimRadius);
+    }
+
+    /// <summary>
+    /// Generate an entire gear path for the
+    /// shoulder part of the chain sprocket,
+    /// which forms layers 2 and 4 of the gear
+    /// </summary>
+    /// <returns>A drawable closed path for the
+    /// pin part of the sprocket</returns>
+
+    private DrawablePath ShoulderProfile()
+    {
+        IList<IDrawable> oneShoulder = OneShoulderProfile();
+        DrawablePath profile = new DrawablePath
+        {
+            Closed = true,
+            Curves = new List<IDrawable>()
+        };
+        for (int i = 0; i < ToothCount; i++)
+        {
+            profile.Curves.AddRange
+                (oneShoulder.Select(d => d.RotatedBy
+                    (i * ToothAngle, Coordinate.Empty)));
+        }
+        return profile;
+    }
+
+    /// <summary>
+    /// Compute the shape of the first shoulder profile. A gear
+    /// is made up of an outer rim at layers 1 and 5, shoulders
+    /// at layers 2 and 4, and pins at layer 3.
+    /// </summary>
+    /// <returns>The template for the first shoulder. Should
+    /// be replicated every 2 Pi / ToothCount around the 
+    /// circumference. Note that ToothCount is half the number
+    /// of links around the gear as there is a tooth every
+    /// alternate link.
+    /// </returns>
+
+    private IList<IDrawable> OneShoulderProfile()
+    {
+        double n = (InnerLinkLength + OuterLinkWidth) / 2 - WireThickness;
+        double m = (InnerLinkLength - OuterLinkWidth) / 2 + WireThickness;
+        double cosTooth = Math.Cos(ToothAngle/2);
+        double sinTooth = Math.Sin(ToothAngle/2);
+        normalRadius = (m + n * cosTooth) / sinTooth;
+        innerArcRadius = m/cosTooth + OuterLinkWidth/2 + Backlash/2;
+        innerArcCentre = new()
+        {
+            X = normalRadius,
+            Y = normalRadius * sinTooth / cosTooth
+        };
+        double arcAngleOffset = Math.Asin(WireThickness/(2*innerArcRadius));
+        double innerArcStartAngle = 1.5 * Math.PI - arcAngleOffset;
+        double innerArcEndAngle = 0.5 * Math.PI + ToothAngle + arcAngleOffset;
+        Coordinate endOfFlat = innerArcCentre 
+            + Coordinate.FromPolar(innerArcRadius, innerArcStartAngle);
+        Coordinate startOfFlat = endOfFlat.Conjugate;
+
+        // Now use the data to generate one tooth of the gear
+        // profile for the shoulder layers of the gear
+
+        return new List<IDrawable>
+        {
+            new Line(startOfFlat, endOfFlat),
+            new CircularArc
+            {
+                Anticlockwise = false,
+                Centre = innerArcCentre,
+                StartAngle = innerArcStartAngle,
+                EndAngle = innerArcEndAngle,
+                Radius = innerArcRadius
+            }
+        };
+    }
+
+    /// <summary>
+    /// Generate an entire gear path for the
+    /// pin part of the chain sprocket. This
+    /// is the middle (3rd) layer of the gear.
+    /// </summary>
+    /// <returns>A drawable closed path for the
+    /// pin part of the sprocket</returns>
+    
+    private DrawablePath PinProfile()
+    {
+        IList<IDrawable> onePin = OnePinProfile();
+        DrawablePath profile = new DrawablePath
+        {
+            Closed = true,
+            Curves = new List<IDrawable>()
+        };
+        for(int i = 0; i < ToothCount; i++)
+        {
+            profile.Curves.AddRange
+                (onePin.Select(d => d.RotatedBy
+                    (i * ToothAngle, Coordinate.Empty)));
+        }
+        return profile;
+    }
+
+    /// <summary>
+    /// Compute the shape of the middle pin gear profile. A gear
+    /// is made up of an outer rim at layers 1 and 5, shoulders
+    /// at layers 2 and 4, and pins at layer 3.
+    /// </summary>
+    /// <returns>The template for the middle pin wheel. Should
+    /// be replicated every 4 Pi / N around the circumference
+    /// </returns>
+    /// <exception cref="ArgumentException">Chain sprockets
+    /// must have an even tooth count. Thrown if the tooth
+    /// count is odd.</exception>
+    
+    private IList<IDrawable> OnePinProfile()
+    {
+        double n = (InnerLinkLength + OuterLinkWidth) / 2 - WireThickness;
+        double m = (InnerLinkLength - OuterLinkWidth) / 2 + WireThickness;
+        double cosTooth = Math.Cos(ToothAngle / 2);
+        double sinTooth = Math.Sin(ToothAngle / 2);
+        normalRadius = (m + n * cosTooth) / sinTooth;
+        innerArcRadius = m / cosTooth + OuterLinkWidth / 2 + Backlash / 2;
+        innerArcCentre = new()
+        {
+            X = normalRadius,
+            Y = normalRadius * sinTooth / cosTooth
+        };
+        double innerArcStartAngle = 1.5 * Math.PI;
+        double innerArcEndAngle = 0.5 * Math.PI + ToothAngle;
+
+        IList<IDrawable> segments = new List<IDrawable>();
+
+        // The pin or tooth should just glide inside the normal
+        // link as the chain wraps/unwraps from the wheel. It is
+        // assumed that the links slide frictionlessly in the
+        // loop at the end of each link. Backlash should be set
+        // to accommodate the tighter turning angle caused by
+        // friction. The pin is shaped of a sequence of circular
+        // segments that get a larger radius and a different
+        // centre of curvature as each successive link begins
+        // to unwrap from the gear.
+
+        bool done = false;
+        // Radius of the curved face of the tooth
+        double radius = -(OuterLinkWidth + Backlash) / 2;
+        // Distance from gear centre to centre of
+        // curvature for the tooth face
+        double cornerRadius = Geometry
+            .RootSumOfSquares(normalRadius, n);
+        double cornerAngle = Math.Atan2(n, normalRadius);
+        Coordinate curveCtr;
+        for(int i = 0; !done; i++)
+        {
+            double sa = i * ToothAngle/2 - Math.PI / 2;
+            double ea = sa + ToothAngle/2;
+            bool odd = (i & 1) != 0;
+            if (odd)
+            {
+                radius += 2*m;
+                curveCtr = Coordinate.FromPolar
+                    (cornerRadius, (i + 1) * ToothAngle/2 - cornerAngle);
+            }
+            else
+            {
+                radius += 2*n;
+                curveCtr = Coordinate.FromPolar
+                    (cornerRadius, i * ToothAngle/2 + cornerAngle);
+            }
+
+            // Check to see if the end of the compound tooth arc
+            // lies in this curve segment. We calculate the angle
+            // from the current curve centre to the Y=0 axis.
+
+            double crossingAngle = Math.Asin(-curveCtr.Y / radius);
+            if(crossingAngle < ea)
+            {
+                done = true;
+                ea = crossingAngle;
+            }
+
+            segments.Add(new CircularArc
+            {
+                Anticlockwise = true,
+                Centre = curveCtr,
+                StartAngle = sa,
+                EndAngle = ea,
+                Radius = radius
+            });
+        }
+
+        // Construct the other side of the tooth
+
+        IList<IDrawable> otherSideOfTooth = segments
+            .Reverse()
+            .Select(d => d.ReflectY().Reversed())
+            .ToList();
+
+        segments.AddRange(otherSideOfTooth);
+
+        // Generate the valley in which one side of the
+        // coplanar link sits when wrapped around the gear
+
+        segments.Add(new CircularArc
+        {
+            Anticlockwise = false,
+            Centre = innerArcCentre,
+            StartAngle = innerArcStartAngle,
+            EndAngle = innerArcEndAngle,
+            Radius = innerArcRadius
+        });
+
+        return segments;
+    }
 }

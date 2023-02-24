@@ -248,17 +248,24 @@ public class EscapeGearParameters : IGearProfile
             .Select(i => ToothProfile(i))
             .SelectMany(p => p);
 
-    public DrawablePath GenerateGearCurve()
-        => new DrawablePath
+    public DrawableSet GenerateGearCurves()
+        => new DrawableSet
         {
-            Curves = new List<IDrawable>
+            Paths = new List<DrawablePath>
             {
-                new PolyLine
+                new DrawablePath
                 {
-                    Vertices = new List<Coordinate>(GenerateCompleteGearPath())
+                    Curves = new List<IDrawable>
+                    {
+                        new PolyLine
+                        {
+                            Vertices = new List<Coordinate>
+                                (GenerateCompleteGearPath())
+                        }
+                    },
+                    Closed = true
                 }
-            },
-            Closed = true
+            }
         };
 
     /// <summary>

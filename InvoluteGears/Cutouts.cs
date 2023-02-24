@@ -91,8 +91,7 @@ public class Cutouts
 
         // First curve is the gear teeth profile
 
-        Curves = new DrawableSet();
-        AddCurve(gear.GenerateGearCurve(), "black", "transparent");
+        Curves = gear.GenerateGearCurves(); // TODO: "black", "transparent"
 
         // Next add any cutouts in the gear
 
@@ -175,7 +174,7 @@ public class Cutouts
     /// in the middle of the gear</returns>
 
     private DrawablePath CalculateSpindleCurve()
-        => CircularCurve(SpindleDiameter / 2, Coordinate.Empty);
+        => CircularArc.Circle(SpindleDiameter / 2, Coordinate.Empty);
 
     /// <summary>
     /// Calculate the drawable that forms the inlaid circle
@@ -183,49 +182,7 @@ public class Cutouts
     /// <returns>A circular arc for the inlay</returns>
 
     private DrawablePath CalculateInlayCurve()
-        => CircularCurve(InlayDiameter / 2, Coordinate.Empty);
-
-    /// <summary>
-    /// Using circular arc drawing paths, create a circle
-    /// of the specified radius at the chosen coordinate
-    /// </summary>
-    /// <param name="radius">Circle radius</param>
-    /// <param name="centre">COordinate of circle centre</param>
-    /// <returns>The closed shape that is the circle</returns>
-
-    public static DrawablePath CircularCurve(double radius, Coordinate centre)
-        => new()
-        {
-            Curves = new List<IDrawable>
-            {
-                new CircularArc
-                {
-                    StartAngle = 0,
-                    EndAngle = Math.PI,
-                    Anticlockwise = true,
-                    Centre = centre,
-                    Radius = radius,
-                },
-                new CircularArc
-                {
-                    StartAngle = Math.PI,
-                    EndAngle = 2 * Math.PI - Geometry.AngleStep,
-                    Anticlockwise = true,
-                    Centre = centre,
-                    Radius = radius,
-                }
-            },
-            Closed = true
-        };
-
-    /// <summary>
-    /// Default centre of new circle at the origin
-    /// </summary>
-    /// <param name="radius">Radius of the origin-centred circle</param>
-    /// <returns>The circular curve</returns>
-
-    public static DrawablePath CircularCurve(double radius)
-        => CircularCurve(radius, Coordinate.Empty);
+        => CircularArc.Circle(InlayDiameter / 2, Coordinate.Empty);
 
     private IList<DrawablePath> CalculateCutoutCurves(int spokes)
     {

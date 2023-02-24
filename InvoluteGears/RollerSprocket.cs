@@ -260,15 +260,22 @@ public class RollerSprocket : IGearProfile
         return Math.Atan2(my - ry, mx - rx);
     }
 
-    public DrawablePath GenerateGearCurve()
-        => new DrawablePath
+    public DrawableSet GenerateGearCurves()
+        => new DrawableSet
         {
-            Curves = new List<IDrawable>
+            Paths = new List<DrawablePath>
             {
-                new PolyLine
+                new DrawablePath
                 {
-                    Vertices = GenerateCompleteGearPath().ToList()
+                    Curves = new List<IDrawable>
+                    {
+                        new PolyLine
+                        {
+                            Vertices = GenerateCompleteGearPath().ToList()
 
+                        }
+                    },
+                    Closed = true
                 }
             }
         };

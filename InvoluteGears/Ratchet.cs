@@ -161,7 +161,7 @@ public class Ratchet : IGearProfile
             .Select(i => ToothProfile(i))
             .SelectMany(p => p);
 
-    public DrawablePath GenerateGearCurve()
+    public DrawableSet GenerateGearCurves()
     {
         throw new NotImplementedException();
     }

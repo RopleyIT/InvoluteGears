@@ -58,13 +58,13 @@ namespace GearWeb.Shared
             if (gp.ShowCircles)
             {
                 cutoutCalculator.InsertCurve
-                    (Cutouts.CircularCurve(gear.PitchCircleDiameter / 2), "blue", "transparent");
+                    (CircularArc.Circle(gear.PitchCircleDiameter / 2), "blue", "transparent");
                 cutoutCalculator.InsertCurve
-                    (Cutouts.CircularCurve(gear.BaseCircleDiameter / 2), "green", "transparent");
+                    (CircularArc.Circle(gear.BaseCircleDiameter / 2), "green", "transparent");
                 cutoutCalculator.InsertCurve
-                   (Cutouts.CircularCurve(gear.AddendumCircleDiameter / 2), "red", "transparent");
+                   (CircularArc.Circle(gear.AddendumCircleDiameter / 2), "red", "transparent");
                 cutoutCalculator.InsertCurve
-                   (Cutouts.CircularCurve(gear.DedendumCircleDiameter / 2), "goldenrod", "transparent");
+                   (CircularArc.Circle(gear.DedendumCircleDiameter / 2), "goldenrod", "transparent");
             }
             return cutoutCalculator;
         }
@@ -349,8 +349,10 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            cutoutCalculator.AddCurve
-                (gear.GenerateInnerGearCurve(), "black", "transparent");
+            DrawableSet curves = gear.GenerateGearCurves();
+            foreach (DrawablePath p in curves.Paths)
+                cutoutCalculator.AddCurve
+                    (p, "black", "transparent");
             return CreateGearPlot(cutoutCalculator);
         }
 

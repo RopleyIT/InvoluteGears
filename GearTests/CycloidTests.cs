@@ -31,9 +31,9 @@ namespace GearTests
             );
 
             Assert.IsNotNull(gear);
-            DrawablePath gearPoints = gear.GenerateGearCurve();
+            DrawableSet gearPoints = gear.GenerateGearCurves();
             Assert.IsNotNull(gearPoints);
-            Assert.IsTrue(gearPoints.Curves.Count == 1);
+            Assert.AreEqual(1, gearPoints.Paths.Count);
         }
         [DataTestMethod]
         [DataRow(96, 12, 50, 50, 5.0, 0.01, 0.1, 6.35)]
@@ -57,7 +57,7 @@ namespace GearTests
             );
 
             Assert.IsNotNull(gear);
-            DrawablePath gearPoints = gear.GenerateGearCurve();
+            DrawablePath gearPoints = gear.GenerateGearCurves().Paths[0];
             Assert.IsNotNull(gearPoints);
             Assert.IsTrue(gearPoints.Curves.Count > 0);
         }
