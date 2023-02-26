@@ -19,7 +19,7 @@
         {
             get
             {
-                BoundsTracker b = new BoundsTracker();
+                BoundsTracker b = new ();
                 b.Track(Start);
                 b.Track(End);
                 return b.Bounds;

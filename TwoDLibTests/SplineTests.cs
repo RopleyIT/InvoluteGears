@@ -11,7 +11,7 @@ namespace TwoDLibTests
         public void TestCubicCurve()
         {
             static double xFunc(double x) => x;
-            static double yFunc(double x) 
+            static double yFunc(double x)
                 => 1 / 3.0 * x * x * x - x * x - 8 * x + 7;
 
             List<Coordinate> lineSegs = new();

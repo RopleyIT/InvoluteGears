@@ -261,7 +261,7 @@ public class RollerSprocket : IGearProfile
     }
 
     public DrawableSet GenerateGearCurves()
-        => new DrawableSet
+        => new ()
         {
             Paths = new List<DrawablePath>
             {
@@ -281,7 +281,7 @@ public class RollerSprocket : IGearProfile
         };
 
     public DrawablePath GenerateInnerGearCurve()
-        => new DrawablePath
+        => new ()
         {
             Curves = new List<IDrawable>
             {

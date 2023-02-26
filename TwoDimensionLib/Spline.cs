@@ -28,19 +28,19 @@
         /// coordinate that is its return value
         /// </summary>
 
-        private Func<double, Coordinate> Curve;
+        private readonly Func<double, Coordinate> Curve;
 
         /// <summary>
         /// The lower input value in the range to be mapped
         /// </summary>
 
-        private double StartVal;
+        private readonly double StartVal;
 
         /// <summary>
         /// The upper input value in the range to be mapped
         /// </summary>
 
-        private double EndVal;
+        private readonly double EndVal;
 
         /// <summary>
         /// Constructor, creating the approximation to the
@@ -91,7 +91,7 @@
             // Now map the polynomials so that they produce
             // the curve within the values 0 to 1
 
-            Polynomial mapVToT = new Polynomial(StartVal, EndVal - StartVal);
+            Polynomial mapVToT = new (StartVal, EndVal - StartVal);
             Polynomial xBezier = tax.ApproximationPolynomial
                 .Transform(mapVToT);
             Polynomial yBezier = tay.ApproximationPolynomial

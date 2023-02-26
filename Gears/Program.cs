@@ -100,8 +100,6 @@ internal class Program
         Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
             cutOut.KeyFlatWidth);
-        cutoutCalculator.AddCurve
-            (gear.GenerateInnerGearCurve(), "black", "transparent");
 
         CreateSvgGearPlot(cutoutCalculator);
     }

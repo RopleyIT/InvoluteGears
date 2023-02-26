@@ -22,7 +22,7 @@
                 // area of the bounds to be much closer to
                 // the actual rectangle containing the curve.
 
-                BoundsTracker b = new BoundsTracker();
+                BoundsTracker b = new ();
                 Coordinate midLeft = Geometry.MidPoint(Points[0], Points[1]);
                 Coordinate midRight = Geometry.MidPoint(Points[2], Points[3]);
                 Coordinate midTop = Geometry.MidPoint(Points[1], Points[2]);

@@ -158,15 +158,15 @@ public class ChainSprocket : IGearProfile
     /// at layers 1 and 5 of the chain sprocket
     /// </summary>
     /// <returns>The path for the circular rime</returns>
-    
+
     private DrawablePath RimProfile()
     {
         double n = (InnerLinkLength + WireThickness) / 2;
         double m = (InnerLinkLength - WireThickness) / 2;
-        double cosTooth = Math.Cos(ToothAngle/2);
-        double sinTooth = Math.Sin(ToothAngle/2);
+        double cosTooth = Math.Cos(ToothAngle / 2);
+        double sinTooth = Math.Sin(ToothAngle / 2);
         double normalRadius = (m + n * cosTooth) / sinTooth;
-        double rimRadius = Geometry.RootSumOfSquares(normalRadius, n) 
+        double rimRadius = Geometry.RootSumOfSquares(normalRadius, n)
             + OuterLinkWidth / 2;
         return CircularArc.Circle(rimRadius);
     }
@@ -182,7 +182,7 @@ public class ChainSprocket : IGearProfile
     private DrawablePath ShoulderProfile()
     {
         IList<IDrawable> oneShoulder = OneShoulderProfile();
-        DrawablePath profile = new DrawablePath
+        DrawablePath profile = new ()
         {
             Closed = true,
             Curves = new List<IDrawable>()
@@ -217,11 +217,11 @@ public class ChainSprocket : IGearProfile
         double sinTooth = Math.Sin(ToothAngle / 2);
         double normalRadius = (m + n * cosTooth) / sinTooth;
         Coordinate A = new(normalRadius, n);
-        double BA = 
+        double BA =
             OuterLinkWidth / 2 - 3 * WireThickness / 2;
         Coordinate B = A + Coordinate.FromPolar
             (BA, Math.PI / 2 + ToothAngle / 2);
-        double BE = BA*sinTooth - WireThickness/2;
+        double BE = BA * sinTooth - WireThickness / 2;
         Coordinate C = B + new Coordinate
         {
             X = BE,
@@ -252,7 +252,6 @@ public class ChainSprocket : IGearProfile
             Start = F,
             End = F + vecFG
         });
-        Coordinate K = B + vecFG;
         profile.Add(new CircularArc
         {
             Anticlockwise = false,
@@ -271,16 +270,16 @@ public class ChainSprocket : IGearProfile
     /// </summary>
     /// <returns>A drawable closed path for the
     /// pin part of the sprocket</returns>
-    
+
     private DrawablePath PinProfile()
     {
         IList<IDrawable> onePin = OnePinProfile();
-        DrawablePath profile = new DrawablePath
+        DrawablePath profile = new ()
         {
             Closed = true,
             Curves = new List<IDrawable>()
         };
-        for(int i = 0; i < ToothCount; i++)
+        for (int i = 0; i < ToothCount; i++)
         {
             profile.Curves.AddRange
                 (onePin.Select(d => d.RotatedBy
@@ -300,7 +299,7 @@ public class ChainSprocket : IGearProfile
     /// <exception cref="ArgumentException">Chain sprockets
     /// must have an even tooth count. Thrown if the tooth
     /// count is odd.</exception>
-    
+
     private IList<IDrawable> OnePinProfile()
     {
         List<IDrawable> profile = new(4);

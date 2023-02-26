@@ -22,7 +22,7 @@
                     Geometry.MidPoint(Points[0], Points[1]);
                 Coordinate rightMid =
                     Geometry.MidPoint(Points[1], Points[2]);
-                BoundsTracker b = new BoundsTracker();
+                BoundsTracker b = new ();
                 b.Track(Start);
                 b.Track(End);
                 b.Track(leftMid);

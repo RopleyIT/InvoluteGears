@@ -12,14 +12,14 @@
         {
             get
             {
-                BoundsTracker b = new BoundsTracker();
+                BoundsTracker b = new ();
                 b.Track(Vertices);
                 return b.Bounds;
             }
         }
 
         public void Append(PolyLine p)
-            => p.Vertices.AddRange(p.Vertices);
+            => Vertices.AddRange(p.Vertices);
 
         public IDrawable RotatedBy(double phi, Coordinate pivot)
             => new PolyLine

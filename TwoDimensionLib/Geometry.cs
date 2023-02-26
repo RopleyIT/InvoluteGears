@@ -103,7 +103,7 @@ public static class Geometry
     /// <returns>Midpoint</returns>
 
     public static Coordinate MidPoint(Coordinate l, Coordinate r)
-        => new Coordinate((l.X + r.X) / 2, (l.Y + r.Y) / 2);
+        => new ((l.X + r.X) / 2, (l.Y + r.Y) / 2);
 
     /// <summary>
     /// Convert an angle from degrees to radians
@@ -201,7 +201,7 @@ public static class Geometry
     {
         Coordinate locusCentre = Coordinate.FromPolar(radius + locusRadius, phi);
         double locusAngle = phi * (1 + radius / locusRadius);
-        Coordinate offsetPt = new (xOff, yOff);
+        Coordinate offsetPt = new(xOff, yOff);
         return locusCentre + offsetPt.Rotate(locusAngle);
     }
 

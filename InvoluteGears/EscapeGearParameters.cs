@@ -249,7 +249,7 @@ public class EscapeGearParameters : IGearProfile
             .SelectMany(p => p);
 
     public DrawableSet GenerateGearCurves()
-        => new DrawableSet
+        => new ()
         {
             Paths = new List<DrawablePath>
             {

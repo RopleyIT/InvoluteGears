@@ -25,7 +25,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanCreateMultiTermPoly()
         {
-            Polynomial y = new Polynomial(-1.0, 0.0, 3.5, 4.2);
+            Polynomial y = new (-1.0, 0.0, 3.5, 4.2);
             Assert.AreEqual(4.2, y[3]);
             Assert.AreEqual(-1.0, y[0]);
             Assert.AreEqual(3, y.Order);
@@ -34,7 +34,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanScalePoly()
         {
-            Polynomial y = new Polynomial(-1.0, 0.0, 3.5, 4.2);
+            Polynomial y = new (-1.0, 0.0, 3.5, 4.2);
             Polynomial sy = y.Scale(-2);
             Assert.AreEqual(-8.4, sy[3]);
             Assert.AreEqual(2.0, sy[0]);
@@ -44,7 +44,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void ScaleByZeroAdjustsOrder()
         {
-            Polynomial y = new Polynomial(-1.0, 0.0, 3.5, 4.2);
+            Polynomial y = new (-1.0, 0.0, 3.5, 4.2);
             Polynomial sy = y.Scale(0);
             Assert.AreEqual(0.0, sy[0]);
             Assert.AreEqual(-1, sy.Order);
@@ -72,7 +72,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanEvaluate()
         {
-            Polynomial y = new Polynomial(-1.0, 0.0, 3.5, 4.2);
+            Polynomial y = new (-1.0, 0.0, 3.5, 4.2);
             double v = y.Evaluate(2.1);
             Assert.AreEqual(53.3312, v, 0.0000001);
         }
@@ -80,8 +80,8 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanMap()
         {
-            Polynomial y = new Polynomial(-1.0, 0.0, 3.5, 4.2);
-            Polynomial m = new Polynomial(-1.0, 0.0, 2.0);
+            Polynomial y = new (-1.0, 0.0, 3.5, 4.2);
+            Polynomial m = new (-1.0, 0.0, 2.0);
             Polynomial z = y.Transform(m);
             Assert.AreEqual(6, z.Order);
             Assert.AreEqual(33.6, z[6], 0.00000001);
@@ -96,8 +96,8 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanMultiply()
         {
-            Polynomial y = new Polynomial(-1.0, 0.0, 3.5, 4.2);
-            Polynomial m = new Polynomial(-1.0, 0.0, 2.0);
+            Polynomial y = new (-1.0, 0.0, 3.5, 4.2);
+            Polynomial m = new (-1.0, 0.0, 2.0);
             Polynomial z = y.MultiplyBy(m);
             Assert.AreEqual(5, z.Order);
             Assert.AreEqual(8.4, z[5], 0.00000001);
@@ -111,7 +111,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanRaiseToIntegerPower()
         {
-            Polynomial y = new Polynomial(-3.0, 2.0, 4.0);
+            Polynomial y = new (-3.0, 2.0, 4.0);
             Polynomial z = y.Power(3);
             Assert.AreEqual(6, z.Order);
             Assert.AreEqual(64.0, z[6], 0.00000001);
@@ -126,8 +126,8 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanAdd()
         {
-            Polynomial y = new Polynomial(-3.3, 0.0, 2.2);
-            Polynomial w = new Polynomial(1.0, 1.1, 0.4, -22);
+            Polynomial y = new (-3.3, 0.0, 2.2);
+            Polynomial w = new (1.0, 1.1, 0.4, -22);
             Polynomial z = y.Plus(w);
             Assert.AreEqual(3, z.Order);
             Assert.AreEqual(-22.0, z[3], 0.00000001);
@@ -139,8 +139,8 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanSubtract()
         {
-            Polynomial y = new Polynomial(-3.3, 0.0, 2.2);
-            Polynomial w = new Polynomial(1.0, 1.1, 0.4, -22);
+            Polynomial y = new (-3.3, 0.0, 2.2);
+            Polynomial w = new (1.0, 1.1, 0.4, -22);
             Polynomial z = y.Minus(w);
             Assert.AreEqual(3, z.Order);
             Assert.AreEqual(22.0, z[3], 0.00000001);
@@ -152,8 +152,8 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanSubtractAndNormalise()
         {
-            Polynomial y = new Polynomial(-3.3, 0.0, 2.2, -22);
-            Polynomial w = new Polynomial(1.0, 1.1, 0.4, -22);
+            Polynomial y = new (-3.3, 0.0, 2.2, -22);
+            Polynomial w = new (1.0, 1.1, 0.4, -22);
             Polynomial z = y.Minus(w);
             Assert.AreEqual(2, z.Order);
             Assert.AreEqual(0.0, z[3], 0.00000001);
@@ -181,7 +181,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void ComputesBernsteinCoefficients()
         {
-            Polynomial p = new Polynomial(-2.0, 3.0, 1.0, 4.0);
+            Polynomial p = new (-2.0, 3.0, 1.0, 4.0);
             Assert.AreEqual(-2.0, p.BernsteinCoefficient(0));
             Assert.AreEqual(-1.0, p.BernsteinCoefficient(1));
             Assert.AreEqual(1.0 / 3.0, p.BernsteinCoefficient(2));

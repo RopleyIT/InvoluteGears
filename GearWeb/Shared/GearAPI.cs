@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using TwoDimensionLib;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace GearWeb.Shared
 {
@@ -98,7 +97,7 @@ namespace GearWeb.Shared
                 gp.OpposingTeeth = gParams.Teeth;
                 gp.OpposingToothBlunting = gParams.ToothBlunting;
             }
-            else 
+            else
             {
                 gp.OpposingTeeth = gParams.OpposingTeeth;
                 gp.OpposingToothBlunting = gParams.OpposingToothBlunting;
