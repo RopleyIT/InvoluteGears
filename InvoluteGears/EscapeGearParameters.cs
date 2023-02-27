@@ -18,8 +18,7 @@ public class EscapeGearParameters : IGearProfile
         double undercutAngle,
         double toothFaceLength,
         double tipPitch,
-        double cutDiameter,
-        double maxErr)
+        double cutDiameter)
     {
         ToothCount = toothCount;
         Module = module;
@@ -27,10 +26,10 @@ public class EscapeGearParameters : IGearProfile
         ToothFaceLength = toothFaceLength;
         TipPitch = tipPitch;
         CutDiameter = cutDiameter;
-        MaxError = maxErr;
+        MaxError = 0.0;
         Errors = String.Empty;
+        InitDrawables();
         SetInformation();
-        OneToothProfile = CalculatePoints();
     }
 
     private void SetInformation()
@@ -107,7 +106,8 @@ public class EscapeGearParameters : IGearProfile
     /// given tooth width. In practice this value is often
     /// used to determine pitch circle diameter and tooth
     /// separation, rather than the other way round. 
-    /// Units in mm.
+    /// Units in mm. PI * Module is the outside diameter
+    /// of the escape wheel.
     /// </summary>
 
     public double Module { get; private set; }
@@ -161,9 +161,8 @@ public class EscapeGearParameters : IGearProfile
     private Coordinate FaceEnd;
     private Coordinate BackTip;
     private double BackAngle;
-    private readonly IList<Coordinate> OneToothProfile;
 
-    private IList<Coordinate> CalculatePoints()
+    private void InitDrawables()
     {
         // Unrotated tooth tip is on the X axis
 
@@ -197,56 +196,48 @@ public class EscapeGearParameters : IGearProfile
             Math.Atan2(BackTip.Y - UnderCutCentre.Y, BackTip.X - UnderCutCentre.X);
         BackAngle =
             tiptoCtrAngle + Math.PI / 2 - tipToEndAngle;
-        return ComputeOnePitch();
     }
 
-    private IList<Coordinate> ComputeOnePitch()
-    {
-        List<Coordinate> points = new()
+    private IList<IDrawable> OnePitchCurve()
+        => new List<IDrawable>
         {
-            ToothTip,
-            FaceEnd
+            new Line
+            {
+                Start = ToothTip,
+                End = FaceEnd
+            },
+            new CircularArc
+            {
+                Anticlockwise = false,
+                StartAngle = 3 * Math.PI / 2 + UndercutAngle,
+                EndAngle = BackAngle,
+                Radius = CutDiameter / 2,
+                Centre = UnderCutCentre
+            },
+            new Line
+            {
+                Start = UnderCutCentre
+                + Coordinate.FromPolar(CutDiameter / 2, BackAngle),
+                End = BackTip
+            },
+            new CircularArc
+            {
+                Anticlockwise = false,
+                EndAngle = ToothAngle,
+                StartAngle = BackAngle,
+                Radius = PitchRadius,
+                Centre = Coordinate.Empty
+            }
         };
-        double startAngle = -Math.PI / 2 + UndercutAngle;
-        points.AddRange(
-            Geometry.CirclePoints(
-                BackAngle, 2 * Math.PI + startAngle, Geometry.AngleStep,
-                CutDiameter / 2, UnderCutCentre)
-            .Reverse());
-        points.Add(BackTip);
-        points.AddRange(
-            Geometry.CirclePoints(
-                GapAngle, ToothAngle, Geometry.AngleStep,
-                PitchRadius));
-        return Geometry.LinearReduction(points, MaxError);
+
+    private IEnumerable<IDrawable> GearCurves()
+    {
+        IList<IDrawable> onePitch = OnePitchCurve();
+        foreach(int i in Enumerable.Range(0, ToothCount))
+            foreach (IDrawable d in onePitch)
+                yield return d
+                    .RotatedBy(i * ToothAngle, Coordinate.Empty);
     }
-
-    /// <summary>
-    /// Generate the sequence of points describing the
-    /// shape of a single tooth profile
-    /// </summary>
-    /// <param name="gap">Which tooth profile we want.
-    /// For gap = 0, we generate the tooth whose
-    /// tip lies on the positive X axis. Teeth rotate
-    /// anticlockwise from there for increasing
-    /// values of gap.</param>
-    /// <returns>The set of points describing the
-    /// profile of the selected tooth.</returns>
-
-    public IEnumerable<Coordinate> ToothProfile(int gap)
-        => OneToothProfile.Rotated((gap % ToothCount) * ToothAngle);
-
-    /// <summary>
-    /// Generate the complete path of
-    /// points for the whole  escape wheel
-    /// </summary>
-    /// <returns>The set of points describing the escape wheel
-    /// </returns>
-
-    private IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
-            .Range(0, ToothCount)
-            .Select(i => ToothProfile(i))
-            .SelectMany(p => p);
 
     public DrawableSet GenerateGearCurves()
         => new ()
@@ -255,14 +246,7 @@ public class EscapeGearParameters : IGearProfile
             {
                 new DrawablePath
                 {
-                    Curves = new List<IDrawable>
-                    {
-                        new PolyLine
-                        {
-                            Vertices = new List<Coordinate>
-                                (GenerateCompleteGearPath())
-                        }
-                    },
+                    Curves = new List<IDrawable>(GearCurves()),
                     Closed = true
                 }
             }

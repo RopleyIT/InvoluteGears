@@ -277,8 +277,7 @@ namespace GearWeb.Shared
                 Math.PI * double.Parse(gParams.UndercutAngle) / 180.0,
                 double.Parse(gParams.FaceLength),
                 double.Parse(gParams.TipPitch),
-                double.Parse(gParams.BaseDiameter),
-                double.Parse(gParams.Tolerance));
+                double.Parse(gParams.BaseDiameter));
 
             Cutouts cutoutCalculator = new(
                 gear,

@@ -109,8 +109,7 @@ internal class Program
             Math.PI * escape.UndercutAngle / 180.0,
             escape.FaceLength,
             escape.TipPitch,
-            common.CutterDiameter,
-            common.Tolerance);
+            common.CutterDiameter);
 
         Cutouts cutoutCalculator = new(gear,
             cutOut.SpindleDiameter, cutOut.InlayDiameter,
