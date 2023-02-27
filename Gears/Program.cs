@@ -91,7 +91,6 @@ internal class Program
         ChainSprocket gear = new(
             common.Teeth,
             chain.WireThickness,
-            common.Tolerance,
             chain.InnerLinkLength,
             chain.OuterLinkWidth,
             common.CutterDiameter,

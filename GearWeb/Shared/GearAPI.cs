@@ -336,7 +336,6 @@ namespace GearWeb.Shared
             ChainSprocket gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.WireThickness),
-                double.Parse(gParams.Tolerance),
                 double.Parse(gParams.InnerLinkLength),
                 double.Parse(gParams.OuterLinkWidth),
                 double.Parse(gParams.CutterDiameter),

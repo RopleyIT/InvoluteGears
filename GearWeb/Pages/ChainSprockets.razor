@@ -20,19 +20,13 @@
             <ValidationMessage For="() => GearData.WireThickness" />
         </div>
         <div class="form-group col-md-4">
-            <label for="Tolerance">Precision</label>
-            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
-            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
-            <ValidationMessage For="() => GearData.Tolerance" />
-        </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-4">
             <label for="InnerLinkLength">Inside link length</label>
             <InputText @bind-Value="GearData.InnerLinkLength" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="InnerLinkLength" />
             <small class="form-text text-muted">Inside length for each chain link, to nearest 100th of a mm, e.g. 0.05</small>
             <ValidationMessage For="() => GearData.InnerLinkLength" />
         </div>
+    </div>
+    <div class="form-row">
         <div class="form-group col-md-4">
             <label for="OuterLinkWidth">Outside link width</label>
             <InputText @bind-Value="GearData.OuterLinkWidth" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. -13.5" id="OuterLinkWidth" />
@@ -45,27 +39,27 @@
             <small class="form-text text-muted">Backlash between links to nearest 100th of a mm. Set zero for a perfectly tight fitting gear.</small>
             <ValidationMessage For="() => GearData.Backlash" />
         </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="CutterDiameter">Cutter diameter</label>
             <InputText @bind-Value="GearData.CutterDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="CutterDiameter" />
             <small class="form-text text-muted">Diameter of end mill bit used to cut the gear to nearest 100th of a mm. Set zero for ideal gear shape.</small>
             <ValidationMessage For="() => GearData.CutterDiameter" />
         </div>
-        <div class="form-group col-md-3">
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
             <label for="SpindleDiameter">Spindle diameter</label>
             <InputText @bind-Value="GearData.SpindleDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="SpindleDiameter" />
             <small class="form-text text-muted">Diameter of central bore through gear to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.SpindleDiameter" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="InlayDiameter">Inlay diameter</label>
             <InputText @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="InlayDiameter" />
             <small class="form-text text-muted">Diameter to nearest 100th of a mm of central inlay for inserting a bearing. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.InlayDiameter" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="KeyWidth">Key width</label>
             <InputText @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="KeyWidth" />
             <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
@@ -103,6 +97,7 @@
     void Generate(EditContext ctx)
     {
         IsDisabled = true;
+        GearData.Tolerance = "0";
         if (ctx.Validate())
         {
             try
@@ -117,6 +112,7 @@
             }
             catch (Exception x)
             {
+                IsDisabled = false;
                 ImageDescription = Program.ToHtmlText("Status: " + x.Message);
                 InvImage = new();
                 SVG = string.Empty;
