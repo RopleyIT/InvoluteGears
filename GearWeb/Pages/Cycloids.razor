@@ -33,17 +33,6 @@
         </div>
     </div>
     <div class="form-row">
-        <div class="col-md-3">&nbsp;
-            <!--<label for="SwapGears">Switch the two gears</label><br/>
-            <button class="btn btn-primary" id="SwapGears" @onclick="SwapGears">Switch gears</button>
-            <small class="form-text text-muted">Swap the details of the two gears to plot the opposing gear</small>-->
-        </div>
-        <div class="form-group col-md-3">
-            <label for="Tolerance">Precision</label>
-            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
-            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
-            <ValidationMessage For="() => GearData.Tolerance" />
-        </div>
         <div class="form-group col-md-3">
             <label for="Module">Module</label>
             <InputText @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="Module" />
@@ -56,8 +45,6 @@
             <small class="form-text text-muted">Backlash between gear teeth to nearest 100th of a mm. Set zero for a perfectly tight fitting gear.</small>
             <ValidationMessage For="() => GearData.Backlash" />
         </div>
-    </div>
-    <div class="form-row">
         <div class="form-group col-md-3">
             <label for="CutterDiameter">Cutter diameter</label>
             <InputText @bind-Value="GearData.CutterDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="CutterDiameter" />
@@ -70,6 +57,8 @@
             <small class="form-text text-muted">Diameter of central bore through gear to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.SpindleDiameter" />
         </div>
+    </div>
+    <div class="form-row">
         <div class="form-group col-md-3">
             <label for="InlayDiameter">Inlay diameter</label>
             <InputText @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="InlayDiameter" />
@@ -82,9 +71,6 @@
             <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.KeyFlatWidth" />
         </div>
-    </div>
-    <div class="form-row">
-        <div class="col-md-6">&nbsp;</div>
         <div class="col-md-3">
             <label for="WhichGears">Choose which gear or gears to draw</label><br />
             <InputSelect class="form-select" @bind-Value="GearData.WhichGears" id="WhichGears">
@@ -159,9 +145,10 @@
     int imageIndex = 0;
     void NextImage() { InvImage = new(gearProfile.SvgPlot[(++imageIndex) & 0x3F]); }
     void PrevImage() { InvImage = new(gearProfile.SvgPlot[(--imageIndex) & 0x3F]); }
-    
+
     void Generate(EditContext ctx)
     {
+        GearData.Tolerance = "0";
         IsDisabled = true;
         if (ctx.Validate())
         {

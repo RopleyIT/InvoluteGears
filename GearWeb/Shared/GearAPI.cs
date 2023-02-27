@@ -44,7 +44,6 @@ namespace GearWeb.Shared
                 double.Parse(gp.Module),
                 Math.PI * double.Parse(gp.PressureAngle) / 180.0,
                 double.Parse(profileShift) / 100.0,
-                double.Parse(gp.Tolerance),
                 double.Parse(gp.Backlash) / double.Parse(gp.Module),
                 double.Parse(gp.CutterDiameter));
 
@@ -110,7 +109,6 @@ namespace GearWeb.Shared
                gp.ToothBlunting / 100.0,
                gp.OpposingToothBlunting / 100.0,
                double.Parse(gp.Module),
-               double.Parse(gp.Tolerance),
                double.Parse(gp.Backlash) / double.Parse(gp.Module),
                double.Parse(gp.CutterDiameter));
 

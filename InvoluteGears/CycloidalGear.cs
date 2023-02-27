@@ -10,12 +10,12 @@ namespace InvoluteGears
     {
         public CycloidalGear(int toothCount, int oppositeToothCount, double toothBlunting,
             double oppositeToothBlunting, double module,
-            double maxErr, double backlash, double cutterDiam)
+            double backlash, double cutterDiam)
         {
             ToothCount = toothCount;
             ToothBlunting = toothBlunting;
             Module = module;
-            MaxError = maxErr;
+            MaxError = 0;
             Backlash = backlash;
             OpposingToothCount = oppositeToothCount;
             OpposingToothBlunting = oppositeToothBlunting;

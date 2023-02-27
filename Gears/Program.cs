@@ -56,7 +56,6 @@ internal class Program
             common.Module,
             Math.PI * involute.PressureAngle / 180.0,
             involute.ProfileShift / 100.0,
-            common.Tolerance,
             common.Backlash / common.Module,
             common.CutterDiameter);
 
@@ -75,7 +74,6 @@ internal class Program
             cycloid.ToothBlunting / 100.0,
             cycloid.OpposingToothBlunting / 100.0,
             common.Module,
-            common.Tolerance,
             common.Backlash / common.Module,
             common.CutterDiameter);
 
@@ -371,9 +369,9 @@ internal class Program
         List<InvoluteGearParameters> gShift2 = new();
         foreach (int i in teeth)
         {
-            InvoluteGearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, shift1, 0, 0, cutterDiameter / 100.0);
+            InvoluteGearParameters gear = new(i, module / 100.0, Math.PI * pa / 1800.0, shift1, 0, cutterDiameter / 100.0);
             gShift1.Add(gear);
-            gear = new(i, module / 100.0, Math.PI * pa / 1800.0, shift2, 0, 0, cutterDiameter / 100.0);
+            gear = new(i, module / 100.0, Math.PI * pa / 1800.0, shift2, 0, cutterDiameter / 100.0);
             gShift2.Add(gear);
         }
 

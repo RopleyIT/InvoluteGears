@@ -10,14 +10,14 @@ public class InvoluteGearParameters : IGearProfile
 {
     public InvoluteGearParameters(int toothCount, double module = 1.0,
         double pressureAngle = Math.PI / 9, double profileShift = 0.0,
-        double maxErr = 0.0, double backlash = 0.0, double cutterDiam = 0.0)
+        double backlash = 0.0, double cutterDiam = 0.0)
     {
         linesOnly = false; // Set true to force drawing using short line segments
         ToothCount = toothCount;
         Module = module;
         PressureAngle = pressureAngle;
         ProfileShift = profileShift;
-        MaxError = maxErr;
+        MaxError = 0.0;
         Backlash = backlash;
         CutDiameter = cutterDiam;
         Errors = String.Empty;
@@ -29,14 +29,14 @@ public class InvoluteGearParameters : IGearProfile
     {
         StringBuilder info = new();
         info.Append($"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n");
-        info.Append($"profile shift = {ProfileShift * 100:N1}%, precision = {MaxError}mm\r\n");
-        info.Append($"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n");
+        info.Append($"profile shift = {ProfileShift * 100:N1}%, backlash = {Backlash * Module}mm\r\n");
+        info.Append($"cutter diameter = {CutDiameter}mm\r\n");
         return info.ToString();
     }
 
     public string ShortName
         => $"It{ToothCount}m{Module:N2}a{PressureAngle * 180 / Math.PI:N1}s{ProfileShift:N3}"
-            + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}";
+            + $"b{Backlash * Module:N2}c{CutDiameter:N2}";
 
     /// <summary>
     /// Used for warning or information messages when methods invoked
@@ -68,7 +68,8 @@ public class InvoluteGearParameters : IGearProfile
     /// maximum deviation of the points on the curved faces from true value, and
     /// is used to reduce the number of points we plot on each curve. Default
     /// of zero does no reduction. Should be set to a value that matches the
-    /// precision of the cutting machine for the gears. Measured in mm.
+    /// precision of the cutting machine for the gears. Measured in mm. Unused
+    /// for SVG curved path output.
     /// </summary>
 
     public double MaxError { get; private set; }
@@ -354,8 +355,10 @@ public class InvoluteGearParameters : IGearProfile
         if (!CanMeshWith(meshedGear))
         {
             Information = "Gears have differing modules or pressure angles";
+            Errors += Information;
             return (0, 0);
         }
+
         double distanceBetweenCentres
             = PitchCircleDiameter / 2
             + meshedGear.PitchCircleDiameter / 2
@@ -681,10 +684,10 @@ public class InvoluteGearParameters : IGearProfile
         UndercutPoints.RemoveRange(0, undercutIdx + 1);
         AdjustPointsForCircularCutter(cutterCentre);
         AddendumPoints.AddRange(ComputeAddendumCirclePoints());
-        InvolutePoints = Geometry.LinearReduction(InvolutePoints, (float)MaxError);
-        UndercutPoints = Geometry.LinearReduction(UndercutPoints, (float)MaxError);
-        DedendumPoints = Geometry.LinearReduction(DedendumPoints, (float)MaxError);
-        AddendumPoints = Geometry.LinearReduction(AddendumPoints, (float)MaxError);
+        //InvolutePoints = Geometry.LinearReduction(InvolutePoints, (float)MaxError);
+        //UndercutPoints = Geometry.LinearReduction(UndercutPoints, (float)MaxError);
+        //DedendumPoints = Geometry.LinearReduction(DedendumPoints, (float)MaxError);
+        //AddendumPoints = Geometry.LinearReduction(AddendumPoints, (float)MaxError);
     }
 
     /// <summary>
