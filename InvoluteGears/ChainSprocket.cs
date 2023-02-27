@@ -31,6 +31,13 @@ public class ChainSprocket : IGearProfile
         CutDiameter = cutDiameter;
         Errors = String.Empty;
         Information = SetInformation();
+
+        // Validate provided entries
+
+        if (OuterLinkWidth <= 3 * WireThickness)
+            Errors += "Link width must exceed thrice the wire thickness\r\n";
+        if (InnerLinkLength <= 3 * WireThickness)
+            Errors += "Link inside length must exceed thrice the wire thickness\r\n";
     }
 
     private string SetInformation()
