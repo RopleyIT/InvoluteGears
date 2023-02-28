@@ -430,9 +430,9 @@ public class InvoluteGearParameters : IGearProfile
     private readonly bool linesOnly = false;
 
     private IList<Coordinate> UndercutPoints = new List<Coordinate>();
-    private IList<Coordinate> InvolutePoints = new List<Coordinate>();
+    private readonly IList<Coordinate> InvolutePoints = new List<Coordinate>();
     private IList<Coordinate> DedendumPoints = new List<Coordinate>();
-    private IList<Coordinate> AddendumPoints = new List<Coordinate>();
+    private readonly IList<Coordinate> AddendumPoints = new List<Coordinate>();
 
     private IEnumerable<Coordinate> ComputeInvolutePoints()
     {

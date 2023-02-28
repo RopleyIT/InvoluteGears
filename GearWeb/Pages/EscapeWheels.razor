@@ -20,19 +20,13 @@
             <ValidationMessage For="() => GearData.UndercutAngle" />
         </div>
         <div class="form-group col-md-4">
-            <label for="Tolerance">Precision</label>
-            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
-            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
-            <ValidationMessage For="() => GearData.Tolerance" />
-        </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-4">
             <label for="Module">Module</label>
             <InputText @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="Module" />
             <small class="form-text text-muted">Module for gear to nearest 100th of a mm. Diameter at pitch circle will be number of teeth times the module.</small>
             <ValidationMessage For="() => GearData.Module" />
         </div>
+    </div>
+    <div class="form-row">
         <div class="form-group col-md-4">
             <label for="FaceLength">Tooth face length</label>
             <InputText @bind-Value="GearData.FaceLength" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 0.25" id="FaceLength" />
@@ -45,27 +39,27 @@
             <small class="form-text text-muted">Length of each tooth's narrow tip to nearest 100th of a mm.</small>
             <ValidationMessage For="() => GearData.TipPitch" />
         </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="BaseDiameter">Tooth base diameter</label>
             <InputText @bind-Value="GearData.BaseDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="BaseDiameter" />
             <small class="form-text text-muted">Diameter of curve at base of each tooth to nearest 100th of a mm.</small>
             <ValidationMessage For="() => GearData.BaseDiameter" />
         </div>
-        <div class="form-group col-md-3">
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
             <label for="SpindleDiameter">Spindle diameter</label>
             <InputText @bind-Value="GearData.SpindleDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="SpindleDiameter" />
             <small class="form-text text-muted">Diameter of central bore through gear to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.SpindleDiameter" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="InlayDiameter">Inlay diameter</label>
             <InputText @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="InlayDiameter" />
             <small class="form-text text-muted">Diameter to nearest 100th of a mm of central inlay for inserting a bearing. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.InlayDiameter" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="KeyWidth">Key width</label>
             <InputText @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="KeyWidth" />
             <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
@@ -102,6 +96,7 @@
     void Generate(EditContext ctx)
     {
         IsDisabled = true;
+        GearData.Tolerance = "0";
         if (ctx.Validate())
         {
             try

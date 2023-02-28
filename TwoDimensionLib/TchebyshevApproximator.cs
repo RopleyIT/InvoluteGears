@@ -75,7 +75,7 @@
         /// Tchebyshev polynomial to avoid recomputation
         /// </summary>
 
-        private double[] TchebyshevRoots;
+        private readonly double[] TchebyshevRoots;
 
         /// <summary>
         /// Initialise the array of Tchebyshev roots
@@ -84,7 +84,7 @@
         /// to calculate</param>
         /// <returns>The array of calculated roots</returns>
 
-        private double[] CalcTchebyRoots(int numRoots)
+        private static double[] CalcTchebyRoots(int numRoots)
         {
             double[] roots = new double[numRoots];
             for (int i = 0; i < numRoots; i++)
@@ -146,7 +146,7 @@
         {
             get
             {
-                Polynomial mapXToU = new Polynomial
+                Polynomial mapXToU = new 
                     ((MinimumValue + MaximumValue)
                     / (MinimumValue - MaximumValue),
                     2 / (MaximumValue - MinimumValue));
@@ -209,10 +209,12 @@
 
         private static IList<Polynomial> CalcTchebyshevPolys(int degree)
         {
-            Polynomial twox = new Polynomial(0.0, 2.0);
-            List<Polynomial> polys = new List<Polynomial>(degree + 1);
-            polys.Add(new Polynomial(1.0)); // 1.0
-            polys.Add(new Polynomial(0.0, 1.0)); // x
+            Polynomial twox = new (0.0, 2.0);
+            List<Polynomial> polys = new(degree + 1)
+            {
+                new Polynomial(1.0), // 1.0
+                new Polynomial(0.0, 1.0) // x
+            };
             for (int i = 2; i <= degree; i++)
 
             {

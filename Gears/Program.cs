@@ -123,7 +123,6 @@ internal class Program
         Ratchet gear = new(
             common.Teeth,
             common.Module,
-            common.Tolerance,
             ratchet.InnerDiameter,
             common.CutterDiameter);
 

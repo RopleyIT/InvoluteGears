@@ -35,13 +35,13 @@ public class EscapeGearParameters : IGearProfile
     private void SetInformation()
     {
         Information = $"Escape: {ToothCount} teeth, module = {Module}mm, undercut angle = {UndercutAngle * 180 / Math.PI:N1}\u00b0\r\n";
-        Information += $"tooth face = {ToothFaceLength}mm, precision = {MaxError}mm\r\n";
-        Information += $"tip width = {TipPitch}mm, tooth gap diameter = {CutDiameter}mm\r\n";
+        Information += $"tooth face = {ToothFaceLength}mm, tip width = {TipPitch}mm\r\n";
+        Information += $"tooth gap diameter = {CutDiameter}mm\r\n";
     }
 
     public string ShortName
         => $"Et{ToothCount}m{Module:N2}u{UndercutAngle * 180 / Math.PI:N1}f{ToothFaceLength:N2}"
-            + $"e{MaxError:N2}p{TipPitch:N2}c{CutDiameter:N2}";
+            + $"p{TipPitch:N2}c{CutDiameter:N2}";
 
     /// <summary>
     /// Used for warning or information messages when methods invoked

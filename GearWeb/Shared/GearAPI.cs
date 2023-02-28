@@ -304,7 +304,6 @@ namespace GearWeb.Shared
             Ratchet gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.Module),
-                double.Parse(gParams.Tolerance),
                 double.Parse(gParams.InnerDiameter),
                 double.Parse(gParams.CutterDiameter));
 

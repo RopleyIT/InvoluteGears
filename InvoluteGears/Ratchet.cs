@@ -7,24 +7,24 @@ namespace InvoluteGears;
 
 public class Ratchet : IGearProfile
 {
-    public Ratchet(int teeth, double module, double err, double inner, double cutDiameter)
+    public Ratchet(int teeth, double module, double inner, double cutDiameter)
     {
         ToothCount = teeth;
         Module = module;
-        MaxError = err;
+        MaxError = 0.0;
         InnerDiameter = inner;
         CutDiameter = cutDiameter;
         Errors = String.Empty;
         Information = SetInformation();
-        CalculatePoints();
+        //CalculatePoints();
     }
 
     private string SetInformation()
         => $"Ratchet: {ToothCount} teeth, module = {Module}mm\r\n"
-            + $"precision = {MaxError}mm, inner diameter = {InnerDiameter}mm\r\n";
+            + $"inner diameter = {InnerDiameter}mm\r\n";
 
     public string ShortName
-        => $"Rt{ToothCount}m{Module:N2}e{MaxError:N2}i{InnerDiameter:N2}";
+        => $"Rt{ToothCount}m{Module:N2}i{InnerDiameter:N2}";
 
     public string Information { get; private set; }
 
@@ -38,6 +38,7 @@ public class Ratchet : IGearProfile
     public string Errors { get; private set; }
 
     public int ToothCount { get; private set; }
+
     public double Module { get; private set; }
 
     public double MaxError { get; private set; }
@@ -62,11 +63,18 @@ public class Ratchet : IGearProfile
 
     private double ToothDepth => PitchRadius - InnerDiameter / 2;
 
-    private IList<Coordinate>? OneToothProfile;
-
-    private void CalculatePoints()
+    private IList<IDrawable> RatchetCurve()
     {
-        List<Coordinate> points = new();
+        IList<IDrawable> oneTooth = CalculateOneToothCurve();
+        List<IDrawable> ratchetCurve = new();
+        for(int i = 0; i < ToothCount; i++)
+            foreach(IDrawable p in oneTooth)
+                ratchetCurve.Add(p.RotatedBy(i * ToothAngle, Coordinate.Empty));
+        return ratchetCurve;
+    }
+
+    private IList<IDrawable> CalculateOneToothCurve()
+    {
         double innerRadius = InnerDiameter / 2;
         double cutterRadius = CutDiameter / 2;
 
@@ -93,26 +101,49 @@ public class Ratchet : IGearProfile
 
         double endAngle = Math.PI - Math.Atan2(-ys, xs);
         double startAngle = 3 * Math.PI / 2 - tangentAngle;
-        points.Add(PointAtAngle(ToothAngle - tangentAngle).Rotate(-ToothAngle));
+        /*
+                 double radius = InnerDiameter / 2
+            + (PitchRadius - InnerDiameter / 2)
+            * angle / ToothAngle;
 
-        // Add the points for the cutter curve
+         */
+        List<IDrawable> path = new()
+        {
+            // Insert the radial face of the ratchet
 
-        points.AddRange(Geometry.CirclePoints
-            (endAngle, startAngle, Geometry.AngleStep, cutterRadius, cutterCentre)
-            .Reverse());
+            new Line
+            {
+                Start = ArchimedesSpiral
+                (ToothAngle - tangentAngle,
+                InnerDiameter / 2,
+                ToothDepth / ToothAngle).Rotate(-ToothAngle),
+                End = cutterCentre + Coordinate
+                .FromPolar(cutterRadius, startAngle)
+            },
+
+            // Add the the cutter curve
+
+            new CircularArc
+            {
+                Anticlockwise = false,
+                StartAngle = startAngle,
+                EndAngle = endAngle,
+                Radius = cutterRadius,
+                Centre = cutterCentre
+            }
+        };
 
         // Check that the radius of the cutter was not too great to
         // provide a latch at right angles to the radial from the centre
         // of the ratchet.
 
         double actualInnerRadius = cutterCentre.Magnitude - cutterRadius;
-        double actualOuterRadius = points[0].Magnitude;
-        if (points[1].Magnitude > actualOuterRadius)
+        double actualOuterRadius = path[0].Start.Magnitude;
+        if (path[0].End.Magnitude > actualOuterRadius)
         {
-            Information += "Cutter diameter too great for locking ratchet. Setting it to zero.\r\n";
+            Information += "Cutter diameter too great for locking ratchet.\r\n";
             CutDiameter = 0;
-            OneToothProfile = new List<Coordinate>();
-            return;
+            return new List<IDrawable>();
         }
         else
             Information += $"Actual inner diameter: {2 * actualInnerRadius:N2}, "
@@ -120,49 +151,82 @@ public class Ratchet : IGearProfile
 
         // Now add the slope
 
-        for (double angle = 0; angle < ToothAngle - tangentAngle; angle += Geometry.AngleStep)
-            points.Add(PointAtAngle(angle));
-        OneToothProfile = Geometry.LinearReduction(points, (float)MaxError);
+        path.AddRange(OneToothSpiral
+            (path[1].End.Magnitude, 
+            path[0].Start.Magnitude, 
+            ToothAngle - tangentAngle));
+        return path;
     }
 
-    private Coordinate PointAtAngle(double angle)
-    {
-        double radius = InnerDiameter / 2
-            + (PitchRadius - InnerDiameter / 2)
-            * angle / ToothAngle;
-        return Coordinate.FromPolar(radius, angle);
-    }
-
-    /// <summary>
-    /// Generate the sequence of points describing the
-    /// shape of a single tooth profile
-    /// </summary>
-    /// <param name="gap">Which tooth profile we want.
-    /// For gap = 0, we generate the tooth whose
-    /// tip lies on the positive X axis. Teeth rotate
-    /// anticlockwise from there for increasing
-    /// values of gap.</param>
-    /// <returns>The set of points describing the
-    /// profile of the selected tooth.</returns>
-
-    public IEnumerable<Coordinate> ToothProfile(int gap)
-        => OneToothProfile?.Rotated((gap % ToothCount) * ToothAngle)
-            ?? Enumerable.Empty<Coordinate>();
-
-    /// <summary>
-    /// Generate the complete path of
-    /// points for the whole  escape wheel
-    /// </summary>
-    /// <returns>The set of points describing the escape wheel
-    /// </returns>
-
-    public IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
-            .Range(0, ToothCount)
-            .Select(i => ToothProfile(i))
-            .SelectMany(p => p);
 
     public DrawableSet GenerateGearCurves()
     {
-        throw new NotImplementedException();
+        return new DrawableSet
+        {
+            Paths = new List<DrawablePath>
+            {
+                new DrawablePath
+                {
+                    Closed = true,
+                    Curves = RatchetCurve()
+                }
+            }
+        };
+    }
+
+    /// <summary>
+    /// Calculate how many splines per tooth to generate when plotting
+    /// the ratchet. Settles the maximum range per spline to between
+    /// 22.5 and 45 degrees.
+    /// </summary>
+    /// <param name="angle">The angle we turn through during the
+    /// spiral part of the curve. This is slightly less than
+    /// ToothAngle, as we have to allow for the cutter diameter.</param>
+    /// <returns>Number of splines to draw for each tooth</returns>
+    
+    private static int AngleSubrangeCount(double angle)
+    {
+        for (int i = 0; i <= 8; i++)
+            if (angle / i < Math.PI / 4)
+                return i;
+        return 8;
+    }
+
+    /// <summary>
+    /// Compute the X, Y coordinates of a point on
+    /// an Archimedian spiral
+    /// </summary>
+    /// <param name="angle">The cumulative angle for
+    /// which we want the spiral coordinate</param>
+    /// <param name="startRadius">The magnitude of
+    /// the spiral at angle zero radians</param>
+    /// <param name="radiusPerRadian">The rate of
+    /// magnitude increase in amplitude per radian
+    /// of angl</param>
+    /// <returns>The corresponding point on the
+    /// spiral</returns>
+    
+    private static Coordinate ArchimedesSpiral
+        (double angle, double startRadius, double radiusPerRadian)
+       => Coordinate.FromPolar
+                (startRadius + radiusPerRadian * angle, angle);
+
+    private static IList<IDrawable> OneToothSpiral(double rInner, double rOuter, double angle)
+    {
+        int segments = AngleSubrangeCount(angle);
+        List<IDrawable> spiral = new(segments);
+        for(int i = 0; i < segments; i++)
+        {
+            Spline s = new (3, a => ArchimedesSpiral(a, 
+                rInner, 
+                (rOuter - rInner) / angle), 
+                i * angle / segments, 
+                (i + 1) * angle / segments);
+            spiral.Add(new CubicSpline
+            {
+                Points = s.ControlPoints
+            });
+        }
+        return spiral;
     }
 }
