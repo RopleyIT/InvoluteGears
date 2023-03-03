@@ -272,14 +272,14 @@ namespace TwoDimensionLib
         /// </summary>
         /// <returns> 1.0 as a polynomial</returns>
 
-        public static Polynomial One() => new (1.0);
+        public static Polynomial One() => new(1.0);
 
         /// <summary>
         /// The zero-valued polynomial
         /// </summary>
         /// <returns>0.0 as a polynomial</returns>
 
-        public static Polynomial Zero() => new ();
+        public static Polynomial Zero() => new();
 
         public Polynomial() => Coefficients = new List<double>();
 
@@ -304,7 +304,7 @@ namespace TwoDimensionLib
 
         public override string ToString()
         {
-            StringBuilder sb = new ();
+            StringBuilder sb = new();
             for (int i = Order; i > 1; i--)
             {
                 if (this[i] != 0)

@@ -16,7 +16,7 @@ namespace GearTests
         [DataRow(10, 12, 6.0, 0.1, 6.35)]
         [DataRow(10, 14, 6.0, 0.1, 6.35)]
         public void TestPairedTeeth(int teeth, int otherTeeth,
-            double module, 
+            double module,
             double backlash, double cutterDiameter)
         {
             CycloidalGear gear = new(

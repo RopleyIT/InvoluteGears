@@ -15,7 +15,6 @@ namespace InvoluteGears
             ToothCount = toothCount;
             ToothBlunting = toothBlunting;
             Module = module;
-            MaxError = 0;
             Backlash = backlash;
             OpposingToothCount = oppositeToothCount;
             OpposingToothBlunting = oppositeToothBlunting;
@@ -31,7 +30,7 @@ namespace InvoluteGears
             info.Append($"Cycloid: {ToothCount}/{OpposingToothCount} teeth, module = {Module}mm,\r\n");
             info.Append($"blunting = {ToothBlunting * 100:N0}%/{OpposingToothBlunting * 100:N0}%\r\n");
             info.Append($"backlash = {Backlash * Module}mm, cutter diameter = {CutDiameter}mm\r\n");
-            info.Append($"precision = {MaxError}mm, contact ratio = {(pinionAddendumAngle + pinionDedendumAngle) / ToothAngle:N3}\r\n");
+            info.Append($"contact ratio = {(pinionAddendumAngle + pinionDedendumAngle) / ToothAngle:N3}\r\n");
             info.Append($"max pressure angles: {180 / Math.PI * maxPinionPressureAngle:N2}\u00b0/{180 / Math.PI * maxWheelPressureAngle:N2}\u00b0\r\n");
             if (!string.IsNullOrWhiteSpace(Errors))
                 info.Append(Errors);
@@ -40,7 +39,7 @@ namespace InvoluteGears
 
         public string ShortName
             => $"Ct{ToothCount}_{OpposingToothCount}m{Module:N2}a{ToothBlunting * 100}_{OpposingToothBlunting}"
-                + $"e{MaxError:N2}b{Backlash * Module:N2}c{CutDiameter:N2}";
+                + $"b{Backlash * Module:N2}c{CutDiameter:N2}";
 
         public string Information { get; private set; }
 
@@ -72,8 +71,6 @@ namespace InvoluteGears
         public double ToothBlunting { get; private set; }
 
         public double Module { get; private set; }
-
-        public double MaxError { get; private set; }
 
         public double InnerDiameter => 2 * pinionDedendumRadius;
 
@@ -347,8 +344,8 @@ namespace InvoluteGears
         {
             IList<IDrawable> splines = new List<IDrawable>(2);
             double endAngle = Geometry.AngleStep * lastIndex;
-            Spline inner = new (3, EpicycloidPoint, 0.01 * endAngle, 0.375 * endAngle);
-            Spline outer = new (3, EpicycloidPoint, 0.375 * endAngle, endAngle);
+            Spline inner = new(3, EpicycloidPoint, 0.01 * endAngle, 0.375 * endAngle);
+            Spline outer = new(3, EpicycloidPoint, 0.375 * endAngle, endAngle);
             splines.Add(new CubicSpline
             {
                 Points = inner.ControlPoints
@@ -424,7 +421,7 @@ namespace InvoluteGears
             toothProfile.AddRange(cycloids
                 .Select(p => p.Conjugate.Rotate(ToothAngle / 2 - BacklashAngle))
                 .Reverse());
-            return Geometry.LinearReduction(toothProfile, MaxError);
+            return toothProfile;
         }
 
         List<Coordinate> RoundedAddendum(Coordinate penult, Coordinate ult, double roundingRadius)

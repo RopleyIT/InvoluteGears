@@ -11,7 +11,6 @@ public class RollerSprocket : IGearProfile
     {
         ToothCount = teeth;
         Pitch = pitch;
-        MaxError = 0.0;
         RollerDiameter = roller;
         Backlash = backlash;
         ChainWidth = inner;
@@ -19,8 +18,6 @@ public class RollerSprocket : IGearProfile
         Errors = String.Empty;
         Information = SetInformation();
     }
-
-    private readonly IList<Coordinate> OuterToothProfile;
 
     public string ShortName
         => $"RSt{ToothCount}p{Pitch:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}";
@@ -80,12 +77,6 @@ public class RollerSprocket : IGearProfile
         2 * PitchRadius / ToothCount;
 
     /// <summary>
-    /// The tolerance in precision for cutting the sprocket
-    /// </summary>
-
-    public double MaxError { get; private set; }
-
-    /// <summary>
     /// The maximum width of the chain side plates. Used to
     /// calculate how much the edge of the chain would overlap
     /// the rollers.
@@ -134,7 +125,7 @@ public class RollerSprocket : IGearProfile
 
         // Find the centre of the upper roller
 
-        Coordinate upperRollerCentre 
+        Coordinate upperRollerCentre
             = new(Pitch / (2 * Math.Tan(Math.PI / ToothCount)), Pitch / 2);
 
         // Calculate the contact part of the roller with
@@ -251,7 +242,7 @@ public class RollerSprocket : IGearProfile
     }
 
     public DrawableSet GenerateGearCurves()
-        => new ()
+        => new()
         {
             Paths = new List<DrawablePath>
             {

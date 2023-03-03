@@ -17,7 +17,6 @@ public class InvoluteGearParameters : IGearProfile
         Module = module;
         PressureAngle = pressureAngle;
         ProfileShift = profileShift;
-        MaxError = 0.0;
         Backlash = backlash;
         CutDiameter = cutterDiam;
         Errors = String.Empty;
@@ -62,17 +61,6 @@ public class InvoluteGearParameters : IGearProfile
         get;
         private set;
     }
-
-    /// <summary>
-    /// The tolerance for the curved faces of the teeth. This is used to set the
-    /// maximum deviation of the points on the curved faces from true value, and
-    /// is used to reduce the number of points we plot on each curve. Default
-    /// of zero does no reduction. Should be set to a value that matches the
-    /// precision of the cutting machine for the gears. Measured in mm. Unused
-    /// for SVG curved path output.
-    /// </summary>
-
-    public double MaxError { get; private set; }
 
     /// <summary>
     /// The amount of backlash to build into the gear. If left at zero,

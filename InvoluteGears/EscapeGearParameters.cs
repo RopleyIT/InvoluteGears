@@ -26,7 +26,6 @@ public class EscapeGearParameters : IGearProfile
         ToothFaceLength = toothFaceLength;
         TipPitch = tipPitch;
         CutDiameter = cutDiameter;
-        MaxError = 0.0;
         Errors = String.Empty;
         InitDrawables();
         SetInformation();
@@ -57,12 +56,6 @@ public class EscapeGearParameters : IGearProfile
     /// </summary>
 
     public string Errors { get; private set; }
-
-    /// <summary>
-    /// The accuracy of the points in the profile
-    /// </summary>
-
-    public double MaxError { get; private set; }
 
     /// <summary>
     /// The diameter of the curved part of the
@@ -233,14 +226,14 @@ public class EscapeGearParameters : IGearProfile
     private IEnumerable<IDrawable> GearCurves()
     {
         IList<IDrawable> onePitch = OnePitchCurve();
-        foreach(int i in Enumerable.Range(0, ToothCount))
+        foreach (int i in Enumerable.Range(0, ToothCount))
             foreach (IDrawable d in onePitch)
                 yield return d
                     .RotatedBy(i * ToothAngle, Coordinate.Empty);
     }
 
     public DrawableSet GenerateGearCurves()
-        => new ()
+        => new()
         {
             Paths = new List<DrawablePath>
             {

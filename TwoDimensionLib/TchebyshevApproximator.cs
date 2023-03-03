@@ -146,7 +146,7 @@
         {
             get
             {
-                Polynomial mapXToU = new 
+                Polynomial mapXToU = new
                     ((MinimumValue + MaximumValue)
                     / (MinimumValue - MaximumValue),
                     2 / (MaximumValue - MinimumValue));
@@ -209,7 +209,7 @@
 
         private static IList<Polynomial> CalcTchebyshevPolys(int degree)
         {
-            Polynomial twox = new (0.0, 2.0);
+            Polynomial twox = new(0.0, 2.0);
             List<Polynomial> polys = new(degree + 1)
             {
                 new Polynomial(1.0), // 1.0

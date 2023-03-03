@@ -103,7 +103,7 @@ public static class Geometry
     /// <returns>Midpoint</returns>
 
     public static Coordinate MidPoint(Coordinate l, Coordinate r)
-        => new ((l.X + r.X) / 2, (l.Y + r.Y) / 2);
+        => new((l.X + r.X) / 2, (l.Y + r.Y) / 2);
 
     /// <summary>
     /// Convert an angle from degrees to radians

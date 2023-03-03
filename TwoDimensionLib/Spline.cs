@@ -91,7 +91,7 @@
             // Now map the polynomials so that they produce
             // the curve within the values 0 to 1
 
-            Polynomial mapVToT = new (StartVal, EndVal - StartVal);
+            Polynomial mapVToT = new(StartVal, EndVal - StartVal);
             Polynomial xBezier = tax.ApproximationPolynomial
                 .Transform(mapVToT);
             Polynomial yBezier = tay.ApproximationPolynomial

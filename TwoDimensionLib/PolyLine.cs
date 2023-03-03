@@ -12,7 +12,7 @@
         {
             get
             {
-                BoundsTracker b = new ();
+                BoundsTracker b = new();
                 b.Track(Vertices);
                 return b.Bounds;
             }

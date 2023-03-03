@@ -18,8 +18,6 @@ public interface IGearProfile
 
     double Module { get; }
 
-    double MaxError { get; }
-
     double InnerDiameter { get; }
 
     double CutDiameter { get; }

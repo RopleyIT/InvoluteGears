@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TwoDimensionLib;
 
 namespace InvoluteGears;
@@ -11,7 +10,6 @@ public class Ratchet : IGearProfile
     {
         ToothCount = teeth;
         Module = module;
-        MaxError = 0.0;
         InnerDiameter = inner;
         CutDiameter = cutDiameter;
         Errors = String.Empty;
@@ -44,8 +42,6 @@ public class Ratchet : IGearProfile
 
     public double Module { get; private set; }
 
-    public double MaxError { get; private set; }
-
     public double InnerDiameter { get; private set; }
 
     public double CutDiameter { get; private set; }
@@ -70,8 +66,8 @@ public class Ratchet : IGearProfile
     {
         IList<IDrawable> oneTooth = CalculateOneToothCurve();
         List<IDrawable> ratchetCurve = new();
-        for(int i = 0; i < ToothCount; i++)
-            foreach(IDrawable p in oneTooth)
+        for (int i = 0; i < ToothCount; i++)
+            foreach (IDrawable p in oneTooth)
                 ratchetCurve.Add(p.RotatedBy(i * ToothAngle, Coordinate.Empty));
         return ratchetCurve;
     }
@@ -155,8 +151,8 @@ public class Ratchet : IGearProfile
         // Now add the slope
 
         path.AddRange(OneToothSpiral
-            (path[1].End.Magnitude, 
-            path[0].Start.Magnitude, 
+            (path[1].End.Magnitude,
+            path[0].Start.Magnitude,
             ToothAngle - tangentAngle));
         return path;
     }
@@ -186,7 +182,7 @@ public class Ratchet : IGearProfile
     /// spiral part of the curve. This is slightly less than
     /// ToothAngle, as we have to allow for the cutter diameter.</param>
     /// <returns>Number of splines to draw for each tooth</returns>
-    
+
     private static int AngleSubrangeCount(double angle)
     {
         for (int i = 0; i <= 8; i++)
@@ -208,7 +204,7 @@ public class Ratchet : IGearProfile
     /// of angl</param>
     /// <returns>The corresponding point on the
     /// spiral</returns>
-    
+
     private static Coordinate ArchimedesSpiral
         (double angle, double startRadius, double radiusPerRadian)
        => Coordinate.FromPolar
@@ -218,12 +214,12 @@ public class Ratchet : IGearProfile
     {
         int segments = AngleSubrangeCount(angle);
         List<IDrawable> spiral = new(segments);
-        for(int i = 0; i < segments; i++)
+        for (int i = 0; i < segments; i++)
         {
-            Spline s = new (3, a => ArchimedesSpiral(a, 
-                rInner, 
-                (rOuter - rInner) / angle), 
-                i * angle / segments, 
+            Spline s = new(3, a => ArchimedesSpiral(a,
+                rInner,
+                (rOuter - rInner) / angle),
+                i * angle / segments,
                 (i + 1) * angle / segments);
             spiral.Add(new CubicSpline
             {

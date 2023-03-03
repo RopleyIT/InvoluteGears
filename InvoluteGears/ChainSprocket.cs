@@ -20,7 +20,7 @@ public class ChainSprocket : IGearProfile
     /// cut out the sprocket. Limits the curvature of concave corners.</param>
     /// <param name="backlash">The amount of backlash to build into the
     /// sprocket for machining errors, expansion, etc.</param>
-    
+
     public ChainSprocket(int teeth, double wire, double inner, double outer, double cutDiameter, double backlash)
     {
         ToothCount = teeth;
@@ -51,7 +51,7 @@ public class ChainSprocket : IGearProfile
     /// <summary>
     /// A unique name for the gear used for output filenames and similar purposes
     /// </summary>
-    
+
     public string ShortName
         => $"St{ToothCount}w{WireThickness:N2}i{InnerLinkLength:N2}o{OuterLinkWidth:N2}b{Backlash:N2}";
 
@@ -59,7 +59,7 @@ public class ChainSprocket : IGearProfile
     /// The less succinct description of the sprocket and all its parameters. Used on
     /// web pages and as comments in the output SVG files.
     /// </summary>
-    
+
     public string Information { get; init; }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class ChainSprocket : IGearProfile
     /// <summary>
     /// The angle between adjacent teeth at the centre of the gear
     /// </summary>
-    
+
     public double ToothAngle
         => 2 * Math.PI / ToothCount;
 
@@ -110,15 +110,6 @@ public class ChainSprocket : IGearProfile
     /// </summary>
 
     public double WireThickness { get; private set; }
-
-    /// <summary>
-    /// The tolerance in precision for cutting the sprocket.
-    /// This property is unused for SVG files, but kept
-    /// here temporarily while it appears in the common
-    /// interface IGearProfile.
-    /// </summary>
-
-    public double MaxError { get; private set; }
 
     /// <summary>
     /// Loosening of the sprocket to allow for
@@ -227,7 +218,7 @@ public class ChainSprocket : IGearProfile
     private DrawablePath ShoulderProfile()
     {
         IList<IDrawable> oneShoulder = OneShoulderProfile();
-        DrawablePath profile = new ()
+        DrawablePath profile = new()
         {
             Closed = true,
             Curves = new List<IDrawable>()
@@ -314,7 +305,7 @@ public class ChainSprocket : IGearProfile
     private DrawablePath PinProfile()
     {
         IList<IDrawable> onePin = OnePinProfile();
-        DrawablePath profile = new ()
+        DrawablePath profile = new()
         {
             Closed = true,
             Curves = new List<IDrawable>()

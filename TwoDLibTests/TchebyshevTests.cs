@@ -9,7 +9,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void CanCreate()
         {
-            TchebyshevApproximator t = new (3, v => v * v + 3.0, -3, 3);
+            TchebyshevApproximator t = new(3, v => v * v + 3.0, -3, 3);
             Assert.IsInstanceOfType(t, typeof(TchebyshevApproximator));
             Assert.AreEqual(-3.0, t.MinimumValue);
             Assert.AreEqual(3.0, t.MaximumValue);
@@ -23,7 +23,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void ApproximatesExactPoly()
         {
-            TchebyshevApproximator t = new (5, Func, -1.0, 3.0);
+            TchebyshevApproximator t = new(5, Func, -1.0, 3.0);
             Polynomial p = t.ApproximationPolynomial;
             Assert.AreEqual(5, p.Order);
             Assert.AreEqual(0.0, p[5], 0.00000001);
@@ -37,7 +37,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void ApproximatesCubicPoly()
         {
-            TchebyshevApproximator t = new 
+            TchebyshevApproximator t = new
                 (3, x => 1 / 3.0 * x * x * x - x * x - 8 * x + 7, -4.0, 6.0);
             Polynomial p = t.ApproximationPolynomial;
             Assert.AreEqual(3, p.Order);
@@ -50,7 +50,7 @@ namespace TwoDLibTests
         [TestMethod]
         public void ApproximatesReducedPoly()
         {
-            TchebyshevApproximator t = new (2, Func, -1.0, 3.0);
+            TchebyshevApproximator t = new(2, Func, -1.0, 3.0);
             Polynomial p = t.ApproximationPolynomial;
             Assert.AreEqual(2, p.Order);
             Assert.AreEqual(3.0, p[2], 0.00000001);

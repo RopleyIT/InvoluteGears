@@ -89,11 +89,11 @@ public class Cutouts
             inlay = 0;
             keyWidth = 0;
         }
-        if(inlay != 0 && spindle > inlay)
+        if (inlay != 0 && spindle > inlay)
         {
             Errors += "Spindle diameter bigger than bearing inlay\r\n";
         }
-        if(keyWidth != 0 && (spindle > keyWidth || inlay > keyWidth))
+        if (keyWidth != 0 && (spindle > keyWidth || inlay > keyWidth))
         {
             Errors += "Keywidth should not be less than spindle or inlay diameters\r\n";
         }
