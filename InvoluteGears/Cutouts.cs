@@ -83,7 +83,21 @@ public class Cutouts
     {
         Errors = string.Empty;
         if (spindle < 0 || inlay < 0 || keyWidth < 0)
-            throw new ArgumentException("Dimensions cannot be negative");
+        {
+            Errors += "Dimensions cannot be negative\r\n";
+            spindle = 0;
+            inlay = 0;
+            keyWidth = 0;
+        }
+        if(inlay != 0 && spindle > inlay)
+        {
+            Errors += "Spindle diameter bigger than bearing inlay\r\n";
+        }
+        if(keyWidth != 0 && (spindle > keyWidth || inlay > keyWidth))
+        {
+            Errors += "Keywidth should not be less than spindle or inlay diameters\r\n";
+        }
+
         Gear = gear ?? throw new ArgumentException("No gear specified for cut out");
         SpindleDiameter = spindle;
         InlayDiameter = inlay;

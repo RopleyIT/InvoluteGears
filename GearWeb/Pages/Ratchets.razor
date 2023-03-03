@@ -7,25 +7,19 @@
 <EditForm Model=@GearData OnSubmit="@Generate">
     <DataAnnotationsValidator />
     <div class="form-row">
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="Teeth">Number of teeth</label>
             <InputNumber @bind-Value="GearData.Teeth" class="form-control form-control-lg" ParsingErrorMessage="Must be an integer" id="Teeth" />
             <small class="form-text text-muted">The number of teeth on the ratchet. Minimum value is 1.</small>
             <ValidationMessage For="() => GearData.Teeth" />
         </div>
-        <div class="form-group col-md-3">
-            <label for="Tolerance">Precision</label>
-            <InputText @bind-Value="GearData.Tolerance" class="form-control form-control-lg" ParsingErrorMessage="Number, e.g. 0.05" id="Tolerance" />
-            <small class="form-text text-muted">Precision of points in vector output to nearest 100th of a mm, e.g. 0.05</small>
-            <ValidationMessage For="() => GearData.Tolerance" />
-        </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="Module">Module</label>
             <InputText @bind-Value="GearData.Module" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="Module" />
             <small class="form-text text-muted">Module for gear to nearest 100th of a mm. Diameter at ratchet tooth tips will be number of teeth times the module.</small>
             <ValidationMessage For="() => GearData.Module" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="InnerDiameter">Inner diameter</label>
             <InputText @bind-Value="GearData.InnerDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="CutterDiameter" />
             <small class="form-text text-muted">Diameter at bottom of ratchet teeth to nearest 100th of a mm.</small>
@@ -33,37 +27,49 @@
         </div>
     </div>
     <div class="form-row">
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="CutterDiameter">Cutter diameter</label>
             <InputText @bind-Value="GearData.CutterDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 6.35" id="CutterDiameter" />
             <small class="form-text text-muted">Diameter of end mill bit used to cut the gear to nearest 100th of a mm. Set zero for ideal gear shape.</small>
             <ValidationMessage For="() => GearData.CutterDiameter" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="SpindleDiameter">Spindle diameter</label>
             <InputText @bind-Value="GearData.SpindleDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="SpindleDiameter" />
             <small class="form-text text-muted">Diameter of central bore through gear to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.SpindleDiameter" />
         </div>
-        <div class="form-group col-md-3">
+        <div class="form-group col-md-4">
             <label for="InlayDiameter">Inlay diameter</label>
             <InputText @bind-Value="GearData.InlayDiameter" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="InlayDiameter" />
             <small class="form-text text-muted">Diameter to nearest 100th of a mm of central inlay for inserting a bearing. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.InlayDiameter" />
         </div>
-        <div class="form-group col-md-3">
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
             <label for="KeyWidth">Key width</label>
             <InputText @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="KeyWidth" />
             <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.KeyFlatWidth" />
         </div>
-    </div>
-    <div class="form-row">
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary">Generate</button>
+        <div class="col-md-4">&nbsp;</div>
+        <div class="col-md-2">
+            <label for="BtnGenerate">Click to draw ratchet</label>
+            <button type="submit" class="btn btn-primary" id="BtnGenerate">Generate</button>
         </div>
-        <div class="col-md-9">
-            <a class="btn btn-primary" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+        <div class="col-md-2">
+            @if (HideDownload)
+            {
+                <span>
+                    Click 'Generate' to show the ratchet gear for your parameter settings.
+                </span>
+            }
+            else
+            {
+                <label for="AnchorSVG">Download ratchet SVG</label>
+                <a class="btn btn-primary" id="AnchorSVG" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+            }
         </div>
     </div>
 </EditForm>
@@ -71,7 +77,7 @@
 {
     <div class="card m-md-4">
         <div class="card-body">
-            <h5 class="card-title">Involute spur gear</h5>
+            <h5 class="card-title">Ratchet sprocket</h5>
             <p class="card-text">@ImageDescription</p>
         </div>
         @InvImage
@@ -80,6 +86,7 @@
 
 @code {
     bool IsDisabled = true;
+    bool HideDownload = true;
     RatchetParams GearData = new RatchetParams();
     MarkupString InvImage = new();
     MarkupString ImageDescription = new MarkupString(string.Empty);
@@ -88,9 +95,11 @@
 
     void Generate(EditContext ctx)
     {
+        GearData.Tolerance = "0";
         IsDisabled = true;
         if (ctx.Validate())
         {
+            IsDisabled = false;
             try
             {
                 var gearProfile = GearAPI.CalcRatchetImage(GearData);
@@ -99,7 +108,14 @@
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id="
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
-                IsDisabled = false;
+                if (string.IsNullOrEmpty(gearProfile.Errors))
+                {
+                    HideDownload = false;
+                }
+                else
+                {
+                    ImageDescription = Program.ToHtmlText(gearProfile.Errors);
+                }
             }
             catch (Exception x)
             {

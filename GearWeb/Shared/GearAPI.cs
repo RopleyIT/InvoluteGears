@@ -250,15 +250,10 @@ namespace GearWeb.Shared
                 Rectangle bounds = cutoutCalculator.Curves.Bounds;
                 double size = Math.Max(bounds.Width, bounds.Height);
 
-                DrawableSet dPaths = new()
-                {
-                    Paths = new List<DrawablePath>
-                        (cutoutCalculator.Curves.Paths)
-                };
                 profiles.SvgPlot = new string[]
                 {
                     SVGPlot.PlotCurves
-                        (dPaths, 640, 640, strokes, fills)
+                        (cutoutCalculator.Curves, 640, 640, strokes, fills)
                 };
                 profiles.SvgData = GearGenerator
                     .GenerateSVGCurves(cutoutCalculator, (float)size);
@@ -286,7 +281,6 @@ namespace GearWeb.Shared
                 double.Parse(gParams.KeyFlatWidth));
 
             return CreateGearPlot(cutoutCalculator);
-            //return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter, false);
         }
 
         public static Stream CalcEscapeWheelSvgZip(EscapeWheelParams gParams)
@@ -314,7 +308,6 @@ namespace GearWeb.Shared
                 double.Parse(gParams.KeyFlatWidth));
 
             return CreateGearPlot(cutoutCalculator);
-            //return CreateGearPlot(cutoutCalculator, gear.PitchCircleDiameter, false);
         }
 
         public static Stream CalcRatchetSvgZip(RatchetParams gParams)
@@ -343,10 +336,6 @@ namespace GearWeb.Shared
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
 
-            DrawableSet curves = gear.GenerateGearCurves();
-            foreach (DrawablePath p in curves.Paths)
-                cutoutCalculator.AddCurve
-                    (p, "black", "transparent");
             return CreateGearPlot(cutoutCalculator);
         }
 
@@ -365,7 +354,6 @@ namespace GearWeb.Shared
             RollerSprocket gear = new(
                 gParams.Teeth,
                 double.Parse(gParams.Pitch),
-                double.Parse(gParams.Tolerance),
                 double.Parse(gParams.RollerDiameter),
                 double.Parse(gParams.Backlash),
                 double.Parse(gParams.ChainWidth),
@@ -376,8 +364,6 @@ namespace GearWeb.Shared
                 double.Parse(gParams.SpindleDiameter),
                 double.Parse(gParams.InlayDiameter),
                 double.Parse(gParams.KeyFlatWidth));
-            cutoutCalculator.AddCurve
-                (gear.GenerateInnerGearCurve(), "black", "transparent");
 
             return CreateGearPlot(cutoutCalculator);
         }

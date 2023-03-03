@@ -3,7 +3,7 @@
 @inject StringCache Cache
 @using GearWeb.Shared;
 
-<h3>Generate Involute Gear Vector Profiles</h3>
+<h3>Generate Chain Sprocket Vector Profiles</h3>
 <EditForm Model=@GearData OnSubmit="@Generate">
     <DataAnnotationsValidator />
     <div class="form-row">
@@ -67,11 +67,22 @@
         </div>
     </div>
     <div class="form-row">
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary">Generate</button>
+        <div class="col-md-2">
+            <label for="BtnGenerate">Click to draw sprocket</label>
+            <button type="submit" class="btn btn-primary" id="BtnGenerate">Generate</button>
         </div>
-        <div class="col-md-9">
-            <a class="btn btn-primary" disabled="@HideDownload" target="_top" href="@SvgUrl">Download SVG</a>
+        <div class="col-md-2">
+            @if (HideDownload)
+            {
+                <span>
+                    Click 'Generate' to show the chain sprocket for your settings.
+                </span>
+            }
+            else
+            {
+                <label for="AnchorSVG">Download sprocket SVG</label>
+                <a class="btn btn-primary" id="AnchorSVG" disabled="@IsDisabled" target="_top" href="@SvgUrl">Download SVG</a>
+            }
         </div>
     </div>
 </EditForm>
@@ -101,6 +112,7 @@
         GearData.Tolerance = "0";
         if (ctx.Validate())
         {
+            IsDisabled = false;
             try
             {
                 var gearProfile = GearAPI.CalcChainSprocketImage(GearData);
@@ -109,7 +121,6 @@
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id="
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
-                IsDisabled = false;
                 if(string.IsNullOrEmpty(gearProfile.Errors))
                 {
                     HideDownload = false;
@@ -121,7 +132,6 @@
             }
             catch (Exception x)
             {
-                IsDisabled = false;
                 ImageDescription = Program.ToHtmlText("Status: " + x.Message);
                 InvImage = new();
                 SVG = string.Empty;

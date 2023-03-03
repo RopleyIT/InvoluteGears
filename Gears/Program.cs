@@ -138,7 +138,6 @@ internal class Program
         RollerSprocket gear = new(
             common.Teeth,
             roller.Pitch,
-            common.Tolerance,
             roller.RollerDiameter,
             common.Backlash,
             roller.ChainWidth,

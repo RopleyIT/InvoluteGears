@@ -7,32 +7,29 @@ namespace InvoluteGears;
 
 public class RollerSprocket : IGearProfile
 {
-    public RollerSprocket(int teeth, double pitch, double err, double roller, double backlash, double inner, double cutDiameter)
+    public RollerSprocket(int teeth, double pitch, double roller, double backlash, double inner, double cutDiameter)
     {
         ToothCount = teeth;
         Pitch = pitch;
-        MaxError = err;
+        MaxError = 0.0;
         RollerDiameter = roller;
         Backlash = backlash;
         ChainWidth = inner;
         CutDiameter = cutDiameter;
         Errors = String.Empty;
         Information = SetInformation();
-        var oneTooth = CalculateOneTooth();
-        OuterToothProfile = Geometry.LinearReduction
-            (oneTooth, (float)MaxError);
     }
 
     private readonly IList<Coordinate> OuterToothProfile;
 
     public string ShortName
-        => $"RSt{ToothCount}p{Pitch:N2}e{MaxError:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}";
+        => $"RSt{ToothCount}p{Pitch:N2}r{RollerDiameter:N2}b{Backlash:N2}w{ChainWidth:N2}";
 
     private string SetInformation()
     {
         var info = $"Roller sprocket: {ToothCount} teeth, pitch = {Pitch}mm\r\n";
-        info += $"precision = {MaxError}mm, roller dia = {RollerDiameter}mm\r\n";
-        info += $"backlash = {Backlash}mm, side plate = {ChainWidth:N2}\r\n";
+        info += $"roller dia = {RollerDiameter}mm, backlash = {Backlash}mm\r\n";
+        info += $"side plate = {ChainWidth:N2}\r\n";
         return info;
     }
 
@@ -124,7 +121,7 @@ public class RollerSprocket : IGearProfile
 
     public double OuterDiameter { get; private set; }
 
-    private List<Coordinate> CalculateOneTooth()
+    private IList<IDrawable> OneToothCurve()
     {
         // Adjust roller diameter for required backlash
 
@@ -132,23 +129,25 @@ public class RollerSprocket : IGearProfile
         if (rollerRadius < CutDiameter / 2)
         {
             Information += "Roller radius too small for cutter diameter\r\n";
-            return new();
+            return new List<IDrawable>();
         }
 
         // Find the centre of the upper roller
 
-        double jy = Pitch / 2;
-        double jx = jy / Math.Tan(Math.PI / ToothCount);
+        Coordinate upperRollerCentre 
+            = new(Pitch / (2 * Math.Tan(Math.PI / ToothCount)), Pitch / 2);
 
         // Calculate the contact part of the roller with
         // the sprocket when embedded in the sprocket
 
-        var contactPts = Geometry.CirclePoints(
-            Math.PI * (1 + 1.0 / ToothCount),
-            Math.PI * 1.5,
-            Geometry.AngleStep,
-            rollerRadius,
-            new Coordinate(jx, jy));
+        IDrawable contactPts = new CircularArc
+        {
+            StartAngle = Math.PI * (1 + 1.0 / ToothCount),
+            EndAngle = Math.PI * 1.5,
+            Anticlockwise = true,
+            Radius = rollerRadius,
+            Centre = upperRollerCentre
+        };
 
         // The angle from the roller centre to the tip of
         // the tooth at the sprocket's maximum radius
@@ -159,59 +158,50 @@ public class RollerSprocket : IGearProfile
         // Calculate the part of the tooth that clears the
         // roller while it is unwinding from the sprocket
 
-        var clearPts = Geometry.CirclePoints(
-            tipAngle,
-            Math.PI / 2,
-            Geometry.AngleStep,
-            Pitch - rollerRadius,
-            new Coordinate(jx, -jy));
+        IDrawable clearPts = new CircularArc
+        {
+            StartAngle = tipAngle,
+            EndAngle = Math.PI / 2,
+            Anticlockwise = true,
+            Radius = Pitch - rollerRadius,
+            Centre = upperRollerCentre.Conjugate
+        };
 
-        var rimPoints = Geometry.CirclePoints(
-            0,
-            addendumAngle,
-            Geometry.AngleStep,
-            PitchRadius + rollerRadius);
+        // Now compute the rim curve at the teeth tips
+
+        IDrawable rimPts = new CircularArc
+        {
+            StartAngle = 0,
+            EndAngle = addendumAngle,
+            Anticlockwise = true,
+            Radius = PitchRadius + rollerRadius,
+            Centre = Coordinate.Empty
+        };
 
         // Set the dimensions of the bounding box
 
         OuterDiameter = (PitchRadius + rollerRadius) * 2;
-        return contactPts
-            .Select(p => p.Conjugate)
-            .Concat(clearPts.Reverse().Select(p => p.Conjugate))
-            .Concat(rimPoints.Select(p => p.Conjugate).Reverse())
-            .Concat(rimPoints)
-            .Concat(clearPts)
-            .Concat(contactPts.Reverse()).ToList();
+
+        return new List<IDrawable>
+        {
+            contactPts.ReflectY(),
+            clearPts.Reversed().ReflectY(),
+            rimPts.ReflectY().Reversed(),
+            rimPts,
+            clearPts,
+            contactPts.Reversed()
+        };
     }
 
-    private IEnumerable<Coordinate> ToothProfile(int gap)
+    private IList<IDrawable> CompleteGearCurve()
     {
-        double angle = 2 * Math.PI * (gap % ToothCount) / (double)ToothCount;
-        return
-            OuterToothProfile
-            .Rotated(angle);
+        IList<IDrawable> oneTooth = OneToothCurve();
+        IList<IDrawable> allTeeth = new List<IDrawable>(oneTooth);
+        for (int i = 1; i < ToothCount; i++)
+            allTeeth.AddRange(oneTooth.Select(t => t
+                .RotatedBy(2 * Math.PI * i / ToothCount, Coordinate.Empty)));
+        return allTeeth;
     }
-
-    /// <summary>
-    /// Generate the complete path of
-    /// points for the whole sprocket outer edge
-    /// </summary>
-    /// <returns>The set of points describing the sprocket outer edge
-    /// </returns>
-
-    private IEnumerable<Coordinate> GenerateCompleteGearPath() => Enumerable
-            .Range(0, ToothCount)
-            .Select(i => ToothProfile(i))
-            .SelectMany(p => p);
-
-    /// <summary>
-    /// Calculate the path for the base wheel either side of the teeth
-    /// </summary>
-    /// <returns>Base wheel circle</returns>
-
-    private IEnumerable<Coordinate> GenerateInnerGearPath() =>
-        Geometry.CirclePoints
-            (0, 2 * Math.PI, Geometry.AngleStep, InnerDiameter / 2);
 
     /// <summary>
     /// Calculate the angle between the X axis and the point at which the
@@ -267,29 +257,10 @@ public class RollerSprocket : IGearProfile
             {
                 new DrawablePath
                 {
-                    Curves = new List<IDrawable>
-                    {
-                        new PolyLine
-                        {
-                            Vertices = GenerateCompleteGearPath().ToList()
-
-                        }
-                    },
+                    Curves = CompleteGearCurve(),
                     Closed = true
-                }
-            }
-        };
-
-    public DrawablePath GenerateInnerGearCurve()
-        => new ()
-        {
-            Curves = new List<IDrawable>
-            {
-                new PolyLine
-                {
-                    Vertices = GenerateInnerGearPath().ToList()
-
-                }
+                },
+                CircularArc.Circle(InnerDiameter/2)
             }
         };
 }

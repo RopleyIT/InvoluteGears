@@ -16,7 +16,10 @@ public class Ratchet : IGearProfile
         CutDiameter = cutDiameter;
         Errors = String.Empty;
         Information = SetInformation();
-        //CalculatePoints();
+
+        if (InnerDiameter > Module * ToothCount - 1.5 * CutDiameter)
+            Errors += "Inner diameter too close to outside diameter. "
+                + "Reduce inner diameter, or increase module.";
     }
 
     private string SetInformation()
