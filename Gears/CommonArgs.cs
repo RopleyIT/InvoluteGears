@@ -12,11 +12,6 @@ namespace Gears
         [Description("The number of teeth around the edge of the sprocket")]
         public int Teeth { get; set; }
 
-        [Arg("--accuracy")]
-        [Arg("-a")]
-        [Description("The accuracy of the points used to plot the sprockets in mm.")]
-        public double Tolerance { get; set; } = 0;
-
         [Arg("--backlash")]
         [Arg("-b")]
         [Description("The amount of backlash to introduce, in mm.")]

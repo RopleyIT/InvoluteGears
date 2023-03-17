@@ -18,7 +18,7 @@ internal class Program
             new InvoluteArgs(), new ChainArgs(), new CycloidArgs(),
             new EscapeArgs(), new RatchetArgs(), new RollerSprocketArgs()));
         Console.WriteLine("Utility options");
-        Console.WriteLine("  -c | --customratios pressure-angle tooth,counts module shift1 shift2 cutterdiameter filename");
+        Console.WriteLine("  -c | --customratios pressure-angle teeth1,teeth2 module shift1 shift2 cutterdiameter filename");
         Console.WriteLine("    Creates a table of contact ratios for the selected pressure angle and tooth counts.");
         Console.WriteLine("    The two profile shifts shift1 and shift2 are applied to each pair of tooth counts.");
         Console.WriteLine("    Cutter diameter, profile shifts and module are measured in 100ths of a millimeter.");
@@ -228,7 +228,7 @@ internal class Program
             case "--customratios":
                 if (args.Length != 8)
                 {
-                    Usage("-c pressure-angle tooth,counts module shift1 shift2 cutterdiameter filename");
+                    Usage("-c pressure-angle teeth1,teeth2 module shift1 shift2 cutterdiameter filename");
                     return;
                 }
 

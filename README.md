@@ -48,7 +48,6 @@ various types of output gear:
 | Option | Description |
 | -- | -- |
 | `-t` or `--teeth` | The number of teeth around the perimeter of this gear |
-| `-a` or `--accuracy` | The accuracy with which the paths are plotted. Lower accuracy allows fewer points |
 | `-b` or `--backlash` | Allows slack between teeth and between gears to reduce friction. Measured as a fraction of the module |
 | `-m` or `--module` | Millimetres of diameter per tooth. Pitch circle diameter = module * number of teeth |
 | `-c` or `--cutter` | The diameter of the end mill used to cut out the teeth. Gives a minimum curvature for shapes |
