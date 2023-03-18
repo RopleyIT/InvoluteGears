@@ -179,6 +179,8 @@ namespace GearWeb.Shared
             {
                 List<string> strokes = new(cutout.StrokeColours);
                 List<string> fills = new(cutout.FillColours);
+                strokes.AddRange(opposingCutout.StrokeColours);
+                fills.AddRange(opposingCutout.FillColours);
 
                 // Find the square that contains the whole plot
 
@@ -188,7 +190,7 @@ namespace GearWeb.Shared
                 // Retrieve the the two wheels and offset them to the right position.
                 // This places the origin on the common X axis between the two
                 // gear centres, and offset by their Pitch Radii. The gears are also
-                // rotated to a reference angle where the two gears are toucing at their
+                // rotated to a reference angle where the two gears are touching at their
                 // respective pitch circle radii.
 
                 DrawableSet leftGear = cutout.Curves;

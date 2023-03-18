@@ -106,6 +106,11 @@ public class Cutouts
         // First curve is the gear teeth profile
 
         Curves = gear.GenerateGearCurves(); // TODO: "black", "transparent"
+        for(int i =0; i < Curves.Paths.Count; i++)
+        {
+            FillColours.Add("transparent");
+            StrokeColours.Add("black");
+        }
 
         // Next add any cutouts in the gear
 
