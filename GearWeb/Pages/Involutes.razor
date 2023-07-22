@@ -157,13 +157,16 @@
             {
                 imageIndex = 0;
                 gearProfile = GearAPI.CalcInvoluteImage(GearData);
-                ImageDescription = Program.ToHtmlText(gearProfile.Description);
+                string description = gearProfile.Description;
+                if (!string.IsNullOrWhiteSpace(gearProfile.Errors))
+                    description += "ERROR(S):\r\n" + gearProfile.Errors;
+                ImageDescription = Program.ToHtmlText(description);
                 InvImage = new(gearProfile.SvgPlot[imageIndex]);
                 SVG = gearProfile.SvgData;
                 SvgUrl = "/api/download?id=" 
                     + Cache.Insert(gearProfile.ShortName + ".svg", SVG);
                 IsDisabled = false;
-                hasTwoGears = TwoGears();
+                hasTwoGears = string.IsNullOrWhiteSpace(gearProfile.Errors) && TwoGears();
                 CanDownload = !GearData.ShowCircles && GearData.WhichGears < 3 && GearData.WhichGears > 0;
             }
             catch (Exception x)

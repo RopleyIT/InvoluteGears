@@ -655,7 +655,7 @@ public class InvoluteGearParameters : IGearProfile
         if (CutDiameter > 0 && undercutCorrectionIdx < UndercutPoints.Count - 1)
             Information += "Undercut and dedendum adjusted for cutter diameter\r\n";
         if (ToothGapAtUndercut < CutDiameter)
-            Information += $"Cutter dia. {CutDiameter} too wide for tooth gap of {ToothGapAtUndercut:N2}\r\n";
+            Errors += $"Cutter dia. {CutDiameter} too wide for tooth gap of {ToothGapAtUndercut:N2}\r\n";
 
         // Now initialise the drawable objects, used to make the SVG
         // file much smaller using Bezier curves and arcs
