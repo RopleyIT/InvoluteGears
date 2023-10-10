@@ -95,10 +95,10 @@ public class Cutouts
         {
             Errors += "Spindle diameter bigger than bearing inlay\r\n";
         }
-        if (keyWidth != 0 && (spindle > keyWidth || inlay > keyWidth))
-        {
-            Errors += "Keywidth should not be less than spindle or inlay diameters\r\n";
-        }
+        //if (keyWidth != 0 && (spindle > keyWidth || inlay > keyWidth))
+        //{
+        //    Errors += "Keywidth should not be less than spindle or inlay diameters\r\n";
+        //}
 
         Gear = gear ?? throw new ArgumentException("No gear specified for cut out");
         SpindleDiameter = spindle;
@@ -109,7 +109,8 @@ public class Cutouts
         // the spokes and for the keying shape(s)
 
         CutoutCurveGenerator = new CutoutCurves();
-        KeyGenerator = new HexCutoutKey(keyWidth);
+        //KeyGenerator = new HexCutoutKey(keyWidth);
+        KeyGenerator = new HoleCutoutKey(keyWidth, 2);
 
         // First curve is the gear teeth profile
 
