@@ -110,7 +110,7 @@ public class SVGCreator
 
     public string InfoComment { get; set; } = string.Empty;
 
-    private static string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
+    public static string XmlHeader => "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 
     private string StartSvg
     {

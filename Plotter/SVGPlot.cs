@@ -92,7 +92,7 @@ namespace Plotter
 
         public static string PlotGraphs(IEnumerable<IEnumerable<Coordinate>> points,
             int width, int height, IList<string>? strokes = null,
-            IList<string>? fills = null)
+            IList<string>? fills = null, SVGCreator? svg = null)
         {
             if (strokes == null || fills == null
                 || strokes.Count == 0
@@ -102,7 +102,7 @@ namespace Plotter
                 fills = new List<string> { "transparent" };
             }
 
-            SVGCreator svg = new()
+            svg ??= new()
             {
                 // Turn off header, width and height
 
@@ -136,6 +136,7 @@ namespace Plotter
         {
             double unitsX = UnitSize(bounds.Width);
             double unitsY = UnitSize(bounds.Height);
+            double fontHeight = Math.Max(unitsX, unitsY) / 6;
 
             for (double v = RoundUp(bounds.Left, unitsX); v < bounds.Right; v += unitsX)
             {
@@ -146,7 +147,7 @@ namespace Plotter
                 };
 
                 PlotGraph(rule, svg, scale, "lightgray", "transparent");
-                LabelXRule(v, svg, unitsY);
+                LabelXRule(v, svg, fontHeight);
             }
             for (double v = RoundUp(bounds.Top, unitsY); v < bounds.Bottom; v += unitsY)
             {
@@ -158,25 +159,25 @@ namespace Plotter
 
                 PlotGraph(rule, svg, scale, "lightgray", "transparent");
                 if (v != 0)
-                    LabelYRule(v, svg, unitsX);
+                    LabelYRule(v, svg, fontHeight);
             }
         }
 
-        private static void LabelXRule(double v, SVGCreator svg, double units)
+        private static void LabelXRule(double v, SVGCreator svg, double fontHeight)
         {
             // First generate label string
 
             string label = v.ToString("G4");
-            if (svg.AddText(label, new(v, 0), "gray", $"{units / 6}px") is SvgText txt)
+            if (svg.AddText(label, new(v, 0), "gray", $"{fontHeight}px") is SvgText txt)
                 txt.Alignment = SvgText.Centre | SvgText.Top;
         }
 
-        private static void LabelYRule(double v, SVGCreator svg, double units)
+        private static void LabelYRule(double v, SVGCreator svg, double fontHeight)
         {
             // First generate label string
 
             string label = v.ToString("G4");
-            if (svg.AddText(label, new(0, v), "gray", $" {units / 6}px") is SvgText txt)
+            if (svg.AddText(label, new(0, v), "gray", $" {fontHeight}px") is SvgText txt)
                 txt.Alignment = SvgText.LCaseMiddle;
         }
 

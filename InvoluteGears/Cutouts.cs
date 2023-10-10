@@ -58,17 +58,19 @@ public class Cutouts
     public string Errors { get; private set; }
 
     /// <summary>
-    /// Calculate the number of spokes between the hub
-    /// and the perimeter of the gear. Based on the number
-    /// of teeth in the gear.
+    /// Cutout to leave just the spokes, reducing the
+    /// moment of inertia of the gear
     /// </summary>
-    /// <returns>The number of spokes to cut out</returns>
+    
+    public ICutouts CutoutCurveGenerator { get; set; }
 
-    private int SpokeCount()
-    {
-        int spokes = 1 + (Gear.ToothCount - 1) / 8;
-        return spokes >= 3 ? spokes : 0;
-    }
+    /// <summary>
+    /// Cutout to provide keying when a gear and a
+    /// sprocket or other type of lever need to be
+    /// locked to each other
+    /// </summary>
+    
+    public ICutouts KeyGenerator { get; set; }
 
     /// <summary>
     /// Constructor
@@ -103,20 +105,24 @@ public class Cutouts
         InlayDiameter = inlay;
         KeyWidth = keyWidth;
 
+        // Inject the default cutout generators for
+        // the spokes and for the keying shape(s)
+
+        CutoutCurveGenerator = new CutoutCurves();
+        KeyGenerator = new HexCutoutKey(keyWidth);
+
         // First curve is the gear teeth profile
 
-        Curves = gear.GenerateGearCurves(); // TODO: "black", "transparent"
+        Curves = gear.GenerateGearCurves();
         for(int i =0; i < Curves.Paths.Count; i++)
         {
             FillColours.Add("transparent");
             StrokeColours.Add("black");
         }
 
-        // Next add any cutouts in the gear
+        // Next add any cutouts in the gear to machine the spokes and rim
 
-        int spokes = SpokeCount();
-        foreach (var dp in CalculateCutoutCurves(spokes))
-            AddCurve(dp, "black", "transparent");
+        AddCurves(CutoutCurveGenerator.CalculateCutouts(Gear), "black", "transparent");
 
         // Now add the three spindle-centred items
 
@@ -137,7 +143,7 @@ public class Cutouts
             Information += "no inlay, ";
         if (KeyWidth > 0)
         {
-            AddCurve(CalculateHexKeyCurve(), "black", "transparent");
+            AddCurves(KeyGenerator.CalculateCutouts(Gear), "black", "transparent");
             Information += $"hex key width = {KeyWidth}mm\r\n";
         }
         else
@@ -158,6 +164,20 @@ public class Cutouts
         Curves.Paths.Add(d);
         FillColours.Add(fill);
         StrokeColours.Add(stroke);
+    }
+
+    /// <summary>
+    /// Add a sequence of curves to the curve set using the same
+    /// fill and stroke colours
+    /// </summary>
+    /// <param name="curves">The list of paths to add</param>
+    /// <param name="stroke">The colour for the pen strokes</param>
+    /// <param name="fill">The fill colour for a closed shape</param>
+    
+    public void AddCurves(IEnumerable<DrawablePath> curves, string stroke, string fill)
+    {
+        foreach(var curve in curves)
+            AddCurve(curve, stroke, fill);
     }
 
     /// <summary>
@@ -202,172 +222,5 @@ public class Cutouts
 
     private DrawablePath CalculateInlayCurve()
         => CircularArc.Circle(InlayDiameter / 2, Coordinate.Empty);
-
-    private IList<DrawablePath> CalculateCutoutCurves(int spokes)
-    {
-        IList<DrawablePath> cutoutCurves = new List<DrawablePath>();
-        if (spokes < 3)
-            return cutoutCurves;
-
-        // Set some design constants
-
-        double cornerRadius = Gear.Module;
-        double spokeThickness = 2.0 * Gear.Module;
-        double minHubDiameter = 8 * Gear.Module;
-
-        // Calculate the minimum hub diameter for a given number of
-        // spokes, a specified spoke thickness and corner radius.
-
-        double hubDiameter = (spokeThickness + 2 * cornerRadius)
-            / Math.Sin(Math.PI / spokes) - cornerRadius;
-        if (hubDiameter < minHubDiameter)
-            hubDiameter = minHubDiameter;
-
-        // Calculate the corner at the outer end of one side of a spoke.
-        // For this reference spoke we assume the spoke runs along the
-        // positive X axis. We shall rotate it for other spokes.
-
-        double rimDiameter = Gear.InnerDiameter - 2.0 * spokeThickness;
-        if (rimDiameter < hubDiameter + 4 * cornerRadius)
-            return cutoutCurves;
-
-        double cornerCentreY = spokeThickness / 2 + cornerRadius;
-        double rimCornerCentreX = Math.Sqrt
-            (Geometry.DiffOfSquares(rimDiameter / 2 - cornerRadius, cornerCentreY));
-        Coordinate rimCornerCentre = new(rimCornerCentreX, cornerCentreY);
-        double angleAtRim = Math.Atan2(cornerCentreY, rimCornerCentreX);
-        IDrawable outerCornerCurve = new CircularArc
-        {
-            StartAngle = -Math.PI / 2,
-            EndAngle = angleAtRim,
-            Radius = cornerRadius,
-            Centre = rimCornerCentre,
-            Anticlockwise = true
-        };
-
-        // Calculate the corner at the inner end of a spoke.
-
-        double hubCornerCentreX = Math.Sqrt
-            (Geometry.DiffOfSquares(hubDiameter / 2 + cornerRadius, cornerCentreY));
-        Coordinate hubCornerCentre = new(hubCornerCentreX, cornerCentreY);
-        double angleAtHub = Math.Atan2(cornerCentreY, hubCornerCentreX);
-
-        IDrawable innerCornerCurve = new CircularArc
-        {
-            StartAngle = Math.PI + angleAtHub,
-            EndAngle = 1.5 * Math.PI,
-            Radius = cornerRadius,
-            Centre = hubCornerCentre,
-            Anticlockwise = true
-        };
-
-        IDrawable outerRimCurve = new CircularArc
-        {
-            StartAngle = angleAtRim,
-            EndAngle = 2 * Math.PI / spokes - angleAtRim,
-            Radius = rimDiameter / 2,
-            Centre = Coordinate.Empty,
-            Anticlockwise = true
-        };
-
-        IDrawable hubCurve = new CircularArc
-        {
-            StartAngle = angleAtHub,
-            EndAngle = 2 * Math.PI / spokes - angleAtHub,
-            Radius = hubDiameter / 2,
-            Centre = Coordinate.Empty,
-            Anticlockwise = true
-        };
-
-        // Construct the first cutout curve from its
-        // various bends and straight lines
-
-        IList<IDrawable> cutoutCurve = new List<IDrawable>
-        {
-            innerCornerCurve,
-            new Line
-                (innerCornerCurve.End, outerCornerCurve.Start),
-            outerCornerCurve,
-            outerRimCurve,
-            outerCornerCurve
-                .ReflectY()
-                .RotatedBy(2 * Math.PI / spokes, Coordinate.Empty)
-                .Reversed()
-        };
-        IDrawable otherInnerCornerCurve = innerCornerCurve
-            .ReflectY()
-            .RotatedBy(2 * Math.PI / spokes, Coordinate.Empty)
-            .Reversed();
-        cutoutCurve.Add(new Line
-            (cutoutCurve.Last().End, otherInnerCornerCurve.Start));
-        cutoutCurve.Add(otherInnerCornerCurve);
-        cutoutCurve.Add(hubCurve.Reversed());
-
-        // Now add the cutout curve to the list of curves
-
-        cutoutCurves.Add(new DrawablePath
-        {
-            Curves = cutoutCurve,
-            Closed = true
-        });
-
-        // Repeat for each of the other spokes in the wheel
-
-        for (int i = 1; i < spokes; i++)
-        {
-            IList<IDrawable> cutout = new List<IDrawable>();
-            cutout.AddRange(cutoutCurve.Select(c => c.RotatedBy
-                    (2 * Math.PI * i / spokes, Coordinate.Empty)));
-            cutoutCurves.Add(new DrawablePath
-            {
-                Curves = cutout,
-                Closed = true
-            });
-        }
-        return cutoutCurves;
-    }
-
-    /// <summary>
-    /// Create a hexagonal key shape
-    /// around the inlay so that
-    /// two gears can be married on
-    /// the same centres correctly
-    /// </summary>
-    /// <returns>The list of drawables 
-    /// corresponding to the hex key</returns>
-
-    private DrawablePath CalculateHexKeyCurve()
-    {
-        // Generate the points for one sixth of the key
-        double ctrToFace = KeyWidth / 2;
-        Coordinate cornerCtr = new(
-            ctrToFace - Gear.CutDiameter / 2,
-            (ctrToFace - Gear.CutDiameter / 2) / Math.Sqrt(3.0));
-        IList<IDrawable> keyCurves = new List<IDrawable>()
-        {
-            new Line(new Coordinate(ctrToFace, 0),
-                new Coordinate(ctrToFace, cornerCtr.Y)),
-            new CircularArc
-            {
-                StartAngle = 0,
-                EndAngle = Math.PI / 3,
-                Radius = Gear.CutDiameter / 2,
-                Centre = cornerCtr,
-                Anticlockwise = true
-            }
-        };
-        for (int i = 1; i <= 5; i++)
-        {
-            keyCurves.Add(keyCurves[0]
-                .RotatedBy(i * Math.PI / 3.0, Coordinate.Empty));
-            keyCurves.Add(keyCurves[1]
-                .RotatedBy(i * Math.PI / 3.0, Coordinate.Empty));
-        }
-        return new DrawablePath
-        {
-            Curves = keyCurves,
-            Closed = true
-        };
-    }
 }
 
