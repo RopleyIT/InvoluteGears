@@ -48,9 +48,9 @@
     </div>
     <div class="form-row">
         <div class="form-group col-md-4">
-            <label for="KeyWidth">Key width</label>
+            <label for="KeyWidth">Key diameter</label>
             <InputText @bind-Value="GearData.KeyFlatWidth" class="form-control form-control-lg" ParsingErrorMessage="Positive number, e.g. 16.05" id="KeyWidth" />
-            <small class="form-text text-muted">Distance across flats of hex key at gear centre to nearest 100th of a mm. Set zero to omit.</small>
+            <small class="form-text text-muted">Key inside diameter to nearest 100th of a mm. Set zero to omit.</small>
             <ValidationMessage For="() => GearData.KeyFlatWidth" />
         </div>
         <div class="col-md-4">&nbsp;</div>
