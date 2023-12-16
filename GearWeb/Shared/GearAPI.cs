@@ -167,7 +167,8 @@ namespace GearWeb.Shared
                     + cutout.Gear.Information + cutout.Information
                     + "RIGHT GEAR\r\n"
                     + opposingCutout.Gear.Information
-                    + ContactRatioInfo(cutout.Gear, opposingCutout.Gear),
+                    + ContactRatioInfo(cutout.Gear, opposingCutout.Gear)
+                    + MaxAddendumAndDedendum(cutout.Gear, opposingCutout.Gear),
                 ShortName = cutout.Gear.ShortName + "_" + opposingCutout.Gear.ShortName,
                 SvgPlot = new string[] { string.Empty },
                 SvgData = string.Empty,
@@ -229,6 +230,27 @@ namespace GearWeb.Shared
                     .GenerateSVGCurves(cutout, (float)size);
             }
             return profiles;
+        }
+
+        private static string MaxAddendumAndDedendum
+            (IGearProfile gear1, IGearProfile gear2)
+        {
+            var thisGear = gear1 as InvoluteGearParameters;
+            var opposingGear = gear2 as InvoluteGearParameters;
+            double opposingAddendum =
+                InvoluteGearParameters.OpposingAddendumToBase
+                (thisGear.PressureAngle, thisGear.Module,
+                thisGear.ToothCount, opposingGear.ToothCount);
+            double thisAddendum =
+                InvoluteGearParameters.OpposingAddendumToBase
+                (thisGear.PressureAngle, thisGear.Module,
+                opposingGear.ToothCount, thisGear.ToothCount);
+            double thisBase = thisGear.PitchToBase;
+            double opposingBase = opposingGear.PitchToBase;
+            string result = "Maximum dedendum/addendum\r\n";
+            result += $"Left: {thisBase:N2}mm/{thisAddendum:N2}mm\r\n";
+            result += $"Right: {opposingBase:N2}mm/{opposingAddendum:N2}mm\r\n";
+            return result;
         }
 
         private static GearProfiles CreateGearPlot(Cutouts cutoutCalculator)
