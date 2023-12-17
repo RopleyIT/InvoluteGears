@@ -145,6 +145,20 @@ namespace GearWeb.Shared
             return string.Empty;
         }
 
+        private static string InvoluteAddendumAndDedendumMaxVals
+            (IGearProfile l, IGearProfile r)
+        {
+            var left = l as InvoluteGearParameters;
+            var right = r as InvoluteGearParameters;
+            if(left == null || right == null)
+                return string.Empty;
+            double leftPitchToBase = left.PitchToBase;
+            double leftMaxAddendum = InvoluteGearParameters
+                .OpposingAddendumToBase(left.PressureAngle, 
+                left.Module, right.ToothCount, left.ToothCount);
+            return $"Ded/Add: {left.PitchToBase:N2}*M/{leftMaxAddendum:N2}*M\r\n";
+        }
+
         /// <summary>
         /// When the plotting type is set to Both or Meshing (3 or 0 respectively)
         /// create the sequence of images of both gears as their teeth rotate while
@@ -165,8 +179,10 @@ namespace GearWeb.Shared
             {
                 Description = "LEFT GEAR\r\n"
                     + cutout.Gear.Information + cutout.Information
+                    + InvoluteAddendumAndDedendumMaxVals(cutout.Gear, opposingCutout.Gear)
                     + "RIGHT GEAR\r\n"
                     + opposingCutout.Gear.Information
+                    + InvoluteAddendumAndDedendumMaxVals(opposingCutout.Gear, cutout.Gear)
                     + ContactRatioInfo(cutout.Gear, opposingCutout.Gear),
                 ShortName = cutout.Gear.ShortName + "_" + opposingCutout.Gear.ShortName,
                 SvgPlot = new string[] { string.Empty },

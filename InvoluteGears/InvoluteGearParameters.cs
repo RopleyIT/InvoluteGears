@@ -27,7 +27,7 @@ public class InvoluteGearParameters : IGearProfile
     private string SetInformation()
     {
         StringBuilder info = new();
-        info.Append($"Involute: {ToothCount} teeth, module = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n");
+        info.Append($"Involute: {ToothCount} teeth, module(M) = {Module}mm, pressure angle = {PressureAngle * 180 / Math.PI:N1}\u00b0\r\n");
         info.Append($"profile shift = {ProfileShift * 100:N1}%, backlash = {Backlash * Module}mm\r\n");
         info.Append($"cutter diameter = {CutDiameter}mm\r\n");
         return info.ToString();
@@ -265,6 +265,127 @@ public class InvoluteGearParameters : IGearProfile
 
     private double AddendumInvoluteAngle
         => Math.Sqrt(Geometry.Square(AddendumCircleDiameter / BaseCircleDiameter) - 1);
+
+    /// <summary>
+    /// Given the angle between where the involute meets
+    /// the base circle and the point at which the unwound
+    /// involute is tangential to the base circle (the
+    /// parametric angle), calculate the angle from the
+    /// same starting point and the point on the involute.
+    /// </summary>
+    /// <param name="paramAngle">The parametric angle</param>
+    /// <returns>The angle to the point on the involute</returns>
+    
+    private double ParametricToBaseAngle(double paramAngle) 
+        => paramAngle - Math.Atan(paramAngle);
+
+    /// <summary>
+    /// Find the parametric angle from the start of the
+    /// involute to where it crosses a circle of a given
+    /// radius. Note the radius must exceed the base
+    /// circle radius.
+    /// </summary>
+    /// <param name="radius">Radius of the circle
+    /// we are looking for a crossing</param>
+    /// <returns>The parametric angle for the
+    /// involute reaching the crossing radius</returns>
+    
+    private double RadiusToParametricAngle(double radius)
+        => Geometry.RootDiffOfSquares
+            (2 * radius / BaseCircleDiameter, 1);
+
+    /// <summary>
+    /// Find the angle from the point at which the involute
+    /// touches the base circle to the point at which it
+    /// crosses a nominated radius. The radius must be greater
+    /// than the base circle radius.
+    /// </summary>
+    /// <param name="radius">Radius of the crossing circle</param>
+    /// <returns>The desired angle</returns>
+    
+    private double RadiusToBaseAngle(double radius)
+        => ParametricToBaseAngle(RadiusToParametricAngle(radius));
+
+    /// <summary>
+    /// Find the radial distance from the gear centre to
+    /// the involute for a given angle from the point where
+    /// the involute starts at the base circle.
+    /// </summary>
+    /// <param name="angle">The angle for which we want
+    /// the involute radial distance</param>
+    /// <returns>The radial distance to the nearest
+    /// millionth (base 2 millionth!) of the base circle
+    /// radius</returns>
+
+    private double BaseAngleToRadius(double angle) 
+        => Geometry.RootBinarySearch
+            (r => RadiusToBaseAngle(r) - angle,
+                BaseCircleDiameter * 0.5,
+                BaseCircleDiameter * 0.93105,
+                BaseCircleDiameter / (1024 * 1024));
+
+    /// <summary>
+    /// Find the radial distance of the involute at the
+    /// suggested angle from the point at which the
+    /// involute crosses the pitch circle
+    /// </summary>
+    /// <param name="pAngle">The angle from the point
+    /// at which the involute crosses the pitch circle
+    /// </param>
+    /// <returns>The radial distance to the involute
+    /// for the angle pAngle</returns>
+    
+    private double AddendumRadiusForPitchAngle(double pAngle) 
+        => BaseAngleToRadius(pAngle + ToothBaseOffset);
+
+    /// <summary>
+    /// The addendum height for an opposing gear for it
+    /// to meet the base circle at the foot of the gear's
+    /// involute curve. If the base circle is more than
+    /// one module distance below its pitch circle, we can
+    /// use the one module either side of the pitch circle
+    /// for dedendum and addendum as conventionally used.
+    /// </summary>
+    /// <param name="pressureAngle">Pressure angle for
+    /// the two gears</param>
+    /// <param name="module">The module for the two
+    /// gears</param>
+    /// <param name="teeth">Number of teeth on gear
+    /// of interest</param>
+    /// <param name="opposingTeeth">Number of teeth
+    /// on the opposing gear with which we mesh</param>
+    /// <returns>Addendum height above pitch circle
+    /// for opposing gear for it to engage at the
+    /// base of this gear's involute. In units of
+    /// mulitples of the module.</returns>
+    
+    public static double OpposingAddendumToBase
+        (double pressureAngle, double module, 
+        int teeth, int opposingTeeth)
+    {
+        // Use cosine rule to calculate length
+        // of line from opposite (right) gear
+        // centre to point at base of involute
+        // on base circle for the left gear
+
+        double baseRadius = module * teeth
+            * Math.Cos(pressureAngle) / 2;
+        double centresDistance = module 
+            * (teeth + opposingTeeth) / 2;
+        return Math.Sqrt(baseRadius * baseRadius
+            + centresDistance * centresDistance
+            - 2 * baseRadius * centresDistance 
+            * Math.Cos(pressureAngle))/module
+            - opposingTeeth / 2.0;
+    }
+
+    /// <summary>
+    /// The distance to the base circle from the pitch circle
+    /// in multiples of the module
+    /// </summary>
+    
+    public double PitchToBase
+        => (PitchCircleDiameter - BaseCircleDiameter) / (2 * Module);
 
     /// <summary>
     /// The angle occupied by one tooth and one gap
